@@ -67,6 +67,23 @@ Roles oficiales, según el prompt maestro original, que es la fuente de verdad:
 - Escribir datos de negocio solo mediante `app/Actions` (los `update` masivos no se auditan).
 - Búsquedas de texto con `App\Support\Search::unaccent()` (lista cerrada de columnas).
 
+## Requisitos para fases futuras (no perder)
+
+Detalle completo en `docs/tecnico/requisitos-fases-futuras.md`. Leerlo antes de diseñar la Fase 2.
+
+- Separación obligatoria: `Donation ≠ Payment ≠ PaymentAttempt ≠ Subscription ≠ DonationReceipt ≠ Cfdi`.
+  Método de pago en línea, marca, últimos 4 dígitos y códigos de rechazo pertenecen al pago/intento, nunca al donativo.
+- **RF-01 — Alertas de pagos y donativos con problemas** (diseño en Fase 2, correo en la fase de comunicaciones):
+  - Flujo: `PaymentAttempt → fallo → registro persistente → incidencia → notificación CRM → correo → seguimiento`. El CRM es la fuente de verdad; el correo solo avisa.
+  - Incidencias `new → reviewing → resolved` (Nueva → En revisión → Resuelta) con causa, pago/intento, quién y cuándo revisó/resolvió, notas y resolución. Leer ≠ resolver.
+  - Destinatarios por **usuarios/roles** (mínimo Administrador; solución mínima); nunca correos en el código.
+  - Webhook inbox con identificador externo único: un reintento no duplica pago, donativo, incidencia ni alerta; un intento nuevo sí se registra.
+  - Fallos normalizados (categoría interna) + código del proveedor + mensaje sanitizado, por separado. Nunca PAN, CVV, banda ni datos de autenticación.
+  - Recurrentes: un intento fallido no cancela la suscripción; historial completo de intentos.
+- **Sin migrar antes de aprobar el diseño de la Fase 2:** origen manual/automático del donativo; actores humano vs sistema
+  (**sin "usuario sistema" ficticio**); significado de `donations.payment_method` (no agregar métodos en línea por suposición);
+  reembolsos (**no** equivalen a cancelar; nunca borrar pago ni donativo).
+
 ## Convenciones
 
 - Código, clases, tablas y columnas en **inglés**. Interfaz, textos, correos y documentación en **español de México**.

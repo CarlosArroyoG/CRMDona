@@ -123,6 +123,14 @@ pruebas usan cola síncrona).
 
 - Aprobación de la Fase 1.
 - **Antes de la Fase 2:** elegir la pasarela de pagos.
+- **Requisito RF-01 (alertas de pagos y donativos con problemas):** la Fase 2 debe diseñar
+  `Payment`, `PaymentAttempt`, webhook inbox idempotente e incidencias
+  (`Nueva → En revisión → Resuelta`) con aviso en el panel (y correo en la fase de comunicaciones),
+  destinatarios por usuario o rol, clasificación normalizada de fallos, filtros y exportaciones. El
+  modelo actual no lo impide; quedan decisiones abiertas sobre `donations` (origen manual o
+  automático, actores humano o sistema sin usuario ficticio, significado de `payment_method`,
+  reembolsos distintos de la cancelación) que se presentarán en el diseño antes de cualquier
+  migración. Ver `docs/tecnico/requisitos-fases-futuras.md`.
 - Decidir si se agrega el restablecimiento de contraseña por el Administrador.
 
 ## Cómo probarlo manualmente

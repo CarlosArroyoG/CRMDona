@@ -28,6 +28,15 @@ recibo simple sin CFDI.
   campaña (`Donation::effectiveProgram()`, scope `forProgram`). Una campaña con donativos no puede
   cambiar de programa (Action + trigger `campaigns_program_locked`).
 
+## Requisito relacionado
+
+La separación se amplía a `Donation ≠ Payment ≠ PaymentAttempt ≠ Subscription ≠ DonationReceipt
+≠ Cfdi`. Las alertas de pagos fallidos, las incidencias y los intentos de cobro (RF-01) se diseñan
+sobre `Payment` en la Fase 2, nunca como columnas de `donations`; los datos del método de pago en
+línea pertenecen al pago o intento. Ver `docs/tecnico/requisitos-fases-futuras.md`, que lista las
+decisiones abiertas sobre `donations` (origen, actores humano o sistema, `payment_method`,
+reembolsos), a resolver en el diseño de la Fase 2 antes de migrar.
+
 ## Consecuencias
 
 - Cada fase agrega su tabla sin reescribir `donations`.

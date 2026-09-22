@@ -28,6 +28,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
   tampoco (FK `restrict`). ADR-008.
 - Seeder de demostración ficticio (solo local/testing) sin credenciales utilizables.
 - Manual de usuario por módulo, guía del modelo de datos, ADR-003 a ADR-009.
+- `docs/tecnico/requisitos-fases-futuras.md` con el requisito RF-01 (alertas de pagos y donativos
+  con problemas) como dependencia de la Fase 2 y de la fase de comunicaciones.
 - 202 pruebas (695 aserciones).
 
 ### Cambiado
