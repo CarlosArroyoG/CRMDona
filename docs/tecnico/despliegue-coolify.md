@@ -86,6 +86,18 @@ desde las redes de `TRUSTED_PROXIES`, y así genera URLs `https://`. No confía 
 `X-Forwarded-Host` ni `X-Forwarded-Port` (el proxy no cambia el host), para evitar la inyección
 de cabecera Host.
 
+## 3.1 Requisitos de PostgreSQL (Fase 1) — PENDIENTE EXTERNO
+
+- Extensión **`unaccent`** (búsqueda sin acentos, ADR-009). Viene en las imágenes oficiales de
+  PostgreSQL que usa Coolify. La crea la migración; desde PostgreSQL 13 es *trusted* y basta con que
+  el usuario de la aplicación sea dueño de la base.
+- Si la extensión no existe, la migración falla con el mensaje *"PostgreSQL no tiene disponible la
+  extensión unaccent…"* y el despliegue de `app` no queda sano: usar una imagen oficial de
+  PostgreSQL.
+- Las migraciones crean funciones y triggers (`f_unaccent`, `donations_no_delete`,
+  `campaigns_program_locked`, `audit_logs_append_only`); el usuario necesita permiso para crear
+  funciones en su base (lo tiene si es el dueño).
+
 ## 4. Almacenamiento persistente — PENDIENTE EXTERNO
 
 El contenedor se reemplaza en cada despliegue. Todo lo que la aplicación escribe en disco y
@@ -93,10 +105,15 @@ deba conservarse va en un volumen:
 
 | Volumen | Ruta en el contenedor | Recurso | Para qué |
 |---|---|---|---|
-| `crm-storage` | `/var/www/html/storage/app` | `app` y `worker` (el mismo volumen) | Archivos subidos y, desde la Fase 3, los XML/PDF de los CFDI |
+| `crm-storage` | `/var/www/html/storage/app` | `app`, `worker` y `scheduler` (el mismo volumen) | Logotipo (`public/`), exportaciones temporales (`private/filament_exports`) y, desde la Fase 3, los XML/PDF de los CFDI |
 
-En Coolify: *Persistent Storage → Add volume*. `scheduler` no escribe archivos por ahora.
+En Coolify: *Persistent Storage → Add volume*. `worker` genera las exportaciones, `app` las entrega
+y `scheduler` las purga a los 7 días: los tres deben ver el mismo volumen. El enlace
+`public/storage` para el logotipo lo crea `docker/entrypoint.sh` (`storage:link`).
 `storage/logs` no necesita volumen porque los registros van a `stderr`.
+
+**`worker` y `scheduler` son obligatorios desde la Fase 1:** sin `worker` las exportaciones se
+quedan en espera; sin `scheduler` los archivos exportados no se purgan.
 
 ## 5. Orden de despliegue y migraciones
 
@@ -122,6 +139,13 @@ php artisan app:create-admin
 
 El comando pide nombre, correo (propone `licarroyogarfias@gmail.com`) y la contraseña dos
 veces, sin mostrarla. Detalle en [`administrador-inicial.md`](administrador-inicial.md).
+
+Después, desde el panel: **Administración → Organización** (datos fiscales, autorización y aviso
+de privacidad con URL y versión) y **Administración → Usuarios** para dar de alta al resto del
+personal con su rol.
+
+**Nunca** ejecutar `db:seed` en producción: los datos de demostración solo se cargan en `local` y
+`testing`, y el seeder no crea usuarios utilizables.
 
 ## 7. Verificación después de desplegar — PENDIENTE EXTERNO
 

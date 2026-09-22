@@ -26,13 +26,4 @@ enum Role: string implements HasLabel
             self::ReadOnly => 'Solo lectura',
         };
     }
-
-    /**
-     * Por ahora solo el Administrador entra al panel. Los demás roles se
-     * habilitan en la fase que construya los módulos que usarán.
-     */
-    public function canAccessPanel(): bool
-    {
-        return $this === self::Administrator;
-    }
 }

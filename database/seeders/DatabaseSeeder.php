@@ -7,11 +7,16 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 
 /**
- * No crea usuarios: el administrador se crea con `php artisan app:create-admin`
- * para que ninguna credencial quede en el código. Los datos de demostración
- * (ficticios) se agregan aquí conforme existan los módulos.
+ * Nunca crea usuarios con credenciales conocidas: el administrador se crea
+ * con `php artisan app:create-admin`. Los datos de demostración (ficticios)
+ * solo se cargan en local y testing.
  */
 class DatabaseSeeder extends Seeder
 {
-    public function run(): void {}
+    public function run(): void
+    {
+        if (app()->environment(['local', 'testing'])) {
+            $this->call(DemoDataSeeder::class);
+        }
+    }
 }

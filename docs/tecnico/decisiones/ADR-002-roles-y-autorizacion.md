@@ -1,6 +1,6 @@
 # ADR-002 — Roles y autorización
 
-- **Estado:** Aceptado
+- **Estado:** Aceptado (actualizado en la Fase 1)
 - **Fecha:** 2026-09-22
 
 ## Contexto
@@ -17,28 +17,55 @@ El CRM tiene cuatro roles oficiales (definidos en el prompt maestro):
 Una versión anterior de `CLAUDE.md` mencionaba los roles "Gestores" y "Voluntario recolector", y
 decía que no existía el rol Contador. Eso quedó **sin efecto**.
 
-Cada usuario tiene un solo rol. En la Fase 0 todavía no existen módulos de negocio.
+Cada usuario tiene un solo rol.
 
 ## Decisión
 
-1. **Columna `role` en `users`** (texto, nulo permitido, indexada) con los valores del enum
-   propio `App\Enums\Role`. Los valores guardados están en inglés; las etiquetas en español
-   salen de `Role::getLabel()`. Un usuario sin rol no tiene acceso.
-2. **Sin paquetes de permisos** (no se instala `spatie/laravel-permission`).
-3. **Policies de Laravel** para autorizar cada módulo. Cada Policy se crea **junto con su
-   módulo**, en la fase que lo construya; no se crean Policies para módulos que aún no existen.
-4. **Acceso al panel:** `User` implementa `FilamentUser`, y `canAccessPanel()` delega en
-   `Role::canAccessPanel()`. Por ahora solo `Administrator` devuelve `true`. Los demás roles se
-   habilitan en la fase que construya los primeros módulos que usarán, junto con sus Policies.
-5. `role` **no es asignable en masa** (no está en `#[Fillable]`); se asigna de forma explícita
-   (por ejemplo, en `App\Actions\Users\CreateAdministrator`).
+1. **Columna `role` en `users`** con los valores del enum propio `App\Enums\Role`. Sin paquetes
+   de permisos. Un usuario sin rol no tiene acceso.
+2. **Matriz única de permisos** en `App\Enums\Permission`: cada permiso sabe qué roles lo tienen
+   (`Permission::roles()`). `User::hasPermission()` la consulta y además exige que el usuario esté
+   activo.
+3. **Policies de Laravel** por módulo (`app/Policies`). Consultan la matriz y agregan reglas de
+   estado (por ejemplo, solo se edita un donativo "Por confirmar"). No hay `Gate::before`: el
+   Administrador aparece explícitamente en la matriz.
+4. **Acceso al panel:** `User::canAccessPanel()` = tiene rol **y** está activo. Desde la Fase 1
+   entran los cuatro roles.
+5. `role` y `deactivated_at` **no son asignables en masa**; los cambian solo las Actions de
+   usuarios. Siempre debe quedar al menos un Administrador activo.
+
+## Matriz (Fase 1)
+
+A = Administrador · C = Coordinador de procuración de fondos · Co = Contador · L = Solo lectura
+
+| Permiso (`Permission`) | A | C | Co | L |
+|---|---|---|---|---|
+| Ver donantes (`donors.view`) | ✔ | ✔ | ✔ | ✔ |
+| Crear, editar y archivar donantes (`donors.manage`) | ✔ | ✔ | — | — |
+| Eliminar donantes sin donativos (`donors.delete`) | ✔ | — | — | — |
+| Ver y editar datos fiscales (`donors.tax_profile`) | ✔ | ✔ | ✔ | — |
+| Exportar donantes (`donors.export`) | ✔ | ✔ | ✔ | — |
+| Crear etiquetas (`tags.manage`) | ✔ | ✔ | — | — |
+| Ver y exportar programas y campañas | ✔ | ✔ | ✔ | ✔ |
+| Crear, editar y archivar programas y campañas | ✔ | ✔ | — | — |
+| Eliminar programas y campañas sin donativos | ✔ | — | — | — |
+| Ver donativos (`donations.view`) | ✔ | ✔ | ✔ | ✔ |
+| Registrar y editar donativos "Por confirmar" (`donations.register`) | ✔ | ✔ | ✔ | — |
+| Confirmar y cancelar donativos (`donations.confirm`) | ✔ | — | ✔ | — |
+| Exportar donativos (`donations.export`) | ✔ | ✔ | ✔ | — |
+| Ver configuración de la organización | ✔ | — | ✔ | — |
+| Editar configuración de la organización | ✔ | — | — | — |
+| Bitácora de auditoría | ✔ | — | — | — |
+| Usuarios | ✔ | — | — | — |
+
+Todos los roles pueden cambiar su propia contraseña. Nadie elimina donativos ni registros de la
+bitácora (ADR-008). La prueba `tests/Unit/Enums/PermissionMatrixTest.php` compara el código con
+esta tabla: cambiarla exige cambiar ambas a propósito.
 
 ## Consecuencias
 
-- Simple de entender, sin tablas extra ni caché de permisos.
-- Las Policies consultan `$user->role`; así la regla de cada módulo vive en un solo lugar y
-  tiene pruebas.
-- **Migración futura:** si aparecen requisitos reales de varios roles por usuario o permisos
-  granulares configurables desde la interfaz, se reemplaza la columna por tablas de roles y
-  permisos (o un paquete, con su propio ADR). Como toda la autorización pasa por Policies y por
-  `canAccessPanel()`, el cambio queda en esos puntos y no en controladores ni Resources.
+- Una sola fuente de verdad, fácil de revisar y probar.
+- **Migración futura:** si aparecen varios roles por usuario o permisos configurables desde la
+  interfaz, se reemplaza `Permission::roles()` por tablas de roles y permisos (o un paquete, con su
+  propio ADR). Como toda la autorización pasa por `hasPermission()` y las Policies, el cambio queda
+  en esos puntos.

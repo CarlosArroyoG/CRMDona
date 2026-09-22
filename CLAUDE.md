@@ -8,8 +8,12 @@ El documento de requisitos completo lo entregó el usuario al iniciar el proyect
 
 ## Estado actual
 
-- **Fase 0 — Cimientos: cerrada** (2026-09-22), validada con Docker Compose real. Ver `docs/fases/FASE-00-resumen.md`.
-- **Siguiente:** Fase 1, solo con aprobación explícita del usuario.
+- **Fase 0 — Cimientos: cerrada** (2026-09-22). Ver `docs/fases/FASE-00-resumen.md`.
+- **Fase 1 — Núcleo del CRM: implementada y validada localmente** (2026-09-22); **pendiente de
+  aprobación del usuario**. Ver `docs/fases/FASE-01-resumen.md`.
+- **Siguiente:** Fase 2 (pasarela de pagos), solo con aprobación explícita. Antes preguntar la pasarela.
+- Modelo de datos y reglas: `docs/tecnico/modelo-de-datos.md` y ADR-002 a ADR-009.
+- Decisiones fiscales pendientes (uso de CFDI, régimen, especie): `docs/pendientes.md`. No codificarlas sin confirmación.
 - Docker Desktop con motor libkrun (no WSL2). La carpeta del proyecto se comparte mediante
   `FilesharingDirectories` en `%APPDATA%\Docker\settings-store.json` (la interfaz no lo guardaba).
 - Pruebas: siempre en `crm_testing`. `tests/TestCase.php` las detiene si apuntan a otra base.
@@ -48,17 +52,27 @@ Roles oficiales, según el prompt maestro original, que es la fuente de verdad:
 | Solo lectura | `read_only` | `Role::ReadOnly` |
 
 - Un rol por usuario: columna `users.role` + enum `App\Enums\Role`, sin paquetes de permisos.
-- Autorización con **Policies de Laravel**, cada una creada junto con su módulo (nunca antes).
-- Acceso al panel: `User::canAccessPanel()` → `Role::canAccessPanel()`. Hoy solo Administrador;
-  los demás roles se habilitan en la fase de sus primeros módulos.
-- Los permisos por módulo de cada rol se toman del prompt maestro al construir cada módulo.
+- **Matriz única** en `App\Enums\Permission` (tabla aprobada en ADR-002 y en
+  `tests/Unit/Enums/PermissionMatrixTest.php`); Policies por módulo la consultan y agregan reglas de estado.
+- Acceso al panel: `User::canAccessPanel()` = tiene rol y está activo (los cuatro roles entran).
+- Módulos nuevos: agregar sus permisos a la matriz y su Policy junto con el módulo.
 - Quedan sin efecto los roles "Gestores" y "Voluntario recolector" de versiones anteriores de este archivo.
+
+## Reglas de dominio (Fase 1)
+
+- `Donation` ≠ `Payment` ≠ `DonationReceipt` ≠ `Cfdi` (ADR-005). Las fases futuras agregan tablas propias que apuntan a `donations`.
+- Donativos: siempre nacen `pending`; `confirmed` no se edita; errores → cancelar con motivo. Nunca se eliminan (trigger).
+- Destino único del donativo: campaña, programa o fondo general. Programa para reportes = directo o el de la campaña.
+- Auditoría: cada modelo declara `auditValueFields()` y `auditNameOnlyFields()`; datos personales/fiscales sin valor (ADR-006).
+- Escribir datos de negocio solo mediante `app/Actions` (los `update` masivos no se auditan).
+- Búsquedas de texto con `App\Support\Search::unaccent()` (lista cerrada de columnas).
 
 ## Convenciones
 
 - Código, clases, tablas y columnas en **inglés**. Interfaz, textos, correos y documentación en **español de México**.
 - Idioma `es` (textos en `lang/es`), formato regional `es_MX`, zona horaria `America/Mexico_City`, moneda `MXN`.
-- Montos: nunca `float`/`double`; columnas `decimal`/`numeric` en PostgreSQL.
+- Montos: nunca `float`/`double`; `numeric(12,2)` en PostgreSQL, strings + bcmath en PHP (`App\Support\Money`, ADR-004).
+- Los CHECK de PostgreSQL que deben fallar se prueban dentro de `DB::transaction()` (savepoint).
 - Commits en español con prefijos `feat:`, `fix:`, `docs:`, `test:`, `refactor:`, `chore:`.
 - Repositorio: https://github.com/CarlosArroyoG/CRMDona.
 
@@ -88,6 +102,7 @@ No hay PHP ni Composer en el equipo: todo corre en Docker. Detalle en `docs/tecn
 
 - `docker compose up -d` — levanta app (http://localhost:8000), worker, scheduler, postgres y redis.
 - `docker compose exec app php artisan app:create-admin` — crea un administrador (contraseña oculta).
+- `docker compose exec -e DB_DATABASE=crm_validation app php artisan migrate:fresh --seed` — datos de demostración en una base desechable (`migrate:fresh` en `crm` borra tu administrador local).
 - `docker compose exec app vendor/bin/pest` — pruebas (usan la base `crm_testing`).
 - `docker compose exec app vendor/bin/pint` — formato.
 - `docker compose exec app vendor/bin/phpstan analyse --memory-limit=1G` — Larastan.

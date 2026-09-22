@@ -7,29 +7,35 @@
 
 ## Iniciar sesión
 
-1. Abre la dirección del panel. Si no has iniciado sesión, verás la pantalla **Entre a su cuenta**.
+1. Abre la dirección del panel. Si no has iniciado sesión verás la pantalla **Entre a su cuenta**.
 2. Escribe tu **correo electrónico** y tu **contraseña**.
 3. Presiona **Entrar**.
 
-Si los datos no son correctos verás el mensaje *"Estas credenciales no coinciden con nuestros
-registros."* Revisa que el correo esté bien escrito y vuelve a intentarlo. Tras varios intentos
-fallidos, el sistema te pedirá esperar unos segundos.
-
 ## ¿Quién puede entrar?
 
-Cada persona tiene un **rol**:
+Cualquier persona con usuario **activo** y uno de los cuatro roles: Administrador, Coordinador de
+procuración de fondos, Contador o Solo lectura. Lo que cada rol puede hacer está en el
+[índice del manual](README.md).
 
-| Rol | Acceso al panel hoy |
-|---|---|
-| Administrador | Sí |
-| Coordinador de procuración de fondos | Se habilitará cuando existan sus módulos |
-| Contador | Se habilitará cuando existan sus módulos |
-| Solo lectura | Se habilitará cuando existan sus módulos |
+## Cambiar tu contraseña
 
-Si tu usuario todavía no tiene acceso, verás un mensaje de **acceso prohibido (403)**.
-Pide al Administrador que revise tu rol.
+1. Haz clic en tu nombre o iniciales (esquina superior derecha) → **Cambiar contraseña**.
+2. Escribe tu **Contraseña actual**.
+3. Escribe la **Nueva contraseña** y repítela en **Confirmar nueva contraseña**.
+4. Presiona **Guardar cambios**. Verás el aviso "Contraseña actualizada".
 
-## Primer administrador
+La nueva contraseña debe tener **mínimo 12 caracteres, con letras y números**. Ejemplo de
+estructura válida: dos palabras y un número, como "girasol-azul-2026" (no uses este ejemplo).
 
-El primer Administrador lo crea el equipo técnico desde el servidor; su contraseña la escribe
-la propia persona en ese momento y nadie más la conoce. Si la olvidas, contacta al equipo técnico.
+## Errores frecuentes
+
+| Mensaje | Qué pasa | Qué hacer |
+|---|---|---|
+| "Estas credenciales no coinciden con nuestros registros." | Correo o contraseña incorrectos | Revisa el correo y vuelve a intentarlo |
+| "Demasiados intentos…" | Varios intentos fallidos seguidos | Espera los segundos indicados |
+| Página de **acceso prohibido (403)** | Tu usuario está desactivado o no tiene rol | Pide al Administrador que lo revise |
+| "La contraseña es incorrecta." (al cambiarla) | La contraseña actual no coincide | Escríbela de nuevo con cuidado |
+
+## Olvidé mi contraseña
+
+Todavía no hay recuperación por correo. Pide ayuda al Administrador del sistema.

@@ -76,3 +76,30 @@ Si el volumen ya existía antes de agregar el script `docker/postgres/init/`, se
 `docker compose down -v` (borra los datos locales).
 
 `migrate:fresh` solo se usa contra estas bases locales. Nunca contra producción.
+
+## Datos de demostración
+
+`docker compose exec app php artisan migrate:fresh --seed` carga datos **ficticios** (programas,
+campañas, donantes con correos `@example.*`, sin teléfonos, RFC con prefijo `ZZ`, y donativos en
+los tres estados). Los registra un usuario técnico "Datos de demostración", **sin rol, desactivado
+y con contraseña aleatoria**: no sirve para entrar.
+
+`migrate:fresh` **borra todos los usuarios**, incluido tu administrador local: vuelve a crearlo con
+`app:create-admin`. Para probar migraciones sin perderlo, usa una base desechable:
+
+```sh
+docker compose exec postgres psql -U crm -d crm -c "create database crm_validation"
+docker compose exec -e DB_DATABASE=crm_validation app php artisan migrate:fresh --seed
+```
+
+Faker no incluye `es_MX`: las factories usan `es_ES` para los nombres.
+
+## Logotipo
+
+Para ver el logotipo subido en Organización: `docker compose exec app php artisan storage:link`
+(una sola vez). En producción lo hace `docker/entrypoint.sh`.
+
+## Exportaciones
+
+Se procesan en la cola (servicio `worker`) y se guardan en `storage/app/private/filament_exports`.
+El servicio `scheduler` las purga a los 7 días.

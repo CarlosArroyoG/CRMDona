@@ -2,7 +2,44 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
-## [Sin publicar]
+## [Fase 1 — Núcleo del CRM] — 2026-09-22
+
+### Agregado
+- **Configuración de la organización** (fila única): datos fiscales, autorización como donataria,
+  leyenda, logotipo, firma de correo y aviso de privacidad (URL + versión).
+- **Donantes** (persona física/moral con reglas en base de datos), datos fiscales 1:1 opcionales,
+  etiquetas, consentimientos separados (aviso de privacidad con versión y fecha; comunicaciones),
+  aviso de duplicados por correo o RFC, archivar/reactivar. ADR-003.
+- **Programas** y **campañas** (`Program 1 → N Campaign`), identificador para enlaces futuros, meta
+  y vigencia. Una campaña con donativos no cambia de programa (Action + trigger).
+- **Donativos manuales**: efectivo, transferencia, cheque, depósito y especie; destino único
+  (campaña, programa o fondo general); flujo `Por confirmar → Confirmado / Cancelado` con
+  trazabilidad; importes `numeric(12,2)` con bcmath. ADR-004 y ADR-005.
+- **Usuarios** (solo Administrador): alta con rol, cambio de rol, desactivar/reactivar; siempre
+  queda un Administrador activo. Cambio de la propia contraseña para todos los roles.
+- **Permisos por rol**: matriz única `App\Enums\Permission` + Policies por módulo. Los cuatro roles
+  entran al panel. ADR-002 actualizado.
+- **Bitácora de auditoría** propia, con lista cerrada de campos por modelo (datos personales y
+  fiscales sin valor), eventos de negocio y tabla de solo inserción (trigger). ADR-006.
+- **Búsqueda sin acentos** con `unaccent` + `f_unaccent`. ADR-009.
+- **Exportación CSV (UTF-8 con BOM) y XLSX** nativa de Filament, en cola, descarga solo para quien
+  la generó y purga del archivo a los 7 días. ADR-007.
+- **Conservación**: los donativos nunca se eliminan (trigger); donantes y destinos con historial
+  tampoco (FK `restrict`). ADR-008.
+- Seeder de demostración ficticio (solo local/testing) sin credenciales utilizables.
+- Manual de usuario por módulo, guía del modelo de datos, ADR-003 a ADR-009.
+- 202 pruebas (695 aserciones).
+
+### Cambiado
+- `Role::canAccessPanel()` se elimina: el acceso lo decide `User::canAccessPanel()` (rol + activo).
+- `CreateAdministrator` reutiliza `CreateUser`; la política de contraseñas vive en `Password::defaults()`.
+- `notifications.data` en `jsonb` (Filament la consulta con operadores JSON).
+- `routes/console.php`: se quita el comando de ejemplo `inspire`; se programa `model:prune` de exportaciones.
+
+### Corregido
+- Las funciones de los triggers usan `create or replace` para que `migrate:fresh` funcione más de una vez.
+
+## [Fase 0 — Cimientos] — 2026-09-22
 
 ### Agregado
 - Estructura de documentación, `CLAUDE.md` y ADR-001 (stack).

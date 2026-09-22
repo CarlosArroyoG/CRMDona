@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Actions\Users\CreateAdministrator;
+use App\Actions\Users\CreateUser;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -23,7 +24,7 @@ class CreateAdminCommand extends Command
     {
         $name = text(label: 'Nombre', required: true);
         $email = text(label: 'Correo electrónico', default: self::DEFAULT_EMAIL, required: true);
-        $password = password(label: 'Contraseña', required: true, hint: 'Mínimo '.CreateAdministrator::PASSWORD_MIN_LENGTH.' caracteres, con letras y números.');
+        $password = password(label: 'Contraseña', required: true, hint: 'Mínimo '.CreateUser::PASSWORD_MIN_LENGTH.' caracteres, con letras y números.');
         $passwordConfirmation = password(label: 'Confirma la contraseña', required: true);
 
         try {

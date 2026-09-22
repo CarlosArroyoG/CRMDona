@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\Auth\ChangePassword;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -29,6 +30,9 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
+            ->profile(ChangePassword::class, isSimple: false)
+            ->databaseNotifications()
+            ->navigationGroups(['Donativos', 'Destinos', 'Administración'])
             ->brandName(fn (): string => (string) config('app.name'))
             ->colors([
                 'primary' => Color::hex('#162562'),

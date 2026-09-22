@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-use Illuminate\Foundation\Inspiring;
-use Illuminate\Support\Facades\Artisan;
+use App\Models\Export;
+use Illuminate\Support\Facades\Schedule;
 
-Artisan::command('inspire', function () {
-    $this->comment(Inspiring::quote());
-})->purpose('Display an inspiring quote');
+// Archivos de exportación: se eliminan a los 7 días (ADR-007). Solo el
+// archivo temporal; los datos originales nunca se borran por antigüedad.
+Schedule::command('model:prune', ['--model' => [Export::class]])->dailyAt('03:00');
