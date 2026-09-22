@@ -1,0 +1,35 @@
+# ADR-001 — Stack tecnológico
+
+- **Estado:** Aceptado
+- **Fecha:** 2026-09-22
+
+## Contexto
+
+La Fundación Don Bosco necesita un CRM para gestionar donantes, donativos, pagos en línea y
+recibos deducibles (CFDI 4.0 con complemento de donatarias). Lo mantendrá un equipo pequeño,
+por lo que el sistema debe ser fácil de actualizar y tener pocas dependencias.
+
+## Decisión
+
+| Capa | Elección |
+|---|---|
+| Framework | Laravel (última versión estable) |
+| Lenguaje | PHP (última versión soportada por Laravel y Filament) |
+| Panel interno | Filament (última versión mayor estable) |
+| Página pública | Blade + Tailwind CSS en el mismo proyecto |
+| Base de datos | PostgreSQL |
+| Colas y caché | Redis |
+| Pruebas | Pest |
+| Calidad | Laravel Pint y Larastan (nivel 8 o superior) |
+| Contenedores | Dockerfile propio + `docker-compose.yml` para desarrollo |
+| Despliegue | Coolify con 5 recursos: `app`, `worker`, `scheduler`, `postgres`, `redis` |
+| CI | GitHub Actions (Pint, Larastan, Pest) |
+| Entorno local | Docker Desktop con WSL2 en Windows 11 |
+
+Las versiones exactas instaladas se registran en `CHANGELOG.md` al crear el proyecto.
+
+## Consecuencias
+
+- Un solo proyecto y un solo lenguaje para panel, página pública, colas y tareas programadas.
+- El entorno local usa las mismas imágenes que producción, lo que reduce las diferencias entre ambos.
+- Cualquier paquete adicional necesita su propio ADR y la autorización del responsable del proyecto.
