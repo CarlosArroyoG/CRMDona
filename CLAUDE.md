@@ -9,7 +9,10 @@ El documento de requisitos completo lo entregó el usuario al iniciar el proyect
 ## Estado actual
 
 - **Fase en curso:** Fase 0 — Cimientos (en progreso).
-- **Bloqueo:** Docker Desktop + WSL2 aún no instalados en el equipo de desarrollo (Windows 11). Solo existe `git`.
+- Esqueleto listo: Laravel 13 + Filament 5 + Pest + Larastan 8, Docker `dev`/`prod`, CI. Versiones en `docs/CHANGELOG.md`.
+- Docker Desktop instalado (VM libkrun, no WSL2). **Falta compartir la carpeta del proyecto** en
+  Settings → Resources → File sharing; mientras tanto se verifica pasando el código por `tar` a un contenedor.
+- Repositorio remoto: https://github.com/CarlosArroyoG/CRMDona (`origin`).
 - Resúmenes de fases cerradas: `docs/fases/`.
 
 ## Stack
@@ -53,7 +56,7 @@ Implementación con Policies de Laravel.
 - Código, clases, tablas y columnas en **inglés**. Interfaz, textos, correos y documentación en **español de México**.
 - Locale `es_MX`, zona horaria `America/Mexico_City`, moneda `MXN`.
 - Commits en español con prefijos `feat:`, `fix:`, `docs:`, `test:`, `refactor:`, `chore:`.
-- Repositorio: git local por ahora; se subirá a GitHub más adelante (Claude lo sube cuando el usuario lo indique).
+- Repositorio: https://github.com/CarlosArroyoG/CRMDona.
 
 ## Reglas contra la deuda técnica
 
@@ -77,4 +80,10 @@ Implementación con Policies de Laravel.
 
 ## Comandos útiles
 
-Se completarán al terminar la configuración de Docker en la Fase 0.
+No hay PHP ni Composer en el equipo: todo corre en Docker. Detalle en `docs/tecnico/entorno-local.md`.
+
+- `docker compose up -d` — levanta app (http://localhost:8000), worker, scheduler, postgres y redis.
+- `docker compose exec app vendor/bin/pest` — pruebas (usan la base `crm_testing`).
+- `docker compose exec app vendor/bin/pint` — formato.
+- `docker compose exec app vendor/bin/phpstan analyse --memory-limit=1G` — Larastan.
+- `docker build --target prod -t crm-donataria:prod .` — imagen de producción (Apache en el puerto 8080).

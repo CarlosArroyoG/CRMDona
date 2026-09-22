@@ -24,7 +24,7 @@ por lo que el sistema debe ser fácil de actualizar y tener pocas dependencias.
 | Contenedores | Dockerfile propio + `docker-compose.yml` para desarrollo |
 | Despliegue | Coolify con 5 recursos: `app`, `worker`, `scheduler`, `postgres`, `redis` |
 | CI | GitHub Actions (Pint, Larastan, Pest) |
-| Entorno local | Docker Desktop con WSL2 en Windows 11 |
+| Entorno local | Docker Desktop en Windows 11 (el motor instalado usa la VM libkrun, no WSL2) |
 
 Las versiones exactas instaladas se registran en `CHANGELOG.md` al crear el proyecto.
 

@@ -1,0 +1,68 @@
+# Entorno de desarrollo local. Refleja los 5 recursos de Coolify:
+# app, worker, scheduler, postgres y redis.
+#
+#   docker compose up -d            # levantar todo
+#   docker compose exec app bash    # entrar al contenedor de la aplicación
+
+x-app: &app
+  build:
+    context: .
+    target: dev
+  image: crm-donataria:dev
+  env_file: .env
+  volumes:
+    - .:/var/www/html
+  depends_on:
+    postgres:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+  restart: unless-stopped
+
+services:
+  app:
+    <<: *app
+    ports:
+      - "8000:80"
+
+  worker:
+    <<: *app
+    command: ["php", "artisan", "queue:work", "--tries=3", "--backoff=10", "--max-time=3600"]
+
+  scheduler:
+    <<: *app
+    command: ["php", "artisan", "schedule:work"]
+
+  postgres:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-crm}
+      POSTGRES_USER: ${DB_USERNAME:-crm}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-secret}
+      TZ: America/Mexico_City
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  redis:
+    image: redis:8-alpine
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
+  redis-data:
