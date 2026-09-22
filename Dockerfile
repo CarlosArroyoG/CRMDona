@@ -61,7 +61,7 @@ RUN npm run build
 
 # -----------------------------------------------------------------------------
 # prod: imagen que despliega Coolify. La misma imagen sirve para app, worker y
-# scheduler; cambia solo el comando (ver docs/tecnico/despliegue.md).
+# scheduler; cambia solo el comando (ver docs/tecnico/despliegue-coolify.md).
 # -----------------------------------------------------------------------------
 FROM base AS prod
 

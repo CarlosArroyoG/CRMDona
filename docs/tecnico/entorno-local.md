@@ -13,30 +13,54 @@ Docker Desktop debe poder montar la carpeta del proyecto en los contenedores:
 
 Sin este paso, `docker compose up` falla con el error *"the path … is not shared from the host"*.
 
+**Si la interfaz no guarda el cambio** (pasó con el motor libkrun): cerrar Docker Desktop
+(`docker desktop stop`), agregar en `%APPDATA%\Docker\settings-store.json` la línea
+`"FilesharingDirectories": ["C:\\Users\\carlo\\proyectos\\crm-donataria"],` y volver a abrirlo
+(`docker desktop start`). Comprobar con:
+
+```powershell
+docker run --rm -v "C:\Users\carlo\proyectos\crm-donataria:/w:ro" alpine ls /w
+```
+
 ## Primer arranque
 
 ```sh
-cp .env.example .env
+cp .env.example .env                                   # y poner APP_KEY (ver abajo)
 docker compose build
-docker compose run --rm app composer install
-docker compose run --rm app php artisan key:generate
+docker compose run --rm --no-deps app composer install
+docker compose run --rm --no-deps app php artisan key:generate
 docker compose up -d
 docker compose exec app php artisan migrate
+docker compose exec app php artisan app:create-admin   # contraseña oculta
 ```
 
 - Panel interno: <http://localhost:8000/admin>
 - Página pública: <http://localhost:8000>
+
+## Servicios
+
+| Servicio | Qué hace | Arranca cuando |
+|---|---|---|
+| `postgres` | Base de datos (`crm` y `crm_testing`) | Primero; health check `pg_isready` |
+| `redis` | Sesiones, caché y colas | Primero; health check `redis-cli ping` |
+| `app` | Apache + PHP en el puerto 8000 | `postgres` y `redis` sanos; health check `GET /up` |
+| `worker` | `queue:work` (colas en Redis) | `app` sano |
+| `scheduler` | `schedule:work` | `app` sano |
+
+En desarrollo nadie migra automáticamente: `migrate` se ejecuta a mano (arriba).
+`worker` y `scheduler` nunca migran, ni en desarrollo ni en producción.
 
 ## Comandos frecuentes
 
 | Tarea | Comando |
 |---|---|
 | Levantar / detener | `docker compose up -d` / `docker compose down` |
+| Estado y salud | `docker compose ps` |
 | Consola en la app | `docker compose exec app bash` |
 | Pruebas | `docker compose exec app vendor/bin/pest` |
 | Formato | `docker compose exec app vendor/bin/pint` |
 | Análisis estático | `docker compose exec app vendor/bin/phpstan analyse --memory-limit=1G` |
-| Assets de Vite | `docker run --rm -v "$PWD:/app" -w /app node:24-alpine npm run build` |
+| Crear administrador | `docker compose exec app php artisan app:create-admin` |
 | Registros | `docker compose logs -f app worker scheduler` |
 
 ## Bases de datos
@@ -44,7 +68,11 @@ docker compose exec app php artisan migrate
 El contenedor `postgres` crea dos bases la primera vez que arranca:
 
 - `crm`: desarrollo.
-- `crm_testing`: la usa Pest (`phpunit.xml` fuerza esa base para que las pruebas nunca toquen `crm`).
+- `crm_testing`: la usa Pest. `phpunit.xml` la fija con `<env>` y `<server>`, porque Compose
+  entrega el `.env` como variables del contenedor (`$_SERVER`), que Laravel lee primero. Además,
+  `tests/TestCase.php` detiene las pruebas si la base no es `crm_testing`.
 
 Si el volumen ya existía antes de agregar el script `docker/postgres/init/`, se recrea con
 `docker compose down -v` (borra los datos locales).
+
+`migrate:fresh` solo se usa contra estas bases locales. Nunca contra producción.

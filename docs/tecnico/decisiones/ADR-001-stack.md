@@ -28,6 +28,18 @@ por lo que el sistema debe ser fácil de actualizar y tener pocas dependencias.
 
 Las versiones exactas instaladas se registran en `CHANGELOG.md` al crear el proyecto.
 
+### Paquetes del esqueleto de Laravel (revisión del 2026-09-22)
+
+| Paquete | Decisión | Motivo |
+|---|---|---|
+| `laravel/tinker` | Se conserva | Consola para diagnóstico en desarrollo y en la terminal de Coolify |
+| `laravel/pail` (dev) | Se conserva | Ver registros en vivo durante el desarrollo |
+| `laravel/pao` (dev) | Eliminado | Salida de pruebas para agentes; nadie lo usaba |
+| `concurrently`, `@laravel/multiplex` (npm) | Eliminados | Solo los usaba el script `composer dev`, que suponía PHP y npm en el equipo |
+| Scripts `composer setup` y `composer dev` | Eliminados | Suponían PHP y npm instalados en el equipo; el flujo real es Docker |
+
+Roles y autorización: ver ADR-002.
+
 ## Consecuencias
 
 - Un solo proyecto y un solo lenguaje para panel, página pública, colas y tareas programadas.

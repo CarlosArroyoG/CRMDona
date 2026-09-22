@@ -63,7 +63,7 @@ return [
     |
     | Here you may specify the default timezone for your application, which
     | will be used by the PHP date and date-time functions. The timezone
-    | is set to "UTC" by default as it is suitable for most use cases.
+    | is set to "America/Mexico_City" for this project.
     |
     */
 
@@ -82,9 +82,37 @@ return [
 
     'locale' => env('APP_LOCALE', 'es'),
 
-    'fallback_locale' => env('APP_FALLBACK_LOCALE', 'es'),
+    // Último recurso técnico: toda la interfaz debe existir en `lang/es`.
+    'fallback_locale' => env('APP_FALLBACK_LOCALE', 'en'),
 
     'faker_locale' => env('APP_FAKER_LOCALE', 'es_MX'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Formato regional y moneda
+    |--------------------------------------------------------------------------
+    |
+    | Locale ICU para números y montos (Illuminate\Support\Number) y moneda
+    | predeterminada del proyecto. Se aplican en AppServiceProvider.
+    |
+    */
+
+    'regional_locale' => env('APP_REGIONAL_LOCALE', 'es_MX'),
+
+    'currency' => env('APP_CURRENCY', 'MXN'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Proxies de confianza
+    |--------------------------------------------------------------------------
+    |
+    | Rangos desde los que se aceptan las cabeceras X-Forwarded-For y
+    | X-Forwarded-Proto (el proxy HTTPS de Coolify). Por defecto, solo redes
+    | privadas: la aplicación nunca se expone directamente a internet.
+    |
+    */
+
+    'trusted_proxies' => env('TRUSTED_PROXIES', '10.0.0.0/8,172.16.0.0/12,192.168.0.0/16'),
 
     /*
     |--------------------------------------------------------------------------

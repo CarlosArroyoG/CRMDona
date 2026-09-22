@@ -8,12 +8,13 @@ El documento de requisitos completo lo entregó el usuario al iniciar el proyect
 
 ## Estado actual
 
-- **Fase en curso:** Fase 0 — Cimientos (en progreso).
-- Esqueleto listo: Laravel 13 + Filament 5 + Pest + Larastan 8, Docker `dev`/`prod`, CI. Versiones en `docs/CHANGELOG.md`.
-- Docker Desktop instalado (VM libkrun, no WSL2). **Falta compartir la carpeta del proyecto** en
-  Settings → Resources → File sharing; mientras tanto se verifica pasando el código por `tar` a un contenedor.
-- Repositorio remoto: https://github.com/CarlosArroyoG/CRMDona (`origin`).
-- Resúmenes de fases cerradas: `docs/fases/`.
+- **Fase 0 — Cimientos: cerrada** (2026-09-22), validada con Docker Compose real. Ver `docs/fases/FASE-00-resumen.md`.
+- **Siguiente:** Fase 1, solo con aprobación explícita del usuario.
+- Docker Desktop con motor libkrun (no WSL2). La carpeta del proyecto se comparte mediante
+  `FilesharingDirectories` en `%APPDATA%\Docker\settings-store.json` (la interfaz no lo guardaba).
+- Pruebas: siempre en `crm_testing`. `tests/TestCase.php` las detiene si apuntan a otra base.
+- Repositorio remoto: https://github.com/CarlosArroyoG/CRMDona (`origin`). Push, merge y rebase solo con autorización explícita.
+- Resúmenes de fases: `docs/fases/`.
 
 ## Stack
 
@@ -23,7 +24,8 @@ El documento de requisitos completo lo entregó el usuario al iniciar el proyect
 - PostgreSQL (datos) y Redis (colas y caché).
 - Pest (pruebas), Laravel Pint (formato), Larastan nivel ≥ 8.
 - Docker (Dockerfile propio) para Coolify con 5 recursos: `app`, `worker`, `scheduler`, `postgres`, `redis`.
-- GitHub Actions: Pint, Larastan y Pest en cada push.
+- GitHub Actions: Pint, Larastan, Pest y construcción de la imagen `prod` en cada push.
+- Del esqueleto de Laravel se conservan `laravel/tinker` y `laravel/pail` (ADR-001).
 - Cualquier paquete fuera de esta lista requiere ADR y autorización del usuario.
 
 ## Datos de la organización
@@ -34,27 +36,29 @@ El documento de requisitos completo lo entregó el usuario al iniciar el proyect
 - Dominios propuestos: `crm.fdonbosco.org` (panel) y `donar.fdonbosco.org` (página pública). Servidor Coolify: por definir.
 - Administrador inicial: `licarroyogarfias@gmail.com`. **La contraseña nunca se escribe en código, seeders, `.env.example` ni git**; se captura con comando interactivo.
 
-## Roles y permisos (aprobados)
+## Roles y autorización (ADR-002)
 
-| Módulo | Administrador | Gestores | Voluntario recolector |
-|---|---|---|---|
-| Usuarios, roles, configuración | Todo | — | — |
-| Donantes | Todo | Crear, editar, ver | Crear; ver solo los que registró (datos personales solo de esos) |
-| Campañas | Todo | Crear, editar, ver | Solo ver |
-| Donativos manuales | Todo | Todo excepto borrar | Registrar; ver solo los suyos |
-| Pagos, suscripciones, reembolsos | Todo | Ver; pausar/cancelar suscripciones | — |
-| CFDI | Todo | Reenviar (no cancelar) | — |
-| Reportes y tablero | Sí | Sí | — |
-| Plantillas de correo | Sí | Sí | — |
-| Bitácora de auditoría | Sí | — | — |
+Roles oficiales, según el prompt maestro original, que es la fuente de verdad:
 
-No existe rol Contador: el reporte de CFDI (Fase 5) lo ven Administrador y Gestores.
-Implementación con Policies de Laravel.
+| Rol | Valor en `users.role` | Enum |
+|---|---|---|
+| Administrador | `administrator` | `Role::Administrator` |
+| Coordinador de procuración de fondos | `fundraising_coordinator` | `Role::FundraisingCoordinator` |
+| Contador | `accountant` | `Role::Accountant` |
+| Solo lectura | `read_only` | `Role::ReadOnly` |
+
+- Un rol por usuario: columna `users.role` + enum `App\Enums\Role`, sin paquetes de permisos.
+- Autorización con **Policies de Laravel**, cada una creada junto con su módulo (nunca antes).
+- Acceso al panel: `User::canAccessPanel()` → `Role::canAccessPanel()`. Hoy solo Administrador;
+  los demás roles se habilitan en la fase de sus primeros módulos.
+- Los permisos por módulo de cada rol se toman del prompt maestro al construir cada módulo.
+- Quedan sin efecto los roles "Gestores" y "Voluntario recolector" de versiones anteriores de este archivo.
 
 ## Convenciones
 
 - Código, clases, tablas y columnas en **inglés**. Interfaz, textos, correos y documentación en **español de México**.
-- Locale `es_MX`, zona horaria `America/Mexico_City`, moneda `MXN`.
+- Idioma `es` (textos en `lang/es`), formato regional `es_MX`, zona horaria `America/Mexico_City`, moneda `MXN`.
+- Montos: nunca `float`/`double`; columnas `decimal`/`numeric` en PostgreSQL.
 - Commits en español con prefijos `feat:`, `fix:`, `docs:`, `test:`, `refactor:`, `chore:`.
 - Repositorio: https://github.com/CarlosArroyoG/CRMDona.
 
@@ -83,6 +87,7 @@ Implementación con Policies de Laravel.
 No hay PHP ni Composer en el equipo: todo corre en Docker. Detalle en `docs/tecnico/entorno-local.md`.
 
 - `docker compose up -d` — levanta app (http://localhost:8000), worker, scheduler, postgres y redis.
+- `docker compose exec app php artisan app:create-admin` — crea un administrador (contraseña oculta).
 - `docker compose exec app vendor/bin/pest` — pruebas (usan la base `crm_testing`).
 - `docker compose exec app vendor/bin/pint` — formato.
 - `docker compose exec app vendor/bin/phpstan analyse --memory-limit=1G` — Larastan.

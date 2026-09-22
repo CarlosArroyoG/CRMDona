@@ -36,6 +36,8 @@ jobs:
         with:
           php-version: "8.5"
           extensions: pdo_pgsql, intl, zip, gd, bcmath, exif, redis
+          # Igual que docker/php/app.ini.
+          ini-values: date.timezone=America/Mexico_City, intl.default_locale=es_MX, memory_limit=256M
           coverage: none
 
       - name: Caché de Composer
