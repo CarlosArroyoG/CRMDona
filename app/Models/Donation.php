@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 
 /**
@@ -50,6 +51,7 @@ use Illuminate\Support\Carbon;
  * @property-read Program|null $program
  * @property-read Campaign|null $campaign
  * @property-read Payment|null $payment
+ * @property-read DonationReceipt|null $receipt
  * @property DonationOrigin $origin
  * @property int|null $payment_id
  */
@@ -106,6 +108,24 @@ class Donation extends Model
     public function activeCfdi(): ?Cfdi
     {
         return $this->cfdis()->whereNotIn('status', CfdiStatus::inactiveValues())->where('replacement_pending', false)->first();
+    }
+
+    /**
+     * Recibo simple (acuse, no fiscal).
+     *
+     * @return HasOne<DonationReceipt, $this>
+     */
+    public function receipt(): HasOne
+    {
+        return $this->hasOne(DonationReceipt::class);
+    }
+
+    /**
+     * Campaña, programa o fondo general, para textos al donante.
+     */
+    public function destinationLabel(): string
+    {
+        return $this->campaign->name ?? $this->effectiveProgram()->name ?? 'el fondo general';
     }
 
     /**

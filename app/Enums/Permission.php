@@ -59,6 +59,12 @@ enum Permission: string
     case IssueCfdis = 'cfdi.issue';
     case CancelCfdis = 'cfdi.cancel';
 
+    // Fase 4 — comunicaciones (docs/tecnico/fase-4-comunicaciones.md).
+    case ViewDonationReceipts = 'receipts.view';
+    case ViewCommunications = 'communications.view';
+    case ResendCommunications = 'communications.resend';
+    case ManageMessageTemplates = 'communications.templates';
+
     /**
      * @return list<Role>
      */
@@ -72,10 +78,10 @@ enum Permission: string
             self::ViewDonors, self::ViewPrograms, self::ViewCampaigns, self::ViewDonations,
             self::ExportPrograms, self::ExportCampaigns, self::ViewPayments, self::ViewSubscriptions => Role::cases(),
             self::ManageDonors, self::ManageTags, self::ManagePrograms, self::ManageCampaigns,
-            self::ManageSubscriptions => $fundraising,
+            self::ManageSubscriptions, self::ManageMessageTemplates => $fundraising,
             self::ManageDonorTaxProfiles, self::ExportDonors, self::RegisterDonations, self::ExportDonations,
             self::ExportPayments, self::ViewIncidents, self::ManageIncidents, self::ReceivePaymentAlerts,
-            self::ViewCfdis => $staff,
+            self::ViewCfdis, self::ViewDonationReceipts, self::ViewCommunications, self::ResendCommunications => $staff,
             self::ConfirmDonations, self::ViewOrganizationSettings, self::ViewPaymentTechnicalDetails,
             self::RequestRefunds, self::ViewDisputes, self::HandleTechnicalIncidents,
             self::IssueCfdis, self::CancelCfdis, self::ViewCfdiTechnicalDetails => $finance,

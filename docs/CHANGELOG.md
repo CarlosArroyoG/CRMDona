@@ -2,6 +2,27 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+## [Fase 4 — Comunicaciones] — 2026-09-23 (sin servidor de correo real)
+
+### Agregado
+- **Recibo simple** (`donation_receipts`):
+  - uno por donativo confirmado, con folio `R-000000`;
+  - PDF privado que dice que no es factura ni CFDI;
+  - descarga con permiso.
+- **Agradecimiento automático** al confirmar, idempotente por donativo:
+  - adjunta el recibo y, si ya está timbrado, el CFDI;
+  - si no, el CFDI se envía una vez al timbrarse, sin repetir el agradecimiento.
+- **Felicitación de cumpleaños** diaria a las 09:00 America/Mexico_City:
+  - solo con consentimiento, sin archivados;
+  - una por donante y año.
+- **Plantillas editables** (texto con variables de una lista cerrada; sin Blade), con vista previa y texto predeterminado si una plantilla falla.
+- **Historial de envíos** (`communications`):
+  - estados en cola, enviando, enviado, fallido, no enviado y rebotado (este último sin integración aún);
+  - reintentos de la cola y reenvío manual.
+- **Baja sin sesión** con token aleatorio de 256 bits. Queda en la bitácora con la procedencia nueva "Donante".
+- Permisos `receipts.view`, `communications.view`, `communications.resend` y `communications.templates`.
+- Interruptores de agradecimiento y cumpleaños en Organización.
+
 ## [Fase 3 — CFDI] — en curso (Facturapi sin probar en Test)
 
 ### Agregado

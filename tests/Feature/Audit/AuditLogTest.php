@@ -9,8 +9,10 @@ use App\Models\AuditLog;
 use App\Models\Campaign;
 use App\Models\Cfdi;
 use App\Models\Donation;
+use App\Models\DonationReceipt;
 use App\Models\Donor;
 use App\Models\DonorTaxProfile;
+use App\Models\MessageTemplate;
 use App\Models\OrganizationSetting;
 use App\Models\Payment;
 use App\Models\PaymentAttempt;
@@ -131,6 +133,7 @@ it('tiene etiqueta en español para cada tipo y campo auditado', function (): vo
         'payment' => Payment::class, 'payment_attempt' => PaymentAttempt::class, 'subscription' => Subscription::class,
         'refund' => Refund::class, 'payment_dispute' => PaymentDispute::class, 'payment_incident' => PaymentIncident::class,
         'payment_incident_note' => PaymentIncidentNote::class, 'cfdi' => Cfdi::class,
+        'donation_receipt' => DonationReceipt::class, 'message_template' => MessageTemplate::class,
     ];
 
     foreach ($models as $type => $class) {

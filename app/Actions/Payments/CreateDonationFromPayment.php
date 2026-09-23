@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Payments;
 
 use App\Actions\Cfdi\IssueCfdiAutomatically;
+use App\Actions\Communications\QueueDonationThankYou;
 use App\Enums\DonationKind;
 use App\Enums\DonationOrigin;
 use App\Enums\DonationStatus;
@@ -53,6 +54,7 @@ class CreateDonationFromPayment
             ])->save();
 
             // Cada mensualidad cobrada es su propio donativo y, si procede, su propio CFDI.
+            DB::afterCommit(fn () => rescue(fn () => app(QueueDonationThankYou::class)->handle($donation)));
             DB::afterCommit(fn () => app(IssueCfdiAutomatically::class)->handle($donation));
 
             return $donation;

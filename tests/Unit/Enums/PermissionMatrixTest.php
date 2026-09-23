@@ -51,6 +51,11 @@ const APPROVED_MATRIX = [
     'cfdi.view_technical' => ['A', 'Co'],
     'cfdi.issue' => ['A', 'Co'],
     'cfdi.cancel' => ['A', 'Co'],
+    // Fase 4 — comunicaciones.
+    'receipts.view' => ['A', 'C', 'Co'],
+    'communications.view' => ['A', 'C', 'Co'],
+    'communications.resend' => ['A', 'C', 'Co'],
+    'communications.templates' => ['A', 'C'],
 ];
 
 function roleCode(Role $role): string

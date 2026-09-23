@@ -17,6 +17,7 @@ use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Schemas\Components\Actions;
@@ -74,6 +75,8 @@ class OrganizationSettings extends Page
             'authorization_date' => $settings->authorization_date?->toDateString(),
             'online_donation_min_amount' => $settings->online_donation_min_amount,
             'online_donation_max_amount' => $settings->online_donation_max_amount,
+            'thank_you_emails_enabled' => $settings->thank_you_emails_enabled,
+            'birthday_emails_enabled' => $settings->birthday_emails_enabled,
         ]);
     }
 
@@ -116,8 +119,17 @@ class OrganizationSettings extends Page
                     FileUpload::make('logo_path')->label('Logotipo')->image()->disk('public')->directory('organization')
                         ->maxSize(2048)->helperText('PNG o JPG, máximo 2 MB.'),
                     Textarea::make('email_signature')->label('Firma de correo')->rows(4)->maxLength(2000)
-                        ->helperText('Texto simple. Se usará en los correos de fases posteriores.'),
+                        ->helperText('Texto simple. Aparece al final de los correos a donantes.'),
                 ]),
+                Section::make('Correos automáticos a donantes')
+                    ->description('Los textos se editan en Comunicaciones → Plantillas. El servidor de correo se configura en el entorno (MAIL_*).')
+                    ->columns(2)
+                    ->schema([
+                        Toggle::make('thank_you_emails_enabled')->label('Agradecimiento al confirmar un donativo')
+                            ->helperText('Incluye el recibo simple y, si ya está timbrado, el CFDI.'),
+                        Toggle::make('birthday_emails_enabled')->label('Felicitación de cumpleaños (09:00)')
+                            ->helperText('Solo a donantes que aceptan comunicaciones y no están archivados.'),
+                    ]),
             ]);
     }
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests;
 
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
+use Illuminate\Support\Facades\Storage;
 use RuntimeException;
 
 abstract class TestCase extends BaseTestCase
@@ -27,6 +28,11 @@ abstract class TestCase extends BaseTestCase
             throw new RuntimeException('Las pruebas deben usar la base "'.self::TESTING_DATABASE."\", no \"{$database}\". Revisa phpunit.xml.");
         }
 
-        return parent::setUpTraits();
+        $traits = parent::setUpTraits();
+
+        // Recibos y CFDI se guardan en el disco privado: en pruebas, siempre simulado.
+        Storage::fake('local');
+
+        return $traits;
     }
 }

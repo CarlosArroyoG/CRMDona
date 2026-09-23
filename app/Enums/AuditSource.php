@@ -18,6 +18,7 @@ enum AuditSource: string implements HasLabel
     case Job = 'job';
     case Synchronization = 'synchronization';
     case Console = 'console';
+    case Donor = 'donor';
 
     public function getLabel(): string
     {
@@ -27,6 +28,7 @@ enum AuditSource: string implements HasLabel
             self::Job => 'Proceso automático',
             self::Synchronization => 'Sincronización con el proveedor',
             self::Console => 'Consola del servidor',
+            self::Donor => 'Donante (enlace de baja del correo)',
         };
     }
 }

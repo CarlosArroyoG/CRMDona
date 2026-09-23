@@ -20,7 +20,7 @@
 | 17 | Pausa en Stripe con `pause_collection.behavior = void` (el periodo pausado no acumula adeudo) | [D] APROBADO PROVISIONALMENTE 2026-09-23; validación real [S] | Stripe Test | Implementado como `void`; reversible en el adaptador |
 | 18 | Tratamiento fiscal de reembolsos y contracargos (recibo, CFDI) | PENDIENTE DE VALIDACIÓN FISCAL | Fase 3 (CFDI) | Hoy se bloquea la emisión si el pago tiene reembolso o disputa (#26); nada automático sobre CFDI ya timbrados |
 | 19 | Página pública de donación (Checkout embebido de Stripe y Bricks de Mercado Pago) | Técnico | Fase posterior | El dominio ya expone `StartOneTimeDonation` y `StartMonthlyDonation` |
-| 20 | Envío de alertas de incidencias por correo | Técnico | Fase de comunicaciones | Hoy: campana de Filament |
+| 20 | Envío de alertas de incidencias por correo al personal (RF-01) | Técnico | Siguiente bloque de comunicaciones (no incluido en la Fase 4) | Hoy: campana de Filament |
 | 21 | Opción B de Mercado Pago (cobros iniciados por el comercio, reintentos del CRM) | Alternativa futura | Solo si se decide | `retry_owner = crm` ya está previsto |
 | 22 | OXXO, SPEI y meses sin intereses | Ampliación futura | Solo si se decide | Serían capacidades nuevas del gateway |
 | 23 | Respaldo de `crm` antes de migrar a la Fase 2 (`pg_dump`, archivo local de la sesión) | Informativo | — | Las migraciones se aplicaron sin pérdida (1 usuario conservado) |
@@ -33,3 +33,8 @@
 | 30 | [S] Tipo de tarjeta (crédito/débito) que reportan Stripe (`card.funding`) y Mercado Pago (`payment_method.type`) en cobros reales | [S] | Sandbox de pagos | Sin ese dato, el CFDI en línea queda bloqueado |
 | 31 | [F] Emisión tardía: donativos confirmados más de 24 h después de recibidos, o confirmados antes de configurar el PAC (la conciliación solo revisa las últimas `CFDI_SWEEP_HOURS`) | [F] | Fase 3 | Se pueden emitir a mano desde el donativo |
 | 13 | ~~**RF-01 — Alertas de pagos**~~ Implementado en la Fase 2 (incidencias, campana, webhook inbox, fallos normalizados, seguimiento). Falta solo el correo (#20) | Cerrado (salvo correo) | Fase 2 | Decisiones sobre `donations` resueltas e implementadas (`origin`, `payment_id`, `manual_payment_method`, sin usuario "sistema") |
+| 32 | **Proveedor de correo real** (SMTP u otro mailer nativo de Laravel): variables `MAIL_*` en Coolify, dominio remitente con SPF/DKIM/DMARC y prueba de entrega | PENDIENTE EXTERNO | Antes de producción | Hoy `MAIL_MAILER=log` en local; las pruebas usan `Mail::fake()` |
+| 33 | **Rebotes** (`bounced`): requieren los avisos (webhooks) del proveedor de correo que se elija. El estado existe en el modelo, sin integración | Técnico, depende de #32 | Tras elegir proveedor | No se inventó soporte de un proveedor concreto |
+| 34 | [D] Agradecimiento y CFDI se envían aunque el donante no acepte comunicaciones (transaccionales); cumpleaños sí exige consentimiento | DECIDIDO técnicamente (reversible) | Fase 4 | `COMMUNICATIONS_TRANSACTIONAL_REQUIRES_CONSENT=true` lo invierte |
+| 35 | Logotipo en el PDF del recibo simple (hoy solo texto; el generador propio no incrusta imágenes) | Técnico (mejora) | Refactorización posterior | Sin paquete de PDF (requiere ADR) |
+| 36 | Baja "en un clic" (`List-Unsubscribe-Post`, RFC 8058) para grandes proveedores de correo | Técnico (mejora) | Tras #32 | Hoy el enlace lleva a una confirmación |

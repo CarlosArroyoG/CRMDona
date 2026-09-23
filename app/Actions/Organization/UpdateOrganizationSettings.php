@@ -34,6 +34,7 @@ class UpdateOrganizationSettings
      */
     public function handle(array $input): OrganizationSetting
     {
+        $raw = $input;
         $input = $this->normalize(Arr::only($input, self::FIELDS));
         if (is_string($input['rfc'] ?? null)) {
             $input['rfc'] = mb_strtoupper($input['rfc']);
@@ -76,9 +77,12 @@ class UpdateOrganizationSettings
             ]);
         }
 
-        return DB::transaction(function () use ($data): OrganizationSetting {
+        // Interruptores de correos (Fase 4): si no vienen, se conservan.
+        $switches = array_map(fn (mixed $value): bool => (bool) $value, Arr::only($raw, ['thank_you_emails_enabled', 'birthday_emails_enabled']));
+
+        return DB::transaction(function () use ($data, $switches): OrganizationSetting {
             $settings = OrganizationSetting::current();
-            $settings->fill(array_merge(array_fill_keys(self::FIELDS, null), $data))->save();
+            $settings->fill([...array_merge(array_fill_keys(self::FIELDS, null), $data), ...$switches])->save();
 
             return $settings;
         });

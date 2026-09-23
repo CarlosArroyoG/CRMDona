@@ -20,6 +20,10 @@ El documento de requisitos completo lo entregó el usuario al iniciar el proyect
   - `tax_receipt_requested` es solo informativo.
   - Fuente de verdad: `docs/tecnico/fase-3-cfdi.md`; pendientes #24–#31.
   - No inventar reglas fiscales: lo no verificado queda bloqueado en `BuildDonationCfdiDraft` con su motivo.
+- **Fase 4 — Comunicaciones: implementada con `Mail::fake()`** (2026-09-23): recibo simple, agradecimiento, envío del CFDI, cumpleaños, plantillas, historial y baja.
+  - **Falta el servidor de correo real** (#32) y los rebotes (#33).
+  - Fuente de verdad: `docs/tecnico/fase-4-comunicaciones.md`.
+  - Sin paquetes nuevos: el PDF del recibo usa `App\Support\SimplePdf`, y las plantillas usan `TemplateRenderer` (nunca Blade).
 - **Base `crm`:** tiene datos persistentes de desarrollo. Se permiten `migrate` normales (con respaldo si hay riesgo).
   Nunca `migrate:fresh`, rollback destructivo ni experimentos contra `crm`; usar `crm_testing` o `crm_validation`.
 - Modelo de datos y reglas: `docs/tecnico/modelo-de-datos.md` y ADR-002 a ADR-011.

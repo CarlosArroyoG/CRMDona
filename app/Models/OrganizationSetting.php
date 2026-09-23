@@ -27,11 +27,13 @@ use Illuminate\Support\Carbon;
  * @property string|null $privacy_notice_version
  * @property string|null $online_donation_min_amount Mínimo de negocio; nulo = solo el límite técnico del proveedor.
  * @property string|null $online_donation_max_amount Máximo de negocio; nulo = sin máximo adicional del CRM.
+ * @property bool $thank_you_emails_enabled Agradecimiento automático al confirmar un donativo.
+ * @property bool $birthday_emails_enabled Felicitación diaria de cumpleaños.
  */
 #[Fillable([
     'legal_name', 'rfc', 'tax_regime', 'tax_postal_code', 'authorization_number', 'authorization_date',
     'donation_legend', 'logo_path', 'email_signature', 'privacy_notice_url', 'privacy_notice_version',
-    'online_donation_min_amount', 'online_donation_max_amount',
+    'online_donation_min_amount', 'online_donation_max_amount', 'thank_you_emails_enabled', 'birthday_emails_enabled',
 ])]
 class OrganizationSetting extends Model
 {
@@ -55,7 +57,7 @@ class OrganizationSetting extends Model
         return [
             'legal_name', 'rfc', 'tax_regime', 'tax_postal_code', 'authorization_number', 'authorization_date',
             'donation_legend', 'logo_path', 'email_signature', 'privacy_notice_url', 'privacy_notice_version',
-            'online_donation_min_amount', 'online_donation_max_amount',
+            'online_donation_min_amount', 'online_donation_max_amount', 'thank_you_emails_enabled', 'birthday_emails_enabled',
         ];
     }
 
@@ -83,6 +85,8 @@ class OrganizationSetting extends Model
             'authorization_date' => 'date',
             'online_donation_min_amount' => 'decimal:2',
             'online_donation_max_amount' => 'decimal:2',
+            'thank_you_emails_enabled' => 'boolean',
+            'birthday_emails_enabled' => 'boolean',
         ];
     }
 }

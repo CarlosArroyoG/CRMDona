@@ -24,6 +24,8 @@ return [
         'payment_incident' => 'Incidencia de pago',
         'payment_incident_note' => 'Nota de incidencia',
         'cfdi' => 'CFDI',
+        'donation_receipt' => 'Recibo simple',
+        'message_template' => 'Plantilla de correo',
     ],
 
     'fields' => [
@@ -171,5 +173,11 @@ return [
         'cancellation_provider_status' => 'Respuesta del PAC a la cancelación',
         'xml_path' => 'Archivo XML',
         'pdf_path' => 'Archivo PDF',
+        // Comunicaciones
+        'issued_at' => 'Emitido el',
+        'subject' => 'Asunto',
+        'updated_by_id' => 'Editada por (usuario)',
+        'thank_you_emails_enabled' => 'Agradecimiento automático',
+        'birthday_emails_enabled' => 'Felicitación de cumpleaños',
     ],
 ];

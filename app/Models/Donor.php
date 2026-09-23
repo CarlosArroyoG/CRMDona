@@ -37,6 +37,7 @@ use Illuminate\Support\Carbon;
  * @property bool $accepts_communications
  * @property Carbon|null $communications_consent_updated_at
  * @property Carbon|null $archived_at
+ * @property string|null $communications_token Enlace de baja (64 hex aleatorios).
  * @property int $registered_by_id
  * @property Carbon $created_at
  * @property Carbon $updated_at
@@ -73,6 +74,27 @@ class Donor extends Model
     public function isArchived(): bool
     {
         return $this->archived_at !== null;
+    }
+
+    /**
+     * Nombre para saludar en los correos: nombre de pila o razón social.
+     */
+    public function greetingName(): string
+    {
+        return $this->first_name ?? $this->legal_name ?? $this->display_name;
+    }
+
+    /**
+     * Token no predecible del enlace de baja (se crea al primer uso). No es
+     * un cambio de negocio: se guarda sin bitácora.
+     */
+    public function communicationsToken(): string
+    {
+        if ($this->communications_token === null) {
+            $this->forceFill(['communications_token' => bin2hex(random_bytes(32))])->saveQuietly();
+        }
+
+        return (string) $this->communications_token;
     }
 
     /**

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Jobs\ReconcileCfdis;
 use App\Jobs\ReconcilePayments;
+use App\Jobs\SendBirthdayGreetings;
 use App\Models\Export;
 use Illuminate\Support\Facades\Schedule;
 
@@ -17,3 +18,8 @@ Schedule::job(new ReconcilePayments)->everyFifteenMinutes();
 
 // CFDI (Fase 3): timbrados interrumpidos, errores temporales y cancelaciones en espera.
 Schedule::job(new ReconcileCfdis)->everyFifteenMinutes();
+
+// Felicitaciones de cumpleaños (Fase 4): una por donante y año, a las 09:00 de México.
+Schedule::job(new SendBirthdayGreetings)
+    ->dailyAt(config()->string('communications.birthday_time'))
+    ->timezone(config()->string('communications.timezone'));

@@ -16,6 +16,7 @@ Guía para el personal que usa el panel del CRM. No requiere conocimientos técn
 10. [Donativos mensuales](10-donativos-mensuales.md)
 11. [Incidencias de pagos](11-incidencias.md)
 12. [CFDI](12-cfdi.md)
+13. [Comunicaciones con donantes y recibo simple](13-comunicaciones.md)
 
 ## Qué puede hacer cada rol
 
@@ -46,6 +47,8 @@ Guía para el personal que usa el panel del CRM. No requiere conocimientos técn
 | Bandeja de webhooks y pasarelas de pago | Sí | No | No | No |
 | Ver y descargar CFDI | Sí | Sí | Sí | No |
 | Emitir, reintentar, sustituir y cancelar CFDI; ver su detalle técnico | Sí | No | Sí | No |
+| Descargar recibo simple, ver historial de envíos y reenviar | Sí | Sí | Sí | No |
+| Editar plantillas de correo | Sí | Sí | No | No |
 
 Si un botón no aparece, es porque tu rol no tiene esa acción.
 
@@ -54,6 +57,7 @@ Si un botón no aparece, es porque tu rol no tiene esa acción.
 | Grupo | Pantallas |
 |---|---|
 | Donativos | Donativos, Donantes, CFDI |
+| Comunicaciones | Historial de envíos, Plantillas |
 | Pagos en línea | Pagos en línea, Donativos mensuales, Incidencias, Reembolsos, Disputas y contracargos, Bandeja de webhooks |
 | Destinos | Programas, Campañas |
 | Administración | Usuarios, Organización, Bitácora, Pasarelas de pago |

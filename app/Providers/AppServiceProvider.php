@@ -9,10 +9,13 @@ use App\Cfdi\CfdiProviderRegistry;
 use App\Models\AuditLog;
 use App\Models\Campaign;
 use App\Models\Cfdi;
+use App\Models\Communication;
 use App\Models\Donation;
+use App\Models\DonationReceipt;
 use App\Models\Donor;
 use App\Models\DonorTaxProfile;
 use App\Models\Export;
+use App\Models\MessageTemplate;
 use App\Models\OrganizationSetting;
 use App\Models\Payment;
 use App\Models\PaymentAttempt;
@@ -86,6 +89,9 @@ class AppServiceProvider extends ServiceProvider
             'payment_incident_note' => PaymentIncidentNote::class,
             'webhook_event' => WebhookEvent::class,
             'cfdi' => Cfdi::class,
+            'donation_receipt' => DonationReceipt::class,
+            'message_template' => MessageTemplate::class,
+            'communication' => Communication::class,
         ]);
 
         // Dentro de un Job de la cola, los cambios se registran como "Proceso automático".

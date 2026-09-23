@@ -6,6 +6,7 @@ namespace App\Jobs;
 
 use App\Actions\Cfdi\BuildDonationCfdiDraft;
 use App\Actions\Cfdi\RequestCfdiSubstitution;
+use App\Actions\Communications\QueueCfdiDelivery;
 use App\Cfdi\CfdiProviderRegistry;
 use App\Cfdi\CfdiStorage;
 use App\Cfdi\Exceptions\CfdiNotReadyException;
@@ -46,9 +47,9 @@ class StampCfdi implements ShouldQueue
         $this->backoff = $backoff;
     }
 
-    public function handle(CfdiProviderRegistry $registry, BuildDonationCfdiDraft $builder, CfdiStorage $storage, AuditOrigin $origin): void
+    public function handle(CfdiProviderRegistry $registry, BuildDonationCfdiDraft $builder, CfdiStorage $storage, AuditOrigin $origin, QueueCfdiDelivery $cfdiDelivery): void
     {
-        $origin->run(AuditSource::Job, function () use ($registry, $builder, $storage): void {
+        $origin->run(AuditSource::Job, function () use ($registry, $builder, $storage, $cfdiDelivery): void {
             $claimed = DB::table('cfdis')->where('id', $this->cfdiId)
                 ->whereIn('status', [CfdiStatus::Pending->value, CfdiStatus::Failed->value])
                 ->update(['status' => CfdiStatus::Stamping->value, 'attempts' => DB::raw('attempts + 1'), 'updated_at' => now()]);
@@ -98,6 +99,10 @@ class StampCfdi implements ShouldQueue
             if ($cancelOriginal !== null) {
                 CancelCfdi::dispatch($cancelOriginal);
             }
+
+            // Fase 4: enviar el CFDI al donante (una vez; sin repetir el agradecimiento).
+            // Un error de correo nunca revierte ni reintenta el timbrado.
+            rescue(fn () => $cfdiDelivery->handle($cfdi));
         });
     }
 
