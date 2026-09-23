@@ -27,6 +27,9 @@ class QueueCfdiDelivery
         if ($cfdi->status !== CfdiStatus::Stamped) {
             return null;
         }
+        if ($cfdi->donation === null) {
+            return null;
+        }
 
         return DB::transaction(function () use ($cfdi): ?Communication {
             $thankYou = Communication::query()->where('dedupe_key', "thank_you:donation:{$cfdi->donation_id}")->lockForUpdate()->first();

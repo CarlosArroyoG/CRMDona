@@ -31,6 +31,7 @@ use App\Models\User;
 use App\Support\Money;
 use App\Support\Search;
 use BackedEnum;
+use Carbon\Carbon;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Actions\ExportAction;
@@ -98,7 +99,12 @@ class DonationResource extends Resource
                         ->displayFormat('d/m/Y')->default(now())->maxDate(now()),
                     Textarea::make('in_kind_description')->label('Descripción de lo donado')->rows(3)->maxLength(2000)
                         ->required($inKind)->visible($inKind)->columnSpanFull()
-                        ->helperText('Qué se recibió, cantidad y estado. La valuación fiscal de especie está pendiente de confirmar con el contador.'),
+                        ->helperText('Descripción detallada del bien y su estado.'),
+                    TextInput::make('in_kind_quantity')->label('Cantidad')->numeric()->required($inKind)->visible($inKind),
+                    TextInput::make('in_kind_unit_code')->label('Unidad SAT')->maxLength(10)->required($inKind)->visible($inKind),
+                    TextInput::make('in_kind_product_service_code')->label('Clave producto/servicio SAT')->maxLength(10)->required($inKind)->visible($inKind),
+                    TextInput::make('in_kind_unit_value')->label('Valor unitario (MXN)')->numeric()->prefix('$')->required($inKind)->visible($inKind),
+                    TextInput::make('in_kind_total_value')->label('Valor total fiscal (MXN)')->numeric()->prefix('$')->required($inKind)->visible($inKind),
                     TextInput::make('reference')->label('Referencia')->maxLength(100)
                         ->helperText('Folio de transferencia, número de cheque o de recibo físico.'),
                     Toggle::make('tax_receipt_requested')->label('Solicitó recibo deducible (CFDI)')
@@ -154,6 +160,12 @@ class DonationResource extends Resource
                     ->state(fn (Donation $record): ?string => $record->activeCfdi()?->status->getLabel())
                     ->url(fn (Donation $record): ?string => ($cfdi = $record->activeCfdi()) !== null && Gate::allows('view', $cfdi)
                         ? CfdiResource::getUrl('view', ['record' => $cfdi]) : null),
+                TextEntry::make('global_cfdi')->label('Factura global')->placeholder('Sin factura global')
+                    ->state(fn (Donation $record): ?string => ($global = $record->globalCfdis()->latest('global_cfdis.id')->first()) !== null
+                        ? "#{$global->id} · {$global->periodicity} · ".Carbon::parse($global->period_start)->format('d/m/Y').'–'.Carbon::parse($global->period_end)->format('d/m/Y')
+                        : null)
+                    ->url(fn (Donation $record): ?string => ($global = $record->globalCfdis()->latest('global_cfdis.id')->first()) !== null
+                        ? CfdiResource::getUrl('view', ['record' => $global->cfdi]) : null),
                 TextEntry::make('fiscal_route')->label('Cobertura fiscal')->columnSpanFull()
                     ->visible(fn (Donation $record): bool => $record->status === DonationStatus::Confirmed && $record->activeCfdi() === null
                         && auth()->user() instanceof User && auth()->user()->hasPermission(Permission::ViewCfdis))
@@ -165,6 +177,12 @@ class DonationResource extends Resource
                 IconEntry::make('tax_receipt_requested')->label('Solicitó recibo deducible')->boolean(),
                 TextEntry::make('in_kind_description')->label('Descripción de lo donado')->columnSpanFull()
                     ->visible(fn (Donation $record): bool => $record->kind === DonationKind::InKind),
+                TextEntry::make('in_kind_quantity')->label('Cantidad / unidad SAT')
+                    ->state(fn (Donation $record): ?string => $record->kind === DonationKind::InKind ? "{$record->in_kind_quantity} · {$record->in_kind_unit_code}" : null)
+                    ->visible(fn (Donation $record): bool => $record->kind === DonationKind::InKind),
+                TextEntry::make('in_kind_product_service_code')->label('Clave producto/servicio SAT')
+                    ->visible(fn (Donation $record): bool => $record->kind === DonationKind::InKind),
+                TextEntry::make('fiscal_late_at')->label('Emisión tardía detectada')->dateTime('d/m/Y H:i')->placeholder('No'),
                 TextEntry::make('notes')->label('Notas internas')->placeholder('Sin notas')->columnSpanFull(),
             ]),
             Section::make('Trazabilidad')->columns(3)->schema([

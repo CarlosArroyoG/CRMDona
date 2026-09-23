@@ -8,8 +8,12 @@ use App\Actions\Cfdi\IssueCfdiAutomatically;
 use App\Cfdi\CfdiProviderRegistry;
 use App\Enums\CfdiStatus;
 use App\Enums\DonationStatus;
+use App\Enums\Permission;
+use App\Filament\Resources\Donations\DonationResource;
 use App\Models\Cfdi;
 use App\Models\Donation;
+use App\Models\FiscalIncident;
+use App\Support\OperationalAlerts;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -34,6 +38,8 @@ class ReconcileCfdis implements ShouldBeUnique, ShouldQueue
 
     public function handle(CfdiProviderRegistry $registry, IssueCfdiAutomatically $issue): void
     {
+        $this->markLateCoverage();
+
         if (! $registry->isConfigured()) {
             return;
         }
@@ -57,5 +63,36 @@ class ReconcileCfdis implements ShouldBeUnique, ShouldQueue
                 ->orderBy('id')->limit(100)->get()
                 ->each(fn (Donation $donation) => $issue->handle($donation, log: false));
         }
+    }
+
+    private function markLateCoverage(): void
+    {
+        Donation::query()->with(['donor.taxProfile', 'payment.attempts'])
+            ->where('status', DonationStatus::Confirmed->value)
+            ->where('confirmed_at', '<=', now()->subHours(24))
+            ->whereDoesntHave('cfdis', fn (Builder $query) => $query->whereNotIn('status', CfdiStatus::inactiveValues()))
+            ->whereDoesntHave('globalCfdis')
+            ->orderBy('id')->limit(100)->get()->each(function (Donation $donation): void {
+                $donation->forceFill(['fiscal_late_at' => $donation->fiscal_late_at ?? now()])->save();
+                $incident = FiscalIncident::query()->firstOrCreate(
+                    ['dedupe_key' => "donation:{$donation->id}:cfdi_late"],
+                    [
+                        'donation_id' => $donation->id,
+                        'type' => 'cfdi_late',
+                        'status' => 'open',
+                        'details' => 'El donativo supera 24 horas sin cobertura CFDI. Se conserva la posibilidad de emisión y reintento.',
+                        'detected_at' => now(),
+                    ],
+                );
+                if ($incident->wasRecentlyCreated) {
+                    OperationalAlerts::send(
+                        "fiscal:late:{$donation->id}",
+                        Permission::IssueCfdis,
+                        'CFDI tardío: requiere intervención',
+                        ["Donativo #{$donation->id} supera 24 horas sin cobertura fiscal."],
+                        DonationResource::getUrl('view', ['record' => $donation->id], panel: 'admin'),
+                    );
+                }
+            });
     }
 }

@@ -62,9 +62,15 @@ class StampCfdi implements ShouldQueue
             }
 
             $cfdi = Cfdi::query()->with(['donation.donor.taxProfile', 'substitutes'])->findOrFail($this->cfdiId);
+            $donation = $cfdi->donation;
+            if ($donation === null) {
+                $this->finish($cfdi, CfdiStatus::Rejected, 'global_cfdi', 'El CFDI global debe procesarse con StampGlobalCfdi.');
+
+                return;
+            }
 
             try {
-                $draft = $builder->handle($cfdi->donation, $cfdi);
+                $draft = $builder->handle($donation, $cfdi);
                 $result = $registry->current()->stamp($draft, $cfdi->idempotency_key);
             } catch (CfdiNotReadyException $exception) {
                 $this->finish($cfdi, CfdiStatus::Rejected, 'not_ready', $exception->getMessage());

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Jobs\CloseGlobalCfdiPeriods;
 use App\Jobs\ReconcileCfdis;
 use App\Jobs\ReconcilePayments;
 use App\Jobs\SendBirthdayGreetings;
@@ -18,6 +19,12 @@ Schedule::job(new ReconcilePayments)->everyFifteenMinutes();
 
 // CFDI (Fase 3): timbrados interrumpidos, errores temporales y cancelaciones en espera.
 Schedule::job(new ReconcileCfdis)->everyFifteenMinutes();
+
+// Factura global: cierra el periodo anterior con la periodicidad configurada
+// por la organización, siempre usando America/Mexico_City.
+Schedule::job(new CloseGlobalCfdiPeriods)
+    ->dailyAt('00:15')
+    ->timezone('America/Mexico_City');
 
 // Felicitaciones de cumpleaños (Fase 4): una por donante y año, a las 09:00 de México.
 Schedule::job(new SendBirthdayGreetings)

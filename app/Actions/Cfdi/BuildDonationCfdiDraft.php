@@ -19,7 +19,7 @@ use App\Models\Donation;
 use App\Models\OrganizationSetting;
 
 /**
- * Arma el CFDI individual (nominativo) de un donativo en dinero
+ * Arma el CFDI individual (nominativo) de un donativo en dinero o especie
  * (docs/tecnico/fase-3-cfdi.md).
  *
  * Reglas [V] — SAT, "Donatarias Autorizadas: Emisión de CFDI" (2026), caso A
@@ -59,8 +59,15 @@ class BuildDonationCfdiDraft
             $reasons[] = 'Solo se emite CFDI de donativos confirmados (el SAT no permite emitirlo antes de recibir el donativo).';
         }
 
-        if ($donation->kind === DonationKind::InKind) {
-            $reasons[] = '[F] Donativo en especie: falta definir con el contador la clave del bien, la unidad y la valuación (el SAT indica forma de pago 12).';
+        if ($donation->kind === DonationKind::InKind && (
+            blank($donation->in_kind_description)
+            || blank($donation->in_kind_quantity)
+            || blank($donation->in_kind_unit_code)
+            || blank($donation->in_kind_product_service_code)
+            || blank($donation->in_kind_unit_value)
+            || blank($donation->in_kind_total_value)
+        )) {
+            $reasons[] = '[F] Donativo en especie incompleto: requiere descripción, cantidad, unidad SAT, clave de producto/servicio y valuación.';
         }
 
         $payment = $donation->payment;
@@ -98,7 +105,7 @@ class BuildDonationCfdiDraft
         foreach ([
             'legal_name' => 'la razón social', 'rfc' => 'el RFC', 'tax_regime' => 'el régimen fiscal',
             'tax_postal_code' => 'el código postal fiscal', 'authorization_number' => 'el número de oficio de autorización',
-            'authorization_date' => 'la fecha de autorización',
+            'authorization_date' => 'la fecha de autorización', 'donation_legend' => 'la leyenda de donataria',
         ] as $field => $label) {
             if (blank($settings->{$field})) {
                 $reasons[] = "Falta {$label} de la organización (Administración → Organización).";
@@ -107,8 +114,6 @@ class BuildDonationCfdiDraft
 
         if ($this->isPublicGeneral($donation)) {
             $reasons[] = '[F] El donante no tiene datos fiscales: corresponde a público en general (factura global), que aún no está habilitada.';
-        } elseif ($profile !== null && strtoupper($profile->rfc) === self::FOREIGN_RFC) {
-            $reasons[] = '[F] Donante residente en el extranjero (XEXX010101000): pendiente de decisión fiscal.';
         }
 
         $paymentForm = $this->paymentForm($donation, $reasons);
@@ -127,7 +132,7 @@ class BuildDonationCfdiDraft
             issuerName: (string) $settings->legal_name,
             issuerRegime: (string) $settings->tax_regime?->value,
             expeditionPostalCode: (string) $settings->tax_postal_code,
-            receiverRfc: $profile->rfc,
+            receiverRfc: $profile->foreign_resident ? self::FOREIGN_RFC : $profile->rfc,
             receiverName: $profile->tax_name,
             receiverRegime: $profile->tax_regime->value,
             receiverPostalCode: $profile->tax_postal_code,
@@ -136,18 +141,19 @@ class BuildDonationCfdiDraft
             paymentMethod: 'PUE',
             voucherType: 'I',
             currency: 'MXN',
-            productCode: '84101600',
-            unitCode: 'M4',
+            productCode: $donation->kind === DonationKind::InKind ? (string) $donation->in_kind_product_service_code : '84101600',
+            unitCode: $donation->kind === DonationKind::InKind ? (string) $donation->in_kind_unit_code : 'M4',
             description: $this->description($donation),
-            quantity: '1',
-            unitValue: $donation->amount,
-            total: $donation->amount,
+            quantity: $donation->kind === DonationKind::InKind ? (string) $donation->in_kind_quantity : '1',
+            unitValue: $donation->kind === DonationKind::InKind ? (string) $donation->in_kind_unit_value : $donation->amount,
+            total: $donation->kind === DonationKind::InKind ? (string) $donation->in_kind_total_value : $donation->amount,
             taxObject: '01',
             authorizationNumber: (string) $settings->authorization_number,
             authorizationDate: (string) $settings->authorization_date?->toDateString(),
-            legend: self::DONATARIA_LEGEND,
+            legend: (string) $settings->donation_legend,
             relatedUuids: $related,
             relationType: $related !== [] ? '04' : null,
+            unitName: $donation->kind === DonationKind::InKind ? (string) $donation->in_kind_unit_code : 'Valor monetario',
         );
     }
 
@@ -161,6 +167,10 @@ class BuildDonationCfdiDraft
      */
     private function paymentForm(Donation $donation, array &$reasons): ?string
     {
+        if ($donation->kind === DonationKind::InKind) {
+            return '12';
+        }
+
         if ($donation->origin === DonationOrigin::Online) {
             $attempt = $donation->payment?->attempts()->where('status', PaymentAttemptStatus::Succeeded->value)->latest('id')->first();
             $form = $attempt?->card_funding?->cfdiPaymentForm();
@@ -183,6 +193,10 @@ class BuildDonationCfdiDraft
      */
     public function description(Donation $donation): string
     {
+        if ($donation->kind === DonationKind::InKind) {
+            return mb_substr((string) $donation->in_kind_description, 0, 1000);
+        }
+
         $destination = $donation->campaign->name ?? $donation->effectiveProgram()?->name;
 
         return mb_substr($destination !== null ? "Donativo para {$destination}" : 'Donativo para el fondo general', 0, 1000);

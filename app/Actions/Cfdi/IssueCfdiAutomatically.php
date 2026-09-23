@@ -17,8 +17,8 @@ use Illuminate\Validation\ValidationException;
  * expedir CFDI por los donativos que recibe, dentro de las 24 horas: no
  * depende de que el donante lo pida.
  *
- * Solo timbra la ruta individual lista. Público en general y bloqueos quedan
- * registrados (se ven en el donativo) sin crear nada.
+ * La ruta pública en general queda registrada para el cierre periódico; el
+ * job global agrupa sus operaciones sin depender de que el donante lo pida.
  */
 class IssueCfdiAutomatically
 {
@@ -35,8 +35,12 @@ class IssueCfdiAutomatically
         }
 
         $coverage = $this->route->handle($donation);
+        $donation->forceFill([
+            'fiscal_route' => $coverage->route->value,
+            'fiscal_block_reason' => $coverage->reasons === [] ? null : implode(' ', $coverage->reasons),
+        ])->save();
 
-        if (! $coverage->isReadyToIssue()) {
+        if ($coverage->route === FiscalRoute::PublicGeneral || ! $coverage->isReadyToIssue()) {
             if ($log) {
                 Log::log($coverage->route === FiscalRoute::Blocked ? 'warning' : 'info', 'CFDI automático no emitido.', [
                     'donation_id' => $donation->id, 'route' => $coverage->route->value, 'reasons' => $coverage->reasons,

@@ -41,5 +41,8 @@ final readonly class CfdiDraft
         /** @var list<string> Folios fiscales relacionados (sustitución: TipoRelacion 04). */
         public array $relatedUuids = [],
         public ?string $relationType = null,
+        public string $unitName = 'Valor monetario',
+        /** @var list<array{description: string, productCode: string, unitCode: string, unitName: string, quantity: string, unitValue: string, total: string, taxObject: string}> */
+        public array $items = [],
     ) {}
 }

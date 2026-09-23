@@ -35,9 +35,7 @@ class ResolveDonationFiscalRoute
         }
 
         if ($this->draft->isPublicGeneral($donation)) {
-            return new FiscalCoverage(FiscalRoute::PublicGeneral, [
-                '[F] La factura global de donativos al público en general aún no está habilitada: falta decidir periodicidad y comprobantes de operación.',
-            ]);
+            return new FiscalCoverage(FiscalRoute::PublicGeneral);
         }
 
         try {

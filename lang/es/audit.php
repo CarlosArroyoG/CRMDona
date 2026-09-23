@@ -80,6 +80,14 @@ return [
         'received_on' => 'Fecha de recepción',
         'reference' => 'Referencia',
         'in_kind_description' => 'Descripción de especie',
+        'in_kind_quantity' => 'Cantidad de especie',
+        'in_kind_unit_code' => 'Unidad SAT de especie',
+        'in_kind_product_service_code' => 'Clave SAT de especie',
+        'in_kind_unit_value' => 'Valor unitario de especie',
+        'in_kind_total_value' => 'Valor total de especie',
+        'fiscal_route' => 'Ruta fiscal',
+        'fiscal_block_reason' => 'Motivo de bloqueo fiscal',
+        'fiscal_late_at' => 'Emisión fiscal tardía detectada',
         'tax_receipt_requested' => 'Solicitó recibo deducible',
         'confirmed_at' => 'Confirmado el',
         'confirmed_by_id' => 'Confirmado por (usuario)',
@@ -95,11 +103,13 @@ return [
         'privacy_notice_url' => 'URL del aviso de privacidad',
         'online_donation_min_amount' => 'Mínimo por donativo en línea',
         'online_donation_max_amount' => 'Máximo por donativo en línea',
+        'global_cfdi_periodicity' => 'Periodicidad de factura global',
         // Usuario (Fase 2)
         'receives_payment_alerts' => 'Recibe alertas de pagos',
         // Donativo en línea
         'origin' => 'Origen',
         'payment_id' => 'Pago en línea',
+        'global_cfdi_id' => 'Factura global',
         // Pagos
         'provider' => 'Proveedor',
         'external_id' => 'Identificador en el proveedor',

@@ -58,9 +58,13 @@ class RequestCfdiSubstitution
         )->validate();
 
         $provider = $this->registry->current();
+        $donation = $original->donation;
+        if ($donation === null) {
+            throw ValidationException::withMessages(['cfdi' => 'Una factura global no se sustituye desde el flujo de CFDI individual.']);
+        }
 
         try {
-            $this->draft->handle($original->donation);
+            $this->draft->handle($donation);
         } catch (CfdiNotReadyException $exception) {
             throw ValidationException::withMessages(['cfdi' => $exception->reasons]);
         }
@@ -90,6 +94,7 @@ class RequestCfdiSubstitution
                 throw ValidationException::withMessages(['cfdi' => 'Ya hay una sustitución en curso para este donativo.']);
             }
 
+            $donation = $locked->donation()->firstOrFail();
             $replacement = Cfdi::query()->create([
                 'donation_id' => $locked->donation_id,
                 'substitutes_cfdi_id' => $locked->id,
@@ -97,7 +102,7 @@ class RequestCfdiSubstitution
                 'substitution_reason' => $data['reason'],
                 'provider' => $provider->name(),
                 'status' => CfdiStatus::Pending,
-                'total' => $locked->donation->amount,
+                'total' => $donation->amount,
                 'currency' => $locked->currency,
                 'idempotency_key' => "substitution:{$locked->id}:".Str::uuid(),
                 'requested_by_id' => $actor->id,

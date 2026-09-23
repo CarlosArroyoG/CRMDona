@@ -13,9 +13,11 @@ use App\Models\Concerns\Auditable;
 use Database\Factories\DonationFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
@@ -37,6 +39,11 @@ use Illuminate\Support\Carbon;
  * @property DonationStatus $status
  * @property string|null $reference
  * @property string|null $in_kind_description
+ * @property string|null $in_kind_quantity
+ * @property string|null $in_kind_unit_code
+ * @property string|null $in_kind_product_service_code
+ * @property string|null $in_kind_unit_value
+ * @property string|null $in_kind_total_value
  * @property bool $tax_receipt_requested
  * @property string|null $notes
  * @property int|null $registered_by_id Nulo solo en donativos en línea (sin actor humano).
@@ -51,13 +58,15 @@ use Illuminate\Support\Carbon;
  * @property-read Program|null $program
  * @property-read Campaign|null $campaign
  * @property-read Payment|null $payment
+ * @property-read Collection<int, GlobalCfdi> $globalCfdis
+ * @property-read Collection<int, FiscalIncident> $fiscalIncidents
  * @property-read DonationReceipt|null $receipt
  * @property DonationOrigin $origin
  * @property int|null $payment_id
  */
 #[Fillable([
     'donor_id', 'program_id', 'campaign_id', 'kind', 'manual_payment_method', 'amount', 'received_on',
-    'reference', 'in_kind_description', 'tax_receipt_requested', 'notes',
+    'reference', 'in_kind_description', 'in_kind_quantity', 'in_kind_unit_code', 'in_kind_product_service_code', 'in_kind_unit_value', 'in_kind_total_value', 'tax_receipt_requested', 'notes',
 ])]
 class Donation extends Model
 {
@@ -70,8 +79,8 @@ class Donation extends Model
     {
         return [
             'donor_id', 'program_id', 'campaign_id', 'kind', 'manual_payment_method', 'amount', 'currency',
-            'received_on', 'status', 'reference', 'in_kind_description', 'tax_receipt_requested',
-            'registered_by_id', 'confirmed_at', 'confirmed_by_id', 'cancelled_at', 'cancelled_by_id', 'origin', 'payment_id',
+            'received_on', 'status', 'reference', 'in_kind_description', 'in_kind_quantity', 'in_kind_unit_code', 'in_kind_product_service_code', 'in_kind_unit_value', 'in_kind_total_value', 'tax_receipt_requested',
+            'registered_by_id', 'confirmed_at', 'confirmed_by_id', 'cancelled_at', 'cancelled_by_id', 'origin', 'payment_id', 'fiscal_route', 'fiscal_block_reason', 'fiscal_late_at',
             'cancellation_reason',
         ];
     }
@@ -99,6 +108,24 @@ class Donation extends Model
     public function cfdis(): HasMany
     {
         return $this->hasMany(Cfdi::class)->latest('id');
+    }
+
+    /**
+     * @return BelongsToMany<GlobalCfdi, $this>
+     */
+    public function globalCfdis(): BelongsToMany
+    {
+        return $this->belongsToMany(GlobalCfdi::class, 'donation_global_cfdi')
+            ->withPivot('operation_number')
+            ->withTimestamps();
+    }
+
+    /**
+     * @return HasMany<FiscalIncident, $this>
+     */
+    public function fiscalIncidents(): HasMany
+    {
+        return $this->hasMany(FiscalIncident::class);
     }
 
     /**

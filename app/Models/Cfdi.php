@@ -17,7 +17,8 @@ use Illuminate\Support\Carbon;
  * lo emitido es el XML timbrado, guardado en almacenamiento privado.
  *
  * @property int $id
- * @property int $donation_id
+ * @property int|null $donation_id
+ * @property int|null $global_cfdi_id
  * @property int|null $substitutes_cfdi_id CFDI original al que sustituye (motivo 01).
  * @property bool $replacement_pending Sustitución timbrada o en curso cuyo original aún no se cancela.
  * @property string|null $substitution_reason
@@ -47,7 +48,8 @@ use Illuminate\Support\Carbon;
  * @property CarbonInterface|null $cancelled_at
  * @property Carbon $created_at
  * @property Carbon $updated_at
- * @property-read Donation $donation
+ * @property-read Donation|null $donation
+ * @property-read GlobalCfdi|null $globalCfdi
  * @property-read User|null $requestedBy
  * @property-read User|null $cancellationRequestedBy
  * @property-read Cfdi|null $substitutes
@@ -61,7 +63,7 @@ class Cfdi extends Model
     public static function auditValueFields(): array
     {
         return [
-            'donation_id', 'substitutes_cfdi_id', 'replacement_pending', 'substitution_reason', 'provider', 'external_id', 'uuid', 'series', 'folio', 'status', 'total', 'requested_by_id',
+            'donation_id', 'global_cfdi_id', 'substitutes_cfdi_id', 'replacement_pending', 'substitution_reason', 'provider', 'external_id', 'uuid', 'series', 'folio', 'status', 'total', 'requested_by_id',
             'stamped_at', 'last_error_code', 'cancellation_motive', 'cancellation_replacement_uuid', 'cancellation_reason',
             'cancellation_requested_at', 'cancellation_requested_by_id', 'cancellation_provider_status', 'cancelled_at',
         ];
@@ -78,6 +80,14 @@ class Cfdi extends Model
     public function donation(): BelongsTo
     {
         return $this->belongsTo(Donation::class);
+    }
+
+    /**
+     * @return BelongsTo<GlobalCfdi, $this>
+     */
+    public function globalCfdi(): BelongsTo
+    {
+        return $this->belongsTo(GlobalCfdi::class);
     }
 
     /**

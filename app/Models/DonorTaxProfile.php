@@ -23,7 +23,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $tax_postal_code
  * @property CfdiUse|null $cfdi_use
  */
-#[Fillable(['rfc', 'tax_name', 'tax_regime', 'tax_postal_code', 'cfdi_use'])]
+#[Fillable(['rfc', 'tax_name', 'tax_regime', 'tax_postal_code', 'cfdi_use', 'foreign_resident', 'foreign_tax_id'])]
 class DonorTaxProfile extends Model
 {
     use Auditable;
@@ -70,6 +70,7 @@ class DonorTaxProfile extends Model
         return [
             'tax_regime' => TaxRegime::class,
             'cfdi_use' => CfdiUse::class,
+            'foreign_resident' => 'boolean',
         ];
     }
 }

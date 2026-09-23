@@ -29,14 +29,17 @@ use Illuminate\Support\Carbon;
  * @property string|null $online_donation_max_amount Máximo de negocio; nulo = sin máximo adicional del CRM.
  * @property bool $thank_you_emails_enabled Agradecimiento automático al confirmar un donativo.
  * @property bool $birthday_emails_enabled Felicitación diaria de cumpleaños.
+ * @property string $global_cfdi_periodicity
  */
 #[Fillable([
     'legal_name', 'rfc', 'tax_regime', 'tax_postal_code', 'authorization_number', 'authorization_date',
     'donation_legend', 'logo_path', 'email_signature', 'privacy_notice_url', 'privacy_notice_version',
-    'online_donation_min_amount', 'online_donation_max_amount', 'thank_you_emails_enabled', 'birthday_emails_enabled',
+    'online_donation_min_amount', 'online_donation_max_amount', 'thank_you_emails_enabled', 'birthday_emails_enabled', 'global_cfdi_periodicity',
 ])]
 class OrganizationSetting extends Model
 {
+    public const string DEFAULT_DONATION_LEGEND = 'Este comprobante ampara un donativo, el cual será destinado por la donataria a los fines propios de su objeto social. En el caso de que los bienes donados hayan sido deducidos previamente para los efectos del impuesto sobre la renta, este donativo no es deducible.';
+
     use Auditable;
 
     public static function current(): self
@@ -47,7 +50,7 @@ class OrganizationSetting extends Model
         }
 
         // La fila única se crea una vez (sin carrera: ON CONFLICT DO NOTHING).
-        static::query()->insertOrIgnore(['id' => 1, 'created_at' => now(), 'updated_at' => now()]);
+        static::query()->insertOrIgnore(['id' => 1, 'donation_legend' => self::DEFAULT_DONATION_LEGEND, 'created_at' => now(), 'updated_at' => now()]);
 
         return static::query()->findOrFail(1);
     }
@@ -57,7 +60,7 @@ class OrganizationSetting extends Model
         return [
             'legal_name', 'rfc', 'tax_regime', 'tax_postal_code', 'authorization_number', 'authorization_date',
             'donation_legend', 'logo_path', 'email_signature', 'privacy_notice_url', 'privacy_notice_version',
-            'online_donation_min_amount', 'online_donation_max_amount', 'thank_you_emails_enabled', 'birthday_emails_enabled',
+            'online_donation_min_amount', 'online_donation_max_amount', 'thank_you_emails_enabled', 'birthday_emails_enabled', 'global_cfdi_periodicity',
         ];
     }
 

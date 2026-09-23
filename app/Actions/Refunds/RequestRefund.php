@@ -10,6 +10,8 @@ use App\Enums\Permission;
 use App\Enums\RefundReason;
 use App\Enums\RefundSource;
 use App\Enums\RefundStatus;
+use App\Filament\Resources\Donations\DonationResource;
+use App\Models\FiscalIncident;
 use App\Models\Payment;
 use App\Models\Refund;
 use App\Models\User;
@@ -17,6 +19,7 @@ use App\Payments\Contracts\ProcessesRefunds;
 use App\Payments\GatewayRegistry;
 use App\Rules\MoneyAmount;
 use App\Support\Money;
+use App\Support\OperationalAlerts;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -116,6 +119,23 @@ class RequestRefund
                 'idempotency_key' => $data['idempotency_key'],
             ]);
         });
+
+        $donation = $payment->donation;
+        if ($donation?->activeCfdi() !== null) {
+            $incident = FiscalIncident::query()->firstOrCreate(
+                ['dedupe_key' => "refund:{$refund->id}:cfdi_review"],
+                [
+                    'donation_id' => $donation->id,
+                    'type' => 'refund_cfdi_review',
+                    'status' => 'open',
+                    'details' => 'Existe un reembolso relacionado con un CFDI. Requiere resolución humana; el CRM no cancela ni sustituye automáticamente.',
+                    'detected_at' => now(),
+                ],
+            );
+            if ($incident->wasRecentlyCreated) {
+                OperationalAlerts::send('fiscal:refund:'.$refund->id, Permission::IssueCfdis, 'Revisión fiscal por reembolso', ['El donativo requiere revisar su CFDI y el reembolso relacionado.'], DonationResource::getUrl('view', ['record' => $donation->id], panel: 'admin'));
+            }
+        }
 
         return $this->submit->handle($refund);
     }

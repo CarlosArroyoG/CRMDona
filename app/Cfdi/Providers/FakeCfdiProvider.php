@@ -138,6 +138,11 @@ final class FakeCfdiProvider implements CfdiProvider, RendersCfdiPdf
         $related = $draft->relatedUuids === [] ? '' : '<cfdi:CfdiRelacionados TipoRelacion="'.$e((string) $draft->relationType).'">'
             .implode('', array_map(fn (string $uuid): string => '<cfdi:CfdiRelacionado UUID="'.$e($uuid).'"/>', $draft->relatedUuids))
             .'</cfdi:CfdiRelacionados>';
+        $items = $draft->items !== [] ? $draft->items : [[
+            'description' => $draft->description, 'productCode' => $draft->productCode, 'unitCode' => $draft->unitCode,
+            'quantity' => $draft->quantity, 'unitValue' => $draft->unitValue, 'total' => $draft->total, 'taxObject' => $draft->taxObject,
+        ]];
+        $concepts = implode('', array_map(fn (array $item): string => '<cfdi:Concepto ClaveProdServ="'.$e($item['productCode']).'" Cantidad="'.$e($item['quantity']).'" ClaveUnidad="'.$e($item['unitCode']).'" Descripcion="'.$e($item['description']).'" ValorUnitario="'.$e($item['unitValue']).'" Importe="'.$e($item['total']).'" ObjetoImp="'.$e($item['taxObject']).'"/>', $items));
 
         return <<<XML
             <?xml version="1.0" encoding="UTF-8"?>
@@ -151,8 +156,7 @@ final class FakeCfdiProvider implements CfdiProvider, RendersCfdiPdf
               <cfdi:Receptor Rfc="{$e($draft->receiverRfc)}" Nombre="{$e($draft->receiverName)}" RegimenFiscalReceptor="{$e($draft->receiverRegime)}"
                 DomicilioFiscalReceptor="{$e($draft->receiverPostalCode)}" UsoCFDI="{$e($draft->cfdiUse)}"/>
               <cfdi:Conceptos>
-                <cfdi:Concepto ClaveProdServ="{$e($draft->productCode)}" Cantidad="{$e($draft->quantity)}" ClaveUnidad="{$e($draft->unitCode)}"
-                  Descripcion="{$e($draft->description)}" ValorUnitario="{$e($draft->unitValue)}" Importe="{$e($draft->total)}" ObjetoImp="{$e($draft->taxObject)}"/>
+                                {$concepts}
               </cfdi:Conceptos>
               <cfdi:Complemento>
                 <donat:Donatarias version="1.1" noAutorizacion="{$e($draft->authorizationNumber)}" fechaAutorizacion="{$e($draft->authorizationDate)}" leyenda="{$e($draft->legend)}"/>

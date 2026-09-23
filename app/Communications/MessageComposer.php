@@ -69,7 +69,11 @@ final class MessageComposer
             if (! $cfdi->status->isStamped()) {
                 throw new RuntimeException('El CFDI no está timbrado.');
             }
-            $variables += $this->donationVariables($cfdi->donation) + ['folio_fiscal' => strtoupper((string) $cfdi->uuid)];
+            $donation = $cfdi->donation;
+            if ($donation === null) {
+                throw new RuntimeException('La factura global no se entrega como CFDI individual a un donante.');
+            }
+            $variables += $this->donationVariables($donation) + ['folio_fiscal' => strtoupper((string) $cfdi->uuid)];
             $attachments = $this->cfdiFiles($cfdi);
         }
 

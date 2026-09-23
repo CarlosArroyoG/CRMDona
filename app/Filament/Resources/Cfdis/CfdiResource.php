@@ -18,6 +18,7 @@ use App\Models\Cfdi;
 use App\Models\User;
 use App\Support\Money;
 use BackedEnum;
+use Carbon\Carbon;
 use Filament\Actions\Action;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Select;
@@ -64,9 +65,12 @@ class CfdiResource extends Resource
                 TextEntry::make('series_folio')->label('Serie y folio')->placeholder('—')
                     ->state(fn (Cfdi $record): ?string => $record->folio !== null ? "{$record->series}-{$record->folio}" : null),
                 TextEntry::make('total')->label('Total')->formatStateUsing(fn (string $state): string => Money::format($state).' MXN'),
-                TextEntry::make('donation_id')->label('Donativo')->formatStateUsing(fn (int $state): string => "Ver donativo #{$state}")
-                    ->url(fn (Cfdi $record): string => DonationResource::getUrl('view', ['record' => $record->donation_id])),
-                TextEntry::make('donation.donor.display_name')->label('Donante'),
+                TextEntry::make('donation_id')->label('Donativo')->placeholder('Factura global')
+                    ->formatStateUsing(fn (?int $state): ?string => $state !== null ? "Ver donativo #{$state}" : null)
+                    ->url(fn (Cfdi $record): ?string => $record->donation_id !== null ? DonationResource::getUrl('view', ['record' => $record->donation_id]) : null),
+                TextEntry::make('donation.donor.display_name')->label('Donante')->placeholder('Público en general'),
+                TextEntry::make('globalCfdi')->label('Periodo global')->placeholder('Individual')
+                    ->state(fn (Cfdi $record): ?string => $record->globalCfdi !== null ? "{$record->globalCfdi->periodicity} · ".Carbon::parse($record->globalCfdi->period_start)->format('d/m/Y').'–'.Carbon::parse($record->globalCfdi->period_end)->format('d/m/Y')." · {$record->globalCfdi->donations()->count()} donativos" : null),
                 TextEntry::make('stamped_at')->label('Timbrado el')->dateTime('d/m/Y H:i')->placeholder('—'),
                 TextEntry::make('requestedBy.name')->label('Solicitado por')->placeholder('Automático'),
                 TextEntry::make('substitutes.uuid')->label('Sustituye a (motivo 01)')->placeholder('—')

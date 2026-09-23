@@ -102,19 +102,7 @@ final class FacturapiCfdiProvider implements CfdiProvider, RendersCfdiPdf
                 'tax_system' => $draft->receiverRegime,
                 'address' => ['zip' => $draft->receiverPostalCode],
             ],
-            'items' => [[
-                'quantity' => (float) $draft->quantity,
-                'product' => [
-                    'description' => $draft->description,
-                    'product_key' => $draft->productCode,
-                    'unit_key' => $draft->unitCode,
-                    'unit_name' => 'Valor monetario',
-                    'price' => (float) $draft->unitValue,
-                    'tax_included' => false,
-                    'taxability' => $draft->taxObject,
-                    'taxes' => [],
-                ],
-            ]],
+            'items' => $this->items($draft),
             'payment_form' => $draft->paymentForm,
             'payment_method' => $draft->paymentMethod,
             'use' => $draft->cfdiUse,
@@ -133,6 +121,35 @@ final class FacturapiCfdiProvider implements CfdiProvider, RendersCfdiPdf
         }
 
         return $payload;
+    }
+
+    /** @return list<array<string, mixed>> */
+    private function items(CfdiDraft $draft): array
+    {
+        $items = $draft->items !== [] ? $draft->items : [[
+            'description' => $draft->description,
+            'productCode' => $draft->productCode,
+            'unitCode' => $draft->unitCode,
+            'unitName' => $draft->unitName,
+            'quantity' => $draft->quantity,
+            'unitValue' => $draft->unitValue,
+            'total' => $draft->total,
+            'taxObject' => $draft->taxObject,
+        ]];
+
+        return array_map(fn (array $item): array => [
+            'quantity' => (float) $item['quantity'],
+            'product' => [
+                'description' => $item['description'],
+                'product_key' => $item['productCode'],
+                'unit_key' => $item['unitCode'],
+                'unit_name' => $item['unitName'],
+                'price' => (float) $item['unitValue'],
+                'tax_included' => false,
+                'taxability' => $item['taxObject'],
+                'taxes' => [],
+            ],
+        ], $items);
     }
 
     /**
