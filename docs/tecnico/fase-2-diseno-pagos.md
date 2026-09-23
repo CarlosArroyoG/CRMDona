@@ -660,7 +660,7 @@ terminar.
 | 5 | Protección contra orden inverso en Stripe | `provider_updated_at` | Los objetos de Stripe no tienen fecha de actualización: la protección es la reconsulta del estado actual y las transiciones permitidas | [V] |
 | 6 | Reembolsos hechos en el panel del proveedor | — | Se registran con `source = provider` y el motivo interno `provider_initiated` ("Hecho en el panel del proveedor"), que no se puede elegir en el CRM | Detalle técnico |
 | 7 | Reintento de un pago único en Mercado Pago | Una Order con varios intentos | Una Order rechazada no se reintenta: el reintento del donante sería otra Order (otro Payment) | [S] |
-| 8 | Pausa en Stripe | `pause_collection` | Se usa `behavior: void` (el periodo pausado no genera adeudo) | **[D] confirmar** |
+| 8 | Pausa en Stripe | `pause_collection` | Se usa `behavior: void` (el periodo pausado no genera adeudo) | [APROBADO provisionalmente 2026-09-23]; [S] validar en Stripe Test |
 | 9 | "Pago único fallido con algo que revisar" | Criterio general | Se abre incidencia si el último rechazo no es corregible por el donante (fraude, error de procesamiento, desconocido…); no se abre por tarjeta vencida, fondos, datos mal escritos, rechazo del banco o demasiados intentos | Detalle técnico, reversible |
 | 10 | Proveedor caído | Incidencia `provider_unavailable` | Una por proveedor y por hora (`dedupe_key` con fecha y hora) | Detalle técnico |
 

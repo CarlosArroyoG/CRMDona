@@ -35,7 +35,7 @@
 4. En Stripe el PaymentIntent aparece hasta que el donante paga.
 5. Stripe no tiene fecha de actualización en sus objetos.
 6. En Mercado Pago, una Order rechazada no se reintenta [S].
-7. La pausa de Stripe usa `void` [D].
+7. La pausa de Stripe usa `void` (aprobada provisionalmente; [S] en Stripe Test).
 
 ## Pruebas
 
@@ -80,7 +80,8 @@
 ## Pendientes y riesgos
 
 - **[S] Sandbox de Stripe y de Mercado Pago:** `docs/pendientes.md` #14 y #15; instrucciones en `integraciones-pagos.md` §3. Mercado Pago tiene más supuestos [S] (Orders, authorized_payment, contracargos, límites).
-- **[D] por decidir:** límites de negocio (#16) y pausa `void` en Stripe (#17).
+- **Decidido (2026-09-23):** límites de negocio en `null` hasta decisión posterior (#16); pausa `void` en Stripe aprobada provisionalmente, con validación [S] en Stripe Test (#17).
+- **Cierre administrativo (2026-09-23):** bloque implementable cerrado; sandbox de Stripe y Mercado Pago (#14, #15) sigue abierto.
 - **Fiscal:** tratamiento de reembolsos y contracargos (#18). No se automatiza nada fiscal.
 - **Fuera de alcance:** página pública (#19) y correo de alertas (#20).
 
