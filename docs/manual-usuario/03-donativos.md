@@ -53,7 +53,7 @@ Botón **Crear donativo**.
 | Fecha de recepción | No puede ser futura |
 | Descripción de lo donado | Solo en especie: qué se recibió, cantidad y estado |
 | Referencia | Folio de transferencia, número de cheque o de recibo físico |
-| Solicitó recibo deducible (CFDI) | Se usará en la fase de CFDI; el donante debe tener datos fiscales |
+| Solicitó recibo deducible (CFDI) | Solo informativo: la Fundación emite CFDI por todo donativo confirmado (ver [CFDI](12-cfdi.md)) |
 | ¿A qué se destina? | **Campaña**, **Programa (sin campaña)** o **Fondo general**. Solo uno |
 | Notas internas | Información interna |
 

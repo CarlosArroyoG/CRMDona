@@ -100,11 +100,20 @@ class Donation extends Model
     }
 
     /**
-     * El CFDI vigente (no cancelado), si existe.
+     * El CFDI vigente (no cancelado ni descartado), si existe. Durante una
+     * sustitución (motivo 01) es el original hasta que se cancela.
      */
     public function activeCfdi(): ?Cfdi
     {
-        return $this->cfdis()->where('status', '!=', CfdiStatus::Cancelled->value)->first();
+        return $this->cfdis()->whereNotIn('status', CfdiStatus::inactiveValues())->where('replacement_pending', false)->first();
+    }
+
+    /**
+     * Sustitución en curso (CFDI nuevo cuyo original aún no se cancela).
+     */
+    public function pendingReplacementCfdi(): ?Cfdi
+    {
+        return $this->cfdis()->whereNotIn('status', CfdiStatus::inactiveValues())->where('replacement_pending', true)->first();
     }
 
     /**

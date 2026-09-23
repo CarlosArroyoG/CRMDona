@@ -16,6 +16,9 @@ final readonly class CancellationResult
 
     public const string REJECTED = 'rejected';
 
+    // El PAC no tiene registrada la solicitud (por ejemplo, falló al enviarse): se reenvía.
+    public const string NOT_REQUESTED = 'not_requested';
+
     public function __construct(
         public string $outcome,
         public string $providerStatus,

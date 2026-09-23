@@ -38,5 +38,8 @@ final readonly class CfdiDraft
         public string $authorizationNumber,
         public string $authorizationDate,
         public string $legend,
+        /** @var list<string> Folios fiscales relacionados (sustitución: TipoRelacion 04). */
+        public array $relatedUuids = [],
+        public ?string $relationType = null,
     ) {}
 }

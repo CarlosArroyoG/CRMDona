@@ -46,8 +46,9 @@ const APPROVED_MATRIX = [
     'payments.receive_alerts' => ['A', 'C', 'Co'],
     'webhooks.view' => ['A'],
     'payment_settings.view' => ['A'],
-    // Fase 3 (propuesta en docs/tecnico/fase-3-cfdi.md, pendiente de aprobación).
+    // Fase 3 (aprobada por el usuario el 2026-09-23).
     'cfdi.view' => ['A', 'C', 'Co'],
+    'cfdi.view_technical' => ['A', 'Co'],
     'cfdi.issue' => ['A', 'Co'],
     'cfdi.cancel' => ['A', 'Co'],
 ];

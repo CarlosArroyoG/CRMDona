@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\AttemptInitiator;
+use App\Enums\CardFunding;
 use App\Enums\FailureCategory;
 use App\Enums\PaymentAttemptStatus;
 use App\Enums\PaymentProvider;
@@ -29,6 +30,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $provider_message
  * @property string|null $card_brand
  * @property string|null $card_last4
+ * @property CardFunding|null $card_funding
  * @property Carbon|null $provider_created_at
  * @property Carbon $created_at
  * @property Carbon $updated_at
@@ -44,7 +46,7 @@ class PaymentAttempt extends Model
     {
         return [
             'payment_id', 'provider', 'external_id', 'attempt_number', 'status', 'initiated_by', 'failure_category',
-            'provider_code',
+            'provider_code', 'card_funding',
         ];
     }
 
@@ -71,6 +73,7 @@ class PaymentAttempt extends Model
             'status' => PaymentAttemptStatus::class,
             'initiated_by' => AttemptInitiator::class,
             'failure_category' => FailureCategory::class,
+            'card_funding' => CardFunding::class,
             'provider_created_at' => 'datetime',
         ];
     }

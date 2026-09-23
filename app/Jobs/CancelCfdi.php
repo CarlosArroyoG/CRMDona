@@ -50,6 +50,14 @@ class CancelCfdi implements ShouldQueue
             $result = new CancellationResult(CancellationResult::REJECTED, SensitiveData::safeText($exception->getMessage(), 50) ?? 'rejected');
         }
 
+        if ($result->outcome === CancellationResult::NOT_REQUESTED) {
+            if ($this->poll) {
+                self::dispatch($this->cfdiId);
+            }
+
+            return;
+        }
+
         $origin->run(AuditSource::Synchronization, fn () => DB::transaction(function () use ($result): void {
             $locked = Cfdi::query()->lockForUpdate()->findOrFail($this->cfdiId);
             if ($locked->status !== CfdiStatus::CancellationPending) {
@@ -59,9 +67,16 @@ class CancelCfdi implements ShouldQueue
             $locked->forceFill(match ($result->outcome) {
                 CancellationResult::CANCELLED => ['status' => CfdiStatus::Cancelled, 'cancelled_at' => now()],
                 // Rechazada por el receptor o por el SAT: el CFDI sigue vigente.
+                // En una sustitución, el sustituto sigue marcado como pendiente.
                 CancellationResult::REJECTED => ['status' => CfdiStatus::Stamped],
                 default => [],
             } + ['cancellation_provider_status' => mb_substr($result->providerStatus, 0, 50)])->save();
+
+            // Sustitución completa: el CFDI nuevo queda como el vigente del donativo.
+            if ($locked->status === CfdiStatus::Cancelled) {
+                Cfdi::query()->where('substitutes_cfdi_id', $locked->id)->where('replacement_pending', true)->get()
+                    ->each(fn (Cfdi $replacement) => $replacement->forceFill(['replacement_pending' => false])->save());
+            }
         }));
     }
 }

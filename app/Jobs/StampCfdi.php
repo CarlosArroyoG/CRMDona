@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Jobs;
 
 use App\Actions\Cfdi\BuildDonationCfdiDraft;
+use App\Actions\Cfdi\RequestCfdiSubstitution;
 use App\Cfdi\CfdiProviderRegistry;
 use App\Cfdi\CfdiStorage;
 use App\Cfdi\Exceptions\CfdiNotReadyException;
@@ -56,7 +57,7 @@ class StampCfdi implements ShouldQueue
                 return;
             }
 
-            $cfdi = Cfdi::query()->with('donation.donor.taxProfile')->findOrFail($this->cfdiId);
+            $cfdi = Cfdi::query()->with(['donation.donor.taxProfile', 'substitutes'])->findOrFail($this->cfdiId);
 
             try {
                 $draft = $builder->handle($cfdi->donation, $cfdi);
@@ -77,19 +78,47 @@ class StampCfdi implements ShouldQueue
 
             $paths = $storage->store($cfdi, $result->uuid, $result->xml, $result->pdf);
 
-            $cfdi->forceFill([
-                'status' => CfdiStatus::Stamped,
-                'uuid' => $result->uuid,
-                'external_id' => $result->externalId,
-                'series' => $draft->series,
-                'folio' => $draft->folio,
-                'stamped_at' => $result->stampedAt,
-                'xml_path' => $paths['xml'],
-                'pdf_path' => $paths['pdf'],
-                'last_error_code' => null,
-                'last_error' => null,
-            ])->save();
+            $cancelOriginal = DB::transaction(function () use ($cfdi, $result, $draft, $paths): ?int {
+                $cfdi->forceFill([
+                    'status' => CfdiStatus::Stamped,
+                    'uuid' => $result->uuid,
+                    'external_id' => $result->externalId,
+                    'series' => $draft->series,
+                    'folio' => $draft->folio,
+                    'stamped_at' => $result->stampedAt,
+                    'xml_path' => $paths['xml'],
+                    'pdf_path' => $paths['pdf'],
+                    'last_error_code' => null,
+                    'last_error' => null,
+                ])->save();
+
+                return $this->requestOriginalCancellation($cfdi);
+            });
+
+            if ($cancelOriginal !== null) {
+                CancelCfdi::dispatch($cancelOriginal);
+            }
         });
+    }
+
+    /**
+     * Sustitución (motivo 01): timbrado el sustituto, el original pasa a
+     * cancelación con el UUID nuevo [V SAT, esquema de cancelación 2026].
+     */
+    private function requestOriginalCancellation(Cfdi $replacement): ?int
+    {
+        if (! $replacement->replacement_pending || $replacement->substitutes_cfdi_id === null) {
+            return null;
+        }
+
+        $original = Cfdi::query()->lockForUpdate()->findOrFail($replacement->substitutes_cfdi_id);
+        if ($original->status !== CfdiStatus::Stamped) {
+            return null;
+        }
+
+        RequestCfdiSubstitution::markOriginalForCancellation($original, $replacement, (string) $replacement->substitution_reason, $replacement->requested_by_id);
+
+        return $original->id;
     }
 
     private function finish(Cfdi $cfdi, CfdiStatus $status, ?string $code, string $message): void

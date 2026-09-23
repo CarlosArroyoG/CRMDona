@@ -25,6 +25,7 @@ enum AuditEvent: string implements HasColor, HasLabel
     case Resumed = 'resumed';
     case IncidentTaken = 'incident_taken';
     case IncidentResolved = 'incident_resolved';
+    case Discarded = 'discarded';
 
     public function getLabel(): string
     {
@@ -44,6 +45,7 @@ enum AuditEvent: string implements HasColor, HasLabel
             self::Resumed => 'Reanudación',
             self::IncidentTaken => 'Incidencia en revisión',
             self::IncidentResolved => 'Incidencia resuelta',
+            self::Discarded => 'Descarte',
         };
     }
 
@@ -52,7 +54,7 @@ enum AuditEvent: string implements HasColor, HasLabel
         return match ($this) {
             self::Created, self::Confirmed, self::Reactivated, self::Unarchived, self::Resumed, self::IncidentResolved => 'success',
             self::Deleted, self::Cancelled, self::Deactivated => 'danger',
-            self::Archived, self::Paused => 'gray',
+            self::Archived, self::Paused, self::Discarded => 'gray',
             self::PasswordReset, self::IncidentTaken => 'warning',
             self::Updated, self::TagsChanged => 'info',
         };

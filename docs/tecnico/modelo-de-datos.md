@@ -75,7 +75,7 @@ Todas las FK de pagos son `restrict`: nada se borra en cascada. Los importes son
 | `received_on` | fecha | en línea: fecha del cobro en la zona horaria de la organización |
 | `status` | texto | `pending`, `confirmed`, `cancelled` con evidencia coherente (CHECK); en línea nace `confirmed` |
 | `in_kind_description` | texto | obligatoria solo si es especie |
-| `tax_receipt_requested` | bool | solicitó recibo deducible (para la fase de CFDI) |
+| `tax_receipt_requested` | bool | solicitó recibo deducible (informativo; no decide la emisión de CFDI) |
 | `registered_by_id`, `confirmed_*`, `cancelled_*`, `cancellation_reason` | — | trazabilidad; en línea sin actor humano (la evidencia es el pago) |
 
 CHECKs de origen:

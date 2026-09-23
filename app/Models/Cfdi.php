@@ -18,6 +18,9 @@ use Illuminate\Support\Carbon;
  *
  * @property int $id
  * @property int $donation_id
+ * @property int|null $substitutes_cfdi_id CFDI original al que sustituye (motivo 01).
+ * @property bool $replacement_pending Sustitución timbrada o en curso cuyo original aún no se cancela.
+ * @property string|null $substitution_reason
  * @property string $provider
  * @property string|null $external_id
  * @property string|null $uuid
@@ -47,6 +50,7 @@ use Illuminate\Support\Carbon;
  * @property-read Donation $donation
  * @property-read User|null $requestedBy
  * @property-read User|null $cancellationRequestedBy
+ * @property-read Cfdi|null $substitutes
  */
 class Cfdi extends Model
 {
@@ -57,7 +61,7 @@ class Cfdi extends Model
     public static function auditValueFields(): array
     {
         return [
-            'donation_id', 'provider', 'external_id', 'uuid', 'series', 'folio', 'status', 'total', 'requested_by_id',
+            'donation_id', 'substitutes_cfdi_id', 'replacement_pending', 'substitution_reason', 'provider', 'external_id', 'uuid', 'series', 'folio', 'status', 'total', 'requested_by_id',
             'stamped_at', 'last_error_code', 'cancellation_motive', 'cancellation_replacement_uuid', 'cancellation_reason',
             'cancellation_requested_at', 'cancellation_requested_by_id', 'cancellation_provider_status', 'cancelled_at',
         ];
@@ -74,6 +78,14 @@ class Cfdi extends Model
     public function donation(): BelongsTo
     {
         return $this->belongsTo(Donation::class);
+    }
+
+    /**
+     * @return BelongsTo<Cfdi, $this>
+     */
+    public function substitutes(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'substitutes_cfdi_id');
     }
 
     /**
@@ -99,6 +111,7 @@ class Cfdi extends Model
     {
         return [
             'status' => CfdiStatus::class,
+            'replacement_pending' => 'boolean',
             'total' => 'decimal:2',
             'requested_at' => 'datetime',
             'stamped_at' => 'datetime',

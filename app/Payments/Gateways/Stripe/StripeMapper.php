@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Payments\Gateways\Stripe;
 
 use App\Enums\AttemptInitiator;
+use App\Enums\CardFunding;
 use App\Enums\DisputeStatus;
 use App\Enums\FailureCategory;
 use App\Enums\PaymentAttemptStatus;
@@ -338,6 +339,7 @@ final class StripeMapper
             providerCode: $failed ? $code : null,
             providerMessage: $failed ? SensitiveData::safeText(self::string($charge['failure_message'] ?? null)) : null,
             cardBrand: self::string($card['brand'] ?? null),
+            cardFunding: CardFunding::tryFrom(self::string($card['funding'] ?? null) ?? ''),
             cardLast4: $last4 !== null && preg_match('/^\d{4}$/', $last4) === 1 ? $last4 : null,
             providerCreatedAt: self::timestamp($charge['created'] ?? null),
         );

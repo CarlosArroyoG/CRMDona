@@ -144,6 +144,7 @@ class SyncPayment
                 'provider_message' => $snapshot->providerMessage,
                 'card_brand' => $snapshot->cardBrand,
                 'card_last4' => $snapshot->cardLast4,
+                'card_funding' => $snapshot->cardFunding,
             ])->save();
 
             if ($attempt->status === PaymentAttemptStatus::Failed) {

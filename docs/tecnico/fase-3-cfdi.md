@@ -1,97 +1,154 @@
-# Fase 3 — CFDI de donativos (estado y reglas)
+# Fase 3 — CFDI de donativos (reglas, diseño y Facturapi)
 
 Marcas:
-- **[V]** verificado en documentación oficial del SAT;
-- **[F]** requiere decisión o validación fiscal;
-- **[S]** requiere sandbox o PAC.
+- **[V]** verificado en documentación oficial vigente;
+- **[F]** requiere decisión o validación fiscal (bloqueado en código con su motivo);
+- **[S]** requiere probarse en Facturapi Test.
 
-Fuente principal [V]: SAT, micrositio Donatarias Autorizadas, *Preguntas frecuentes — Emisión de facturas electrónicas* (documento de 2024, con fundamento en la RMF 2024), y el esquema de cancelación vigente del SAT.
+PAC elegido: **Facturapi** (2026-09-23), con el cliente HTTP de Laravel y sin SDK. Permisos aprobados el 2026-09-23.
 
-## 1. Reglas implementadas [V]
+## 1. Reglas fiscales 2026 [V]
 
-| Regla | Valor | Dónde |
+Fuentes oficiales, en orden de prioridad:
+1. SAT, *Donatarias Autorizadas — Emisión de CFDI* (`CFDI_Donatarias2026.pdf`);
+2. RMF 2026 (DOF 28-12-2025);
+3. SAT, *Esquema de cancelación de CFDI 2026*;
+4. complemento `donat11.xsd`.
+
+La FAQ de 2024 solo se usa para S01/RESICO (ver la tabla).
+
+| Regla | Valor | Fuente |
 |---|---|---|
-| Tipo de comprobante | Ingreso (`I`) | `BuildDonationCfdiDraft` |
-| Método de pago | `PUE`; el SAT indica que PPD no aplica a donativos | ídem |
-| Forma de pago | Según catálogo: efectivo `01`, cheque `02`, transferencia `03` | ídem |
-| Uso de CFDI | `D04` persona física; `S01` si su régimen es 626 (RESICO); `G03` persona moral. Si el perfil del donante trae otro valor, se pide corregir; no se sobrescribe | ídem |
-| Concepto | Clave `84101600`, cantidad `1`, unidad `M4`, descripción "Donativo", valor = importe, `ObjetoImp 01` | ídem |
-| Complemento de donatarias 1.1 | Obligatorio: número de oficio, fecha de oficio y la leyenda textual del SAT | ídem; datos de Organización |
-| Momento de emisión | Nunca antes de recibir el donativo (solo donativos confirmados). El SAT pide emitir en 24 h | ídem / §2 |
-| Cancelación | Motivos `01`–`04`; el `01` exige el UUID que sustituye; puede requerir aceptación del receptor (3 días hábiles) | `RequestCfdiCancellation`, `CancelCfdi` |
+| Obligación | La donataria expide CFDI al recibir los donativos | RLISR 138-E; LISR 86; RMF 2026 3.10.1.2 |
+| Plazo | Dentro de las 24 h posteriores a la operación; nunca antes de recibir el donativo | RCFF 39 (guía 2026) |
+| Tipo de comprobante | Ingreso (`I`) | Guía 2026, caso A |
+| Método de pago | `PUE`; el pago diferido no aplica a donativos | Guía 2026 |
+| Forma de pago | La que corresponda del catálogo. Implementado: `01` efectivo, `02` cheque, `03` transferencia, `04` tarjeta de crédito, `28` tarjeta de débito | Guía 2026; c_FormaPago |
+| Uso de CFDI | `D04` persona física; `G03` persona moral | Guía 2026 |
+| Uso de CFDI en RESICO | `S01` si la persona física tributa en RESICO (626), porque D04 no admite ese régimen | FAQ SAT 2024 (no contradicha en 2026) |
+| Concepto | Clave `84101600`, unidad `M4`, cantidad `1`, valor = monto del donativo | Guía 2026, caso A |
+| Descripción | El propósito del donativo. Implementado: "Donativo para {campaña o programa}" o "para el fondo general" | Guía 2026 |
+| Impuestos | ObjetoImp `01` (no objeto de impuesto) | Guía 2026 |
+| Complemento Donatarias 1.1 | Obligatorio, con `noAutorizacion`, `fechaAutorizacion` y la leyenda | CFF 29-A fr. V b; RMF 2026 3.10.1.2 y 2.7.1.26; `donat11.xsd` |
+| Público en general | Factura global diaria, semanal o mensual con: RFC `XAXX010101000`; `S01`; clave `01010101`; unidad `ACT`; número de folio de cada comprobante de operación; forma de pago del donativo de mayor monto. Se envía dentro de las 24 h siguientes al cierre del periodo | Guía 2026, caso C; RMF 2026 2.7.1.21 |
+| Especie | Forma de pago `12`; la clave y la unidad del bien | Guía 2026, casos B y D |
+| Motivos de cancelación | `01` sustitución: primero el CFDI nuevo con relación `04`, después cancelar con su UUID. `02` error sin relación: cancelar y reemitir. `03` operación no realizada. `04` operación nominativa incluida en una factura global | Esquema de cancelación 2026 |
+| Aceptación del receptor | 3 días hábiles; si no responde, se cancela. Sin aceptación, entre otros: CFDI de hasta $1,000, público en general y cancelación dentro del día hábil siguiente | RMF 2026 2.7.1.34 y 2.7.1.35 |
+| No cancelable | Un CFDI con documentos relacionados vigentes. La relación 04 se libera al pedir la cancelación | Esquema de cancelación 2026 |
 
-## 2. Cuestiones [F] (bloqueadas en código; no se inventa regla)
+## 2. Cobertura fiscal de cada donativo
 
-1. **Contradicción con el requisito original: ¿solo cuando el donante lo solicita?**
-   - El requisito del proyecto dice "CFDI solo cuando corresponda y el donante solicite comprobante fiscal".
-   - El SAT dice que la donataria **tiene la obligación de expedir CFDI por los donativos que reciba** (pregunta 1) y que debe emitirse dentro de las 24 horas (pregunta 2).
-   - Falta decidir con el contador:
-     - si se emite CFDI a todo donativo;
-     - qué hacer con los donantes sin RFC (público en general `XAXX010101000` o factura global);
-     - el plazo.
-   - Mientras tanto: `CFDI_AUTO_ISSUE=false` y sin datos fiscales del donante no se emite.
-2. **Donativos en especie:** clave del bien, unidad, valuación y forma de pago `12` (dación en pago), verificada. Bloqueado.
-3. **Tarjeta en línea:** crédito (`04`) o débito (`28`) requiere decidir el origen del dato (tipo de tarjeta en el proveedor [S]). Bloqueado.
-4. **Depósito bancario:** efectivo o cheque depositado. Bloqueado.
-5. **Vigencia de la autorización de donataria:** el complemento solo aplica con autorización vigente (renovación anual); el CRM no la verifica.
-6. **Reembolsos, contracargos y cancelación del donativo:** ¿cancelar el CFDI? ¿con qué motivo? Hoy nada es automático.
-7. **Sustitución (motivo 01) y motivo 04:** requieren CFDI relacionado; hoy solo se permite cancelar con `02` y `03`.
-8. **Vigencia de la fuente:** confirmar que la guía del SAT (RMF 2024) no cambió en la RMF 2026 (Anexo 20 vigente).
-9. **Permisos propuestos** (reversibles en la matriz):
-   - `cfdi.view`: Administrador, Coordinador y Contador;
-   - `cfdi.issue` y `cfdi.cancel`: Administrador y Contador;
-   - Solo lectura, nada.
+Todo donativo confirmado cae en una de tres rutas (`ResolveDonationFiscalRoute`). El campo "Solicitó recibo deducible" queda solo como dato informativo para la atención al donante.
 
-## 3. Cuestiones [S]
+| Ruta | Cuándo | Qué hace el sistema |
+|---|---|---|
+| **CFDI individual** | El donante tiene datos fiscales y el CFDI se puede armar | Lo timbra al confirmar (`CFDI_AUTO_ISSUE=true`). La conciliación vuelve a intentar los de las últimas 72 h |
+| **Público en general** | Sin datos fiscales, o con RFC `XAXX010101000` | No crea nada: la factura global está bloqueada ([F] §3) |
+| **Bloqueado** | Especie, reembolso o disputa, depósito bancario, tarjeta de prepago o de tipo desconocido, RFC extranjero, datos por corregir | No crea nada; muestra el motivo |
 
-- Emisión real con complemento de donatarias en el PAC elegido.
-- Idempotencia del PAC ante reintentos.
-- PDF que imprima la leyenda.
-- Validación de `D04` y `S01` contra el régimen del receptor (matriz del SAT).
-- Estados reales de cancelación y aceptación.
-- CSD de prueba.
+La ruta se ve en el detalle del donativo ("Cobertura fiscal"), para los roles con `cfdi.view`.
 
-## 4. Arquitectura (independiente del PAC)
+## 3. Cuestiones [F]
 
-- **`cfdis`** (Donation 1→N; como máximo uno vigente por donativo, con índice único). No copia datos fiscales: lo emitido es el XML en el disco privado (`storage/app/private/cfdi/AAAA/MM/UUID.xml|pdf`).
-- **Estados:** `pending → stamping → stamped | failed (se reintenta) | rejected (se corrige)`, y `stamped → cancellation_pending → cancelled | stamped`.
-- **Contrato `CfdiProvider`** (timbrar, cancelar, estado de cancelación), más la capacidad `RendersCfdiPdf` y `CfdiProviderRegistry` (`CFDI_PROVIDER`).
-- **`FakeCfdiProvider`:** solo local y testing; XML "sin validez fiscal"; idempotente.
-- **Actions:**
-  - `BuildDonationCfdiDraft` (reglas);
-  - `RequestDonationCfdi` (idempotente);
-  - `RetryCfdi`;
-  - `RequestCfdiCancellation`;
-  - `IssueCfdiAutomatically` (cada donativo confirmado, incluida cada mensualidad; apagado).
-- **Jobs:**
-  - `StampCfdi`: toma exclusiva, PAC sin transacción abierta y misma llave;
-  - `CancelCfdi`;
-  - `ReconcileCfdis`: cada 15 minutos; timbrados interrumpidos, errores y cancelaciones en espera.
-- **Filament y seguridad:**
-  - pantalla CFDI, acción "Emitir CFDI" en el donativo y descargas solo con permiso (`/admin/cfdi-files/{id}/{xml|pdf}`);
-  - la bitácora audita solicitud, timbrado y cancelación (con procedencia).
+1. **Factura global.** Falta decidir:
+   - periodicidad: diaria, semanal o mensual;
+   - qué cuenta como "comprobante de operación con el público en general": el folio del donativo en el CRM, un recibo propio o los "Recibos" de Facturapi;
+   - si la factura global lleva complemento de donatarias. La guía 2026 no lo dice en el caso C; el CFF lo pide para "donativos deducibles";
+   - si se emiten comprobantes de operación para donativos menores de $100 (RMF 2.7.1.21).
 
-## 5. PAC candidatos (para elegir)
+   Sin esas decisiones no se construye la factura global ni el motivo 04.
+2. **Especie:** clave del bien, unidad y valuación.
+3. **Depósito bancario:** si cuenta como efectivo (01) o como cheque (02).
+4. **Tarjeta de prepago** (no está en el catálogo como tal) y tipo de tarjeta desconocido.
+5. **Donante extranjero** (`XEXX010101000`).
+6. **Reembolsos y contracargos:** se bloquea la emisión si el pago los tiene. Nada es automático sobre un CFDI ya timbrado.
+7. **Vigencia de la autorización de donataria:** el CRM no la verifica; es responsabilidad del Administrador.
+8. **Emisión tardía:** donativos confirmados después de 24 h, o antes de configurar el PAC. Se pueden emitir a mano.
 
-| | Facturapi | Facturama (API Multiemisor) | SW sapien |
-|---|---|---|---|
-| API | REST JSON | REST JSON | REST (JSON o XML) |
-| CFDI 4.0 | Sí | Sí | Sí |
-| Donatarias | Complemento como XML en `complements` [S] | Documentado en su soporte [S] | Documentado con ejemplos (1.1) |
-| Timbrado | El PAC arma y sella (guarda el CSD) | Arma y sella (CSD subido por API); el folio lo pone el emisor | Emisión JSON: sella y timbra |
-| Cancelación | Sí (motivo y sustitución) | Sí | Sí (UUID, CSD) |
-| XML/PDF | Ambos | Ambos | XML; PDF con servicio aparte |
-| Sandbox | Llaves de prueba | `apisandbox.facturama.mx` (15 timbres de prueba) | `services.test.sw.com.mx` |
-| SDK/REST | SDK PHP; basta el cliente HTTP | SDK PHP; basta el cliente HTTP | SDK PHP; token de 2 h |
-| Ventaja técnica | API más simple, PDF incluido | Complemento documentado; sandbox gratuito | Es PAC directo; donatarias con ejemplos |
-| Desventaja técnica | El complemento va como XML crudo; el PDF podría no mostrarlo | Folios y CSD a nuestro cargo | Más bajo nivel (token, PDF aparte) |
+## 4. Diseño (cambios de este bloque)
 
-Recomendación técnica: **Facturapi** (menos piezas para el adaptador). La alternativa es **SW sapien** si el sandbox no acepta el complemento de donatarias. No se integra hasta la aprobación.
+- **Sustitución (motivo 01):**
+  - el CFDI nuevo lleva `substitutes_cfdi_id` y `replacement_pending`, y se timbra con `related_documents` 04;
+  - al timbrarse, el original pasa a cancelación con motivo 01 y el UUID nuevo;
+  - al cancelarse, el nuevo queda como el vigente;
+  - si el receptor rechaza la cancelación, ambos siguen vigentes y "Sustituir" reintenta solo la cancelación;
+  - índices: un CFDI vigente por donativo y, como máximo, una sustitución en curso.
+- **Cancelación directa:** solo motivos 02 y 03. El 01 va por sustitución; el 04 queda bloqueado hasta que exista la factura global.
+- **Descartar:** solo un CFDI rechazado que nunca se timbró (`discarded`; CHECK: sin UUID). Un error temporal no se descarta, porque su resultado es incierto.
+- **Tipo de tarjeta:**
+  - `payment_attempts.card_funding` (credit, debit, prepaid, unknown);
+  - Stripe lo toma de `card.funding` y Mercado Pago de `payment_method.type` ([S] #30).
 
-Fuentes:
-- SAT, Donatarias Autorizadas: https://www.sat.gob.mx/minisitio/DonatariasAutorizadas/documentos/preguntasfrecuentes/CFDI.pdf
-- Complemento de donatarias 1.1: http://www.sat.gob.mx/sitio_internet/cfd/donat/donat11.xsd
-- Esquema de cancelación del SAT: https://www.sat.gob.mx/minisitio/Factura/documentos/EsquemaCancelacionCFDI.pdf
-- Facturapi, complementos: https://docs.facturapi.io/en/docs/guides/invoices/complementos/
-- Facturama, API Multiemisor CFDI 4.0: https://apisandbox.facturama.mx/guias/cfdi40/multiemisor
-- SW sapien, donatarias: https://developers.sw.com.mx/knowledge-base/donatarias/
+## 5. Facturapi (verificado en su documentación; `docs.facturapi.io`, `api-es.yaml`)
+
+| Tema | Documentado | Uso en el adaptador |
+|---|---|---|
+| Crear | `POST /v2/invoices`, llave Bearer `sk_test_`/`sk_live_`. `200` = `valid`. `202` = rescate por intermitencia (hasta 5 intentos, cada 10 min) | Síncrono. Un `202` o `pending` se trata como no disponible y se reintenta |
+| Receptor | `customer.legal_name`, `tax_id`, `tax_system`, `address.zip` | Del perfil fiscal del donante |
+| Concepto | `product_key`, `unit_key`, `price`, `taxability`, `taxes` (con `01` → `[]`) | 84101600, M4, `taxability: 01`, sin impuestos |
+| Complemento | `complements: [{type: "custom", data: "<xml>"}]`; Facturapi no lo imprime en el PDF | `donat:Donatarias` 1.1, más `namespaces` y `pdf_custom_section` con el oficio y la leyenda [S] |
+| Relacionados | `related_documents: [{relationship, documents}]` | Sustitución 04 [S]: la especificación marca `related` como requerido |
+| Idempotencia | `idempotency_key` "evita duplicados al reintentar"; **no documenta qué responde ante una llave repetida**. `external_id` se puede buscar (sin garantía de unicidad) | Se envían ambos con nuestra llave y, **antes de cada timbrado, se busca por `external_id`**; si existe, se adopta. Si hay 2 → rechazo para revisión humana |
+| XML y PDF | `GET /invoices/{id}/xml` y `/pdf` | Se guardan en disco privado |
+| Cancelar | `DELETE /invoices/{id}?motive=01..04&substitution=UUID`. Resultado: `status: canceled`, o `valid` con `cancellation_status: pending` | Cancelado, en espera o rechazado. `none` en una consulta → se reenvía. `409` → rechazo |
+| Estado | `cancellation_status`: none, pending, accepted, rejected, expired | `expired` con `valid` = sigue vigente [S] |
+| Errores | `400` (datos), `401`, `404`, `409`, `429`, `500`, con `message` y `code` | 400/404 → "Rechazado por datos". 401, 409 al crear, 429, 5xx y sin respuesta → "Error temporal" (busca antes de reintentar) |
+
+- **Seguridad:**
+  - la llave solo vive en `FACTURAPI_KEY`; nunca en base de datos, bitácora ni logs;
+  - `sk_live_` solo se acepta con `APP_ENV=production`;
+  - las pruebas usan `Http::fake` con `preventStrayRequests` y `phpunit.xml` vacía la llave.
+- **Emisor:** RFC, régimen, CP y CSD son los de la organización configurada en el panel de Facturapi. Deben coincidir con Administración → Organización [S].
+
+## 6. Pendientes [S] (Facturapi Test)
+
+1. Timbrado con el complemento `custom` (namespace y `schemaLocation`).
+2. `related_documents` en la sustitución.
+3. Qué responde ante un `idempotency_key` repetido.
+4. `pdf_custom_section`: que el PDF muestre la leyenda.
+5. `D04` y `S01` contra el régimen del receptor.
+6. Estados reales de cancelación, incluido `expired`.
+7. Formato real de `stamp.date` y del UUID.
+8. Que la organización de Facturapi coincida con la del CRM.
+9. Tipo de tarjeta en Stripe y Mercado Pago (#30).
+
+## 7. Instrucciones: Facturapi Test
+
+1. Crea una cuenta en `https://dashboard.facturapi.io` y una **organización de prueba** con los datos fiscales de la Fundación. Estos deben coincidir con Administración → Organización del CRM local:
+   - razón social;
+   - RFC;
+   - régimen 603;
+   - código postal.
+2. Si el panel de prueba pide un CSD:
+   - sube un **CSD de prueba** (el que Facturapi o el SAT publican para pruebas) desde el propio panel, con su contraseña;
+   - nunca uses el CSD real de la Fundación en pruebas;
+   - nunca pongas el CSD ni su contraseña en el CRM, en `.env` ni en el chat.
+3. En la sección de llaves de esa organización, copia la **llave secreta de prueba** (`sk_test_…`) y agrégala solo a tu `.env` local:
+   ```
+   CFDI_PROVIDER=facturapi
+   CFDI_AUTO_ISSUE=true
+   FACTURAPI_KEY=sk_test_…
+   ```
+4. Recarga la configuración: `docker compose up -d --force-recreate app worker scheduler`. El `worker` debe estar corriendo, porque el timbrado va en cola.
+5. En el CRM, Administración → Organización, captura un número y una fecha de oficio de prueba.
+6. Crea un donante con datos fiscales de prueba válidos para el SAT (RFC, nombre, régimen y CP coherentes). Registra un donativo en efectivo y confírmalo.
+7. Verifica:
+   - que quede "Timbrado";
+   - que el XML tenga `donat:Donatarias` versión 1.1;
+   - que el PDF muestre el oficio y la leyenda.
+
+   Después prueba:
+   - cancelar con motivo 02;
+   - sustituir con motivo 01;
+   - un receptor inválido: debe quedar "Rechazado por datos".
+8. Anota los resultados en la lista del §6 y avísame. Nada de esto se marca [V] hasta verlo en Facturapi Test.
+
+## 8. Fuentes
+
+- SAT, Donatarias Autorizadas — Emisión de CFDI (2026): https://www.sat.gob.mx/minisitio/DonatariasAutorizadas/documentos/CFDI_Donatarias2026.pdf
+- RMF 2026 (DOF 28-12-2025): https://www.sat.gob.mx/minisitio/NormatividadRMFyRGCE/documentos2026/rmf/rmf/RMF_2026-DOF-28122025.pdf
+- SAT, Esquema de cancelación de CFDI 2026: https://www.sat.gob.mx/minisitio/Factura/documentos/EsquemaCancelacionCFDI.pdf
+- Complemento Donatarias 1.1: http://www.sat.gob.mx/sitio_internet/cfd/donat/donat11.xsd
+- SAT, preguntas frecuentes de donatarias (2024, solo para S01/RESICO): https://www.sat.gob.mx/minisitio/DonatariasAutorizadas/documentos/preguntasfrecuentes/CFDI.pdf
+- Facturapi, referencia de la API: https://docs.facturapi.io/api/ y https://docs.facturapi.io/redocusaurus/api-es.yaml
+- Facturapi, rescate en intermitencias: https://docs.facturapi.io/docs/guides/invoices/intermitencias

@@ -11,46 +11,89 @@ use App\Enums\DonationOrigin;
 use App\Enums\DonationStatus;
 use App\Enums\DonorType;
 use App\Enums\ManualPaymentMethod;
+use App\Enums\PaymentAttemptStatus;
+use App\Enums\RefundStatus;
 use App\Enums\TaxRegime;
 use App\Models\Cfdi;
 use App\Models\Donation;
 use App\Models\OrganizationSetting;
 
 /**
- * Arma el contenido fiscal del CFDI de un donativo (docs/tecnico/fase-3-cfdi.md).
+ * Arma el CFDI individual (nominativo) de un donativo en dinero
+ * (docs/tecnico/fase-3-cfdi.md).
  *
- * Reglas [V] — SAT, Donatarias Autorizadas, "Preguntas frecuentes: emisión de
- * facturas electrónicas" (§4–6, 13): ingreso, PUE, clave 84101600, unidad
- * M4, cantidad 1, descripción "Donativo", ObjetoImp 01, uso D04 (persona
- * física; S01 si tributa en RESICO 626) o G03 (persona moral), complemento
- * de donatarias obligatorio con número y fecha de oficio y la leyenda.
+ * Reglas [V] — SAT, "Donatarias Autorizadas: Emisión de CFDI" (2026), caso A
+ * "Donativo recibido en dinero": ingreso, PUE, forma de pago del catálogo,
+ * clave 84101600, unidad M4, cantidad 1, descripción con el propósito del
+ * donativo, valor = monto, ObjetoImp 01, uso
+ * D04 (persona física) o G03 (persona moral); S01 si el donante tributa en
+ * RESICO 626 (FAQ SAT 2024; D04 no admite el régimen 626). Complemento
+ * Donatarias con número y fecha de oficio y la leyenda (CFF 29-A fr. V
+ * inciso b; RMF 2026 3.10.1.2).
  *
- * Lo que la normativa leída no resuelve se bloquea con un motivo [F] en
- * lugar de inventar una regla.
+ * Lo que la normativa no resuelve se bloquea con un motivo [F] en lugar de
+ * inventar una regla.
  */
 class BuildDonationCfdiDraft
 {
     /**
-     * [V] Leyenda del complemento (SAT, pregunta 5; CFF 29-A fr. V inciso b).
+     * [V] Leyenda del complemento (CFF 29-A fr. V inciso b).
      */
     public const string DONATARIA_LEGEND = 'Este comprobante ampara un donativo, el cual será destinado por la donataria a los fines propios de su objeto social. En el caso de que los bienes donados hayan sido deducidos previamente para los efectos del impuesto sobre la renta, este donativo no es deducible.';
 
+    /** RFC genéricos del SAT (RMF 2026 2.7.1.23). */
+    public const string GENERIC_RFC = 'XAXX010101000';
+
+    public const string FOREIGN_RFC = 'XEXX010101000';
+
     /**
-     * @throws CfdiNotReadyException
+     * Bloqueos que aplican a cualquier CFDI del donativo (individual o global).
+     *
+     * @return list<string>
      */
-    public function handle(Donation $donation, Cfdi|int|null $folio = null): CfdiDraft
+    public function blockingReasons(Donation $donation): array
     {
         $reasons = [];
-        $settings = OrganizationSetting::current();
-        $profile = $donation->donor->taxProfile;
 
         if ($donation->status !== DonationStatus::Confirmed) {
             $reasons[] = 'Solo se emite CFDI de donativos confirmados (el SAT no permite emitirlo antes de recibir el donativo).';
         }
 
         if ($donation->kind === DonationKind::InKind) {
-            $reasons[] = '[F] Los donativos en especie requieren definir con el contador la clave del bien, la unidad y la valuación.';
+            $reasons[] = '[F] Donativo en especie: falta definir con el contador la clave del bien, la unidad y la valuación (el SAT indica forma de pago 12).';
         }
+
+        $payment = $donation->payment;
+        if ($payment !== null && $payment->refunds()->whereIn('status', [RefundStatus::Pending->value, RefundStatus::Succeeded->value])->exists()) {
+            $reasons[] = '[F] El pago tiene un reembolso: el tratamiento del CFDI en reembolsos está pendiente de decisión fiscal.';
+        }
+
+        if ($payment !== null && $payment->disputes()->exists()) {
+            $reasons[] = '[F] El pago tiene una disputa o contracargo: el tratamiento del CFDI está pendiente de decisión fiscal.';
+        }
+
+        return $reasons;
+    }
+
+    /**
+     * Sin datos fiscales o con el RFC genérico: operación con el público en
+     * general (factura global, RMF 2026 2.7.1.21).
+     */
+    public function isPublicGeneral(Donation $donation): bool
+    {
+        $profile = $donation->donor->taxProfile;
+
+        return $profile === null || strtoupper($profile->rfc) === self::GENERIC_RFC;
+    }
+
+    /**
+     * @throws CfdiNotReadyException
+     */
+    public function handle(Donation $donation, Cfdi|int|null $folio = null): CfdiDraft
+    {
+        $reasons = $this->blockingReasons($donation);
+        $settings = OrganizationSetting::current();
+        $profile = $donation->donor->taxProfile;
 
         foreach ([
             'legal_name' => 'la razón social', 'rfc' => 'el RFC', 'tax_regime' => 'el régimen fiscal',
@@ -62,12 +105,15 @@ class BuildDonationCfdiDraft
             }
         }
 
-        if ($profile === null) {
-            $reasons[] = '[F] El donante no tiene datos fiscales. La emisión a público en general (XAXX010101000) está pendiente de decisión fiscal.';
+        if ($this->isPublicGeneral($donation)) {
+            $reasons[] = '[F] El donante no tiene datos fiscales: corresponde a público en general (factura global), que aún no está habilitada.';
+        } elseif ($profile !== null && strtoupper($profile->rfc) === self::FOREIGN_RFC) {
+            $reasons[] = '[F] Donante residente en el extranjero (XEXX010101000): pendiente de decisión fiscal.';
         }
 
         $paymentForm = $this->paymentForm($donation, $reasons);
         $usage = $profile !== null ? $this->usage($donation, $profile->tax_regime, $profile->cfdi_use?->value, $reasons) : null;
+        $related = $this->related($folio, $reasons);
 
         if ($reasons !== [] || $profile === null || $usage === null || $paymentForm === null) {
             throw new CfdiNotReadyException($reasons);
@@ -92,7 +138,7 @@ class BuildDonationCfdiDraft
             currency: 'MXN',
             productCode: '84101600',
             unitCode: 'M4',
-            description: 'Donativo',
+            description: $this->description($donation),
             quantity: '1',
             unitValue: $donation->amount,
             total: $donation->amount,
@@ -100,22 +146,26 @@ class BuildDonationCfdiDraft
             authorizationNumber: (string) $settings->authorization_number,
             authorizationDate: (string) $settings->authorization_date?->toDateString(),
             legend: self::DONATARIA_LEGEND,
+            relatedUuids: $related,
+            relationType: $related !== [] ? '04' : null,
         );
     }
 
     /**
-     * [V] "La que corresponda de acuerdo al catálogo de forma de pago":
-     * 01 efectivo, 02 cheque nominativo, 03 transferencia. Depósito bancario
-     * y tarjeta en línea (04 crédito / 28 débito) quedan [F]/[S].
+     * [V] "La que corresponda conforme al catálogo de formas de pago":
+     * 01 efectivo, 02 cheque nominativo, 03 transferencia, 04 tarjeta de
+     * crédito, 28 tarjeta de débito. Depósito bancario, tarjeta de prepago o
+     * de tipo desconocido quedan [F].
      *
      * @param  list<string>  $reasons
      */
     private function paymentForm(Donation $donation, array &$reasons): ?string
     {
         if ($donation->origin === DonationOrigin::Online) {
-            $reasons[] = '[F] Forma de pago de donativos en línea con tarjeta: falta decidir cómo distinguir crédito (04) de débito (28).';
+            $attempt = $donation->payment?->attempts()->where('status', PaymentAttemptStatus::Succeeded->value)->latest('id')->first();
+            $form = $attempt?->card_funding?->cfdiPaymentForm();
 
-            return null;
+            return $form ?? $this->unresolved($reasons, '[F] Forma de pago del donativo en línea: el proveedor no informó si la tarjeta es de crédito (04) o de débito (28), o es de prepago.');
         }
 
         return match ($donation->manual_payment_method) {
@@ -125,6 +175,17 @@ class BuildDonationCfdiDraft
             ManualPaymentMethod::BankDeposit => $this->unresolved($reasons, '[F] Forma de pago de un depósito bancario (efectivo o cheque depositado): requiere decisión del contador.'),
             null => $this->unresolved($reasons, 'El donativo no tiene forma de pago.'),
         };
+    }
+
+    /**
+     * [V] SAT 2026: "Descripción: registrar cuál es el propósito del
+     * donativo". Se toma del destino del donativo.
+     */
+    public function description(Donation $donation): string
+    {
+        $destination = $donation->campaign->name ?? $donation->effectiveProgram()?->name;
+
+        return mb_substr($destination !== null ? "Donativo para {$destination}" : 'Donativo para el fondo general', 0, 1000);
     }
 
     /**
@@ -149,6 +210,29 @@ class BuildDonationCfdiDraft
         }
 
         return $expected;
+    }
+
+    /**
+     * [V] Sustitución (motivo 01): el CFDI nuevo relaciona al original con
+     * TipoRelacion 04 antes de cancelarlo.
+     *
+     * @param  list<string>  $reasons
+     * @return list<string>
+     */
+    private function related(Cfdi|int|null $cfdi, array &$reasons): array
+    {
+        if (! $cfdi instanceof Cfdi || $cfdi->substitutes_cfdi_id === null) {
+            return [];
+        }
+
+        $uuid = $cfdi->substitutes?->uuid;
+        if ($uuid === null) {
+            $reasons[] = 'El CFDI que se sustituye no tiene folio fiscal.';
+
+            return [];
+        }
+
+        return [$uuid];
     }
 
     /**

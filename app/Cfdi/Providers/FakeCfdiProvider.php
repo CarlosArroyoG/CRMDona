@@ -101,6 +101,11 @@ final class FakeCfdiProvider implements CfdiProvider, RendersCfdiPdf
 
     public function cancel(string $uuid, ?string $externalId, CfdiCancellationMotive $motive, ?string $replacementUuid): CancellationResult
     {
+        // [V SAT] El motivo 01 exige el folio fiscal que sustituye.
+        if ($motive->requiresReplacement() && $replacementUuid === null) {
+            throw new CfdiRejectedException('El motivo 01 requiere el folio fiscal del CFDI que sustituye.', 'motive_01_without_replacement');
+        }
+
         $state = $this->state();
         $outcome = array_shift($state['cancel']) ?? CancellationResult::CANCELLED;
         $this->save($state);
@@ -130,6 +135,9 @@ final class FakeCfdiProvider implements CfdiProvider, RendersCfdiPdf
     private function xml(CfdiDraft $draft, string $uuid): string
     {
         $e = fn (string $value): string => htmlspecialchars($value, ENT_XML1 | ENT_QUOTES, 'UTF-8');
+        $related = $draft->relatedUuids === [] ? '' : '<cfdi:CfdiRelacionados TipoRelacion="'.$e((string) $draft->relationType).'">'
+            .implode('', array_map(fn (string $uuid): string => '<cfdi:CfdiRelacionado UUID="'.$e($uuid).'"/>', $draft->relatedUuids))
+            .'</cfdi:CfdiRelacionados>';
 
         return <<<XML
             <?xml version="1.0" encoding="UTF-8"?>
@@ -138,6 +146,7 @@ final class FakeCfdiProvider implements CfdiProvider, RendersCfdiPdf
                 Serie="{$e($draft->series)}" Folio="{$e($draft->folio)}" TipoDeComprobante="{$e($draft->voucherType)}"
                 FormaPago="{$e($draft->paymentForm)}" MetodoPago="{$e($draft->paymentMethod)}" Moneda="{$e($draft->currency)}"
                 SubTotal="{$e($draft->total)}" Total="{$e($draft->total)}" LugarExpedicion="{$e($draft->expeditionPostalCode)}">
+              {$related}
               <cfdi:Emisor Rfc="{$e($draft->issuerRfc)}" Nombre="{$e($draft->issuerName)}" RegimenFiscal="{$e($draft->issuerRegime)}"/>
               <cfdi:Receptor Rfc="{$e($draft->receiverRfc)}" Nombre="{$e($draft->receiverName)}" RegimenFiscalReceptor="{$e($draft->receiverRegime)}"
                 DomicilioFiscalReceptor="{$e($draft->receiverPostalCode)}" UsoCFDI="{$e($draft->cfdiUse)}"/>

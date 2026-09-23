@@ -7,6 +7,7 @@ use App\Enums\AuditEvent;
 use App\Enums\Role;
 use App\Models\AuditLog;
 use App\Models\Campaign;
+use App\Models\Cfdi;
 use App\Models\Donation;
 use App\Models\Donor;
 use App\Models\DonorTaxProfile;
@@ -129,7 +130,7 @@ it('tiene etiqueta en español para cada tipo y campo auditado', function (): vo
         'donation' => Donation::class, 'organization_setting' => OrganizationSetting::class,
         'payment' => Payment::class, 'payment_attempt' => PaymentAttempt::class, 'subscription' => Subscription::class,
         'refund' => Refund::class, 'payment_dispute' => PaymentDispute::class, 'payment_incident' => PaymentIncident::class,
-        'payment_incident_note' => PaymentIncidentNote::class,
+        'payment_incident_note' => PaymentIncidentNote::class, 'cfdi' => Cfdi::class,
     ];
 
     foreach ($models as $type => $class) {

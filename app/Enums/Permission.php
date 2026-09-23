@@ -53,8 +53,9 @@ enum Permission: string
     case ViewWebhooks = 'webhooks.view';
     case ViewPaymentSettings = 'payment_settings.view';
 
-    // Fase 3 — CFDI (docs/tecnico/fase-3-cfdi.md).
+    // Fase 3 — CFDI (docs/tecnico/fase-3-cfdi.md; aprobados 2026-09-23).
     case ViewCfdis = 'cfdi.view';
+    case ViewCfdiTechnicalDetails = 'cfdi.view_technical';
     case IssueCfdis = 'cfdi.issue';
     case CancelCfdis = 'cfdi.cancel';
 
@@ -77,7 +78,7 @@ enum Permission: string
             self::ViewCfdis => $staff,
             self::ConfirmDonations, self::ViewOrganizationSettings, self::ViewPaymentTechnicalDetails,
             self::RequestRefunds, self::ViewDisputes, self::HandleTechnicalIncidents,
-            self::IssueCfdis, self::CancelCfdis => $finance,
+            self::IssueCfdis, self::CancelCfdis, self::ViewCfdiTechnicalDetails => $finance,
             self::DeleteDonors, self::DeletePrograms, self::DeleteCampaigns,
             self::UpdateOrganizationSettings, self::ViewAuditLog, self::ManageUsers,
             self::ViewWebhooks, self::ViewPaymentSettings => [Role::Administrator],

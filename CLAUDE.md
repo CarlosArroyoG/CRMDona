@@ -15,9 +15,11 @@ El documento de requisitos completo lo entregó el usuario al iniciar el proyect
   usuario. Ver `docs/fases/FASE-02-resumen.md`, `docs/tecnico/fase-2-diseno-pagos.md` (fuente de verdad)
   e `integraciones-pagos.md`. No marcar un [S] como [V] solo porque el código compile.
 - **Fase 2: bloque implementable cerrado administrativamente (2026-09-23)**. Sandbox abierto. Pausa `void` aprobada provisionalmente y límites en `null`.
-- **Fase 3 — CFDI: en curso.** Hecho lo independiente del PAC (`app/Cfdi`, `cfdis`, `FakeCfdiProvider`).
-  **Falta elegir el PAC** y resolver los puntos [F] (`docs/tecnico/fase-3-cfdi.md`, pendientes #24–#28).
-  No inventar reglas fiscales: lo no verificado queda bloqueado en `BuildDonationCfdiDraft` con su motivo.
+- **Fase 3 — CFDI: en curso.** PAC = **Facturapi** (`FacturapiCfdiProvider`, cliente HTTP, sin SDK), **sin probar en Facturapi Test** ([S]).
+  - El SAT obliga a emitir CFDI por todo donativo recibido. Rutas: individual, público en general (factura global [F], no habilitada) o bloqueo.
+  - `tax_receipt_requested` es solo informativo.
+  - Fuente de verdad: `docs/tecnico/fase-3-cfdi.md`; pendientes #24–#31.
+  - No inventar reglas fiscales: lo no verificado queda bloqueado en `BuildDonationCfdiDraft` con su motivo.
 - **Base `crm`:** tiene datos persistentes de desarrollo. Se permiten `migrate` normales (con respaldo si hay riesgo).
   Nunca `migrate:fresh`, rollback destructivo ni experimentos contra `crm`; usar `crm_testing` o `crm_validation`.
 - Modelo de datos y reglas: `docs/tecnico/modelo-de-datos.md` y ADR-002 a ADR-011.
@@ -39,6 +41,7 @@ El documento de requisitos completo lo entregó el usuario al iniciar el proyect
 - GitHub Actions: Pint, Larastan, Pest y construcción de la imagen `prod` en cada push.
 - Del esqueleto de Laravel se conservan `laravel/tinker` y `laravel/pail` (ADR-001).
 - `stripe/stripe-php ^21.3` (ADR-011), usado solo en `app/Payments/Gateways/Stripe`.
+- Facturapi sin SDK: cliente HTTP de Laravel en `app/Cfdi/Providers/FacturapiCfdiProvider.php`.
 - Cualquier paquete fuera de esta lista requiere ADR y autorización del usuario.
 
 ## Datos de la organización

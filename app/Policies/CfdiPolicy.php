@@ -10,9 +10,12 @@ use App\Models\Cfdi;
 use App\Models\User;
 
 /**
- * CFDI: consultar y descargar (Administrador, Coordinador, Contador);
- * emitir, reintentar y cancelar (Administrador y Contador). Solo lectura no
- * ve CFDI (contienen datos fiscales del donante). Nadie los edita ni borra.
+ * CFDI (permisos aprobados el 2026-09-23):
+ * - Administrador y Contador: ver, descargar, emitir, reintentar, sustituir,
+ *   descartar, cancelar y detalle técnico;
+ * - Coordinador: ver y descargar XML/PDF;
+ * - Solo lectura: sin acceso (contienen datos fiscales del donante).
+ * Nadie los edita ni borra.
  */
 class CfdiPolicy
 {
@@ -26,6 +29,11 @@ class CfdiPolicy
         return $user->hasPermission(Permission::ViewCfdis);
     }
 
+    public function viewTechnical(User $user, Cfdi $cfdi): bool
+    {
+        return $user->hasPermission(Permission::ViewCfdiTechnicalDetails);
+    }
+
     public function download(User $user, Cfdi $cfdi): bool
     {
         return $user->hasPermission(Permission::ViewCfdis) && $cfdi->status->isStamped();
@@ -36,9 +44,19 @@ class CfdiPolicy
         return $user->hasPermission(Permission::IssueCfdis) && $cfdi->status->canRetry();
     }
 
+    public function discard(User $user, Cfdi $cfdi): bool
+    {
+        return $user->hasPermission(Permission::IssueCfdis) && $cfdi->status === CfdiStatus::Rejected && $cfdi->uuid === null;
+    }
+
     public function cancel(User $user, Cfdi $cfdi): bool
     {
         return $user->hasPermission(Permission::CancelCfdis) && $cfdi->status === CfdiStatus::Stamped;
+    }
+
+    public function substitute(User $user, Cfdi $cfdi): bool
+    {
+        return $this->cancel($user, $cfdi) && $user->hasPermission(Permission::IssueCfdis) && ! $cfdi->replacement_pending;
     }
 
     public function create(User $user): bool

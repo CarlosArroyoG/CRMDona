@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Donations;
 
+use App\Actions\Cfdi\ResolveDonationFiscalRoute;
 use App\Actions\Donations\CancelDonation;
 use App\Actions\Donations\ConfirmDonation;
 use App\Enums\CampaignStatus;
@@ -11,6 +12,7 @@ use App\Enums\DonationKind;
 use App\Enums\DonationOrigin;
 use App\Enums\DonationStatus;
 use App\Enums\ManualPaymentMethod;
+use App\Enums\Permission;
 use App\Enums\ProgramStatus;
 use App\Filament\Concerns\ReportsActionErrors;
 use App\Filament\Exports\DonationExporter;
@@ -100,7 +102,7 @@ class DonationResource extends Resource
                     TextInput::make('reference')->label('Referencia')->maxLength(100)
                         ->helperText('Folio de transferencia, número de cheque o de recibo físico.'),
                     Toggle::make('tax_receipt_requested')->label('Solicitó recibo deducible (CFDI)')
-                        ->helperText('Se usará en la fase de CFDI. El donante debe tener datos fiscales.'),
+                        ->helperText('Solo informativo: la Fundación emite CFDI por todo donativo confirmado (con los datos fiscales del donante o, sin ellos, como público en general).'),
                 ]),
             Section::make('Destino')->columns(2)->schema([
                 Radio::make('destination')->label('¿A qué se destina?')->required()->live()->dehydrated(false)
@@ -152,6 +154,14 @@ class DonationResource extends Resource
                     ->state(fn (Donation $record): ?string => $record->activeCfdi()?->status->getLabel())
                     ->url(fn (Donation $record): ?string => ($cfdi = $record->activeCfdi()) !== null && Gate::allows('view', $cfdi)
                         ? CfdiResource::getUrl('view', ['record' => $cfdi]) : null),
+                TextEntry::make('fiscal_route')->label('Cobertura fiscal')->columnSpanFull()
+                    ->visible(fn (Donation $record): bool => $record->status === DonationStatus::Confirmed && $record->activeCfdi() === null
+                        && auth()->user() instanceof User && auth()->user()->hasPermission(Permission::ViewCfdis))
+                    ->state(function (Donation $record): string {
+                        $coverage = app(ResolveDonationFiscalRoute::class)->handle($record);
+
+                        return $coverage->route->getLabel().($coverage->reasons !== [] ? ': '.implode(' ', $coverage->reasons) : ' — lista para emitir.');
+                    }),
                 IconEntry::make('tax_receipt_requested')->label('Solicitó recibo deducible')->boolean(),
                 TextEntry::make('in_kind_description')->label('Descripción de lo donado')->columnSpanFull()
                     ->visible(fn (Donation $record): bool => $record->kind === DonationKind::InKind),

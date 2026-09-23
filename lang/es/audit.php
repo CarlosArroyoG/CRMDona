@@ -23,6 +23,7 @@ return [
         'payment_dispute' => 'Disputa',
         'payment_incident' => 'Incidencia de pago',
         'payment_incident_note' => 'Nota de incidencia',
+        'cfdi' => 'CFDI',
     ],
 
     'fields' => [
@@ -113,6 +114,7 @@ return [
         'provider_code' => 'Código del proveedor',
         'card_brand' => 'Marca de tarjeta',
         'card_last4' => 'Últimos 4 dígitos',
+        'card_funding' => 'Tipo de tarjeta',
         // Donativo mensual
         'interval' => 'Frecuencia',
         'retry_owner' => 'Reintentos a cargo de',
@@ -151,5 +153,23 @@ return [
         'payment_incident_id' => 'Incidencia',
         'user_id' => 'Usuario',
         'body' => 'Texto de la nota',
+        // CFDI
+        'donation_id' => 'Donativo',
+        'substitutes_cfdi_id' => 'Sustituye al CFDI',
+        'replacement_pending' => 'Sustitución pendiente',
+        'substitution_reason' => 'Razón de la sustitución',
+        'uuid' => 'Folio fiscal (UUID)',
+        'series' => 'Serie',
+        'folio' => 'Folio',
+        'total' => 'Total',
+        'stamped_at' => 'Timbrado el',
+        'last_error_code' => 'Código de error',
+        'cancellation_motive' => 'Motivo SAT de cancelación',
+        'cancellation_replacement_uuid' => 'UUID que lo sustituye',
+        'cancellation_requested_at' => 'Cancelación solicitada el',
+        'cancellation_requested_by_id' => 'Cancelación solicitada por (usuario)',
+        'cancellation_provider_status' => 'Respuesta del PAC a la cancelación',
+        'xml_path' => 'Archivo XML',
+        'pdf_path' => 'Archivo PDF',
     ],
 ];

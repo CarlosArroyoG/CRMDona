@@ -55,7 +55,7 @@ class RequestDonationCfdi
             $locked = Donation::query()->lockForUpdate()->findOrFail($donation->id);
 
             $existing = Cfdi::query()->where('idempotency_key', $key)->first()
-                ?? Cfdi::query()->where('donation_id', $locked->id)->where('status', '!=', CfdiStatus::Cancelled->value)->first();
+                ?? Cfdi::query()->where('donation_id', $locked->id)->whereNotIn('status', CfdiStatus::inactiveValues())->first();
             if ($existing !== null) {
                 if ($existing->donation_id !== $locked->id) {
                     throw ValidationException::withMessages(['cfdi' => 'Esa solicitud ya se usó para otro donativo.']);

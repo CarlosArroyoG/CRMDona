@@ -16,7 +16,7 @@ recibo simple sin CFDI.
 | `Donation` | El donativo reconocido por el CRM (dinero o especie) | 1 | Entidad central |
 | `Payment` | Una transacción procesada por una pasarela | 2 | `payments.donation_id`: un pago exitoso **origina** un donativo. Un donativo manual no requiere pago |
 | `DonationReceipt` | Recibo simple de agradecimiento (folio, PDF, envío) | Posterior | `Donation 1 → 0..1 DonationReceipt`. Toda donación **confirmada** podrá tenerlo, haya o no CFDI |
-| `Cfdi` | Comprobante fiscal deducible con complemento de donatarias | 3 | Solo si el donante lo pidió (`tax_receipt_requested`) y procede fiscalmente |
+| `Cfdi` | Comprobante fiscal deducible con complemento de donatarias | 3 | Por todo donativo recibido (obligación del SAT; actualizado el 2026-09-23, ver `fase-3-cfdi.md` §2). `tax_receipt_requested` es solo informativo |
 
 - En la Fase 1 **no** se crean tablas de pagos, recibos ni CFDI. Cada una tendrá **su propia tabla
   apuntando a `donations`**, así que `donations` no necesita columnas nuevas para recibirlas.

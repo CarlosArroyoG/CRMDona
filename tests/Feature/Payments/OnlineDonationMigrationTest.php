@@ -86,8 +86,8 @@ it('no revierte si ya existen donativos en línea (no pierde su origen)', functi
 });
 
 it('todas las migraciones de la Fase 2 se revierten y se vuelven a aplicar', function (): void {
-    // 11 de la Fase 2 más la de CFDI (Fase 3), que es posterior.
-    Artisan::call('migrate:rollback', ['--step' => 12, '--force' => true]);
+    // 11 de la Fase 2 más las 2 de CFDI (Fase 3), que son posteriores.
+    Artisan::call('migrate:rollback', ['--step' => 13, '--force' => true]);
 
     foreach (['payments', 'payment_attempts', 'subscriptions', 'refunds', 'payment_disputes', 'webhook_events', 'payment_incidents', 'payment_incident_notes'] as $table) {
         expect(Schema::hasTable($table))->toBeFalse();

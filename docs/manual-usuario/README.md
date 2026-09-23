@@ -45,7 +45,7 @@ Guía para el personal que usa el panel del CRM. No requiere conocimientos técn
 | Recibir alertas de pagos | Siempre | Si se activa | Si se activa | Nunca |
 | Bandeja de webhooks y pasarelas de pago | Sí | No | No | No |
 | Ver y descargar CFDI | Sí | Sí | Sí | No |
-| Emitir, reintentar y cancelar CFDI | Sí | No | Sí | No |
+| Emitir, reintentar, sustituir y cancelar CFDI; ver su detalle técnico | Sí | No | Sí | No |
 
 Si un botón no aparece, es porque tu rol no tiene esa acción.
 

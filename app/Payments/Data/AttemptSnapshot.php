@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Payments\Data;
 
 use App\Enums\AttemptInitiator;
+use App\Enums\CardFunding;
 use App\Enums\FailureCategory;
 use App\Enums\PaymentAttemptStatus;
 use Carbon\CarbonImmutable;
@@ -24,6 +25,7 @@ final readonly class AttemptSnapshot
         public ?string $providerMessage = null,
         public ?string $cardBrand = null,
         public ?string $cardLast4 = null,
+        public ?CardFunding $cardFunding = null,
         public ?CarbonImmutable $providerCreatedAt = null,
     ) {}
 }

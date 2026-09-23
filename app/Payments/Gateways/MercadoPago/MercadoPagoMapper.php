@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Payments\Gateways\MercadoPago;
 
 use App\Enums\AttemptInitiator;
+use App\Enums\CardFunding;
 use App\Enums\DisputeStatus;
 use App\Enums\FailureCategory;
 use App\Enums\PaymentAttemptStatus;
@@ -224,6 +225,21 @@ final class MercadoPagoMapper
     }
 
     /**
+     * Tipo de medio de pago (`credit_card`, `debit_card`, `prepaid_card`)
+     * → fondeo de la tarjeta. [S] Confirmar el campo en Orders.
+     */
+    public static function cardFunding(?string $type): ?CardFunding
+    {
+        return match ($type) {
+            'credit_card' => CardFunding::Credit,
+            'debit_card' => CardFunding::Debit,
+            'prepaid_card' => CardFunding::Prepaid,
+            null => null,
+            default => CardFunding::Unknown,
+        };
+    }
+
+    /**
      * @return numeric-string|null
      */
     public static function amount(mixed $value): ?string
@@ -260,6 +276,7 @@ final class MercadoPagoMapper
             failureCategory: $failed ? self::failureCategory($detail) : null,
             providerCode: $failed ? $detail : null,
             cardBrand: self::string($method['id'] ?? null) ?? self::string($payment['payment_method_id'] ?? null),
+            cardFunding: self::cardFunding(self::string($method['type'] ?? null) ?? self::string($payment['payment_type_id'] ?? null)),
             cardLast4: $last4 !== null && preg_match('/^\d{4}$/', $last4) === 1 ? $last4 : null,
             providerCreatedAt: self::date($payment['date_created'] ?? null),
         );

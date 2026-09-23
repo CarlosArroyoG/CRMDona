@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Payments\Gateways;
 
 use App\Enums\AttemptInitiator;
+use App\Enums\CardFunding;
 use App\Enums\DisputeStatus;
 use App\Enums\FailureCategory;
 use App\Enums\PaymentAttemptStatus;
@@ -639,6 +640,7 @@ final class FakeGateway implements PausesSubscriptions, PaymentGateway, Processe
                 providerMessage: $attempt['code'] !== null ? 'Rechazo simulado' : null,
                 cardBrand: 'visa',
                 cardLast4: '4242',
+                cardFunding: CardFunding::Credit,
                 providerCreatedAt: CarbonImmutable::parse($attempt['created_at']),
             ), $payment['attempts']),
             refunds: array_map(fn (string $refundId): RefundSnapshot => $this->refundSnapshot($refundId, $state), $this->refundIdsFor($id)),

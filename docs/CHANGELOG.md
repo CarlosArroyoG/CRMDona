@@ -2,18 +2,30 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
-## [Fase 3 — CFDI] — en curso (sin PAC elegido)
+## [Fase 3 — CFDI] — en curso (Facturapi sin probar en Test)
 
 ### Agregado
 - Tabla `cfdis` (un CFDI vigente por donativo; evidencia de timbrado y cancelación en CHECKs).
 - Contrato `CfdiProvider`, `FakeCfdiProvider` y `CfdiProviderRegistry`.
-- Reglas verificadas del SAT para donativos en dinero (ver `docs/tecnico/fase-3-cfdi.md`).
+- **`FacturapiCfdiProvider`**:
+  - con el cliente HTTP de Laravel, sin SDK;
+  - complemento Donatarias 1.1 como complemento `custom`, con la leyenda en el PDF;
+  - reconciliación por `external_id` antes de cada timbrado;
+  - cancelación con motivo y sustitución;
+  - la llave `sk_live_` solo se acepta en producción.
+- Reglas fiscales verificadas en la guía SAT 2026, la RMF 2026 y el esquema de cancelación 2026 (`docs/tecnico/fase-3-cfdi.md`).
+- **Cobertura fiscal por donativo** (`ResolveDonationFiscalRoute`): CFDI individual, público en general o bloqueo con motivo; visible en el donativo.
+- **Sustitución (motivo 01)**: CFDI nuevo relacionado con 04 y cancelación del original con su UUID. Estado "Descartado" para CFDI rechazados nunca timbrados.
+- Forma de pago `04`/`28` en donativos en línea, según `payment_attempts.card_funding`.
+- La conciliación emite los donativos confirmados en las últimas 72 h que siguen sin CFDI.
 - Timbrado en cola, idempotente, con reintentos y conciliación.
-- Cancelación con motivos 02 y 03.
 - XML y PDF en disco privado, con descarga solo con permiso.
-- Pantalla CFDI y acción "Emitir CFDI" en el donativo.
-- Permisos `cfdi.view`, `cfdi.issue` y `cfdi.cancel` (propuestos).
-- La emisión automática se deja preparada, pero **apagada** mientras no se resuelva la cuestión fiscal [F].
+- Pantalla CFDI (con detalle técnico solo para Administrador y Contador) y acción "Emitir CFDI" en el donativo.
+- Permisos `cfdi.view`, `cfdi.view_technical`, `cfdi.issue` y `cfdi.cancel` (aprobados).
+
+### Cambiado
+- La emisión ya no depende de que el donante pida comprobante: el SAT obliga a emitir por todo donativo recibido. `CFDI_AUTO_ISSUE` queda en `true` por defecto; solo actúa con un PAC configurado.
+- La descripción del concepto registra el propósito del donativo (guía SAT 2026).
 
 ## [Fase 2 — Pagos en línea] — 2026-09-23 (sin validación en sandbox)
 
