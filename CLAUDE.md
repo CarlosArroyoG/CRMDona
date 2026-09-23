@@ -14,6 +14,12 @@ El documento de requisitos completo lo entregó el usuario al iniciar el proyect
   (2026-09-23). **Falta el sandbox real** de ambos proveedores (puntos [S]) y la aprobación del
   usuario. Ver `docs/fases/FASE-02-resumen.md`, `docs/tecnico/fase-2-diseno-pagos.md` (fuente de verdad)
   e `integraciones-pagos.md`. No marcar un [S] como [V] solo porque el código compile.
+- **Fase 2: bloque implementable cerrado administrativamente (2026-09-23)**. Sandbox abierto. Pausa `void` aprobada provisionalmente y límites en `null`.
+- **Fase 3 — CFDI: en curso.** Hecho lo independiente del PAC (`app/Cfdi`, `cfdis`, `FakeCfdiProvider`).
+  **Falta elegir el PAC** y resolver los puntos [F] (`docs/tecnico/fase-3-cfdi.md`, pendientes #24–#28).
+  No inventar reglas fiscales: lo no verificado queda bloqueado en `BuildDonationCfdiDraft` con su motivo.
+- **Base `crm`:** tiene datos persistentes de desarrollo. Se permiten `migrate` normales (con respaldo si hay riesgo).
+  Nunca `migrate:fresh`, rollback destructivo ni experimentos contra `crm`; usar `crm_testing` o `crm_validation`.
 - Modelo de datos y reglas: `docs/tecnico/modelo-de-datos.md` y ADR-002 a ADR-011.
 - Decisiones fiscales pendientes (uso de CFDI, régimen, especie): `docs/pendientes.md`. No codificarlas sin confirmación.
 - Docker Desktop con motor libkrun (no WSL2). La carpeta del proyecto se comparte mediante

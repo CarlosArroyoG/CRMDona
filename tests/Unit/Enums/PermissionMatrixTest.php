@@ -46,6 +46,10 @@ const APPROVED_MATRIX = [
     'payments.receive_alerts' => ['A', 'C', 'Co'],
     'webhooks.view' => ['A'],
     'payment_settings.view' => ['A'],
+    // Fase 3 (propuesta en docs/tecnico/fase-3-cfdi.md, pendiente de aprobación).
+    'cfdi.view' => ['A', 'C', 'Co'],
+    'cfdi.issue' => ['A', 'Co'],
+    'cfdi.cancel' => ['A', 'Co'],
 ];
 
 function roleCode(Role $role): string

@@ -53,6 +53,11 @@ enum Permission: string
     case ViewWebhooks = 'webhooks.view';
     case ViewPaymentSettings = 'payment_settings.view';
 
+    // Fase 3 — CFDI (docs/tecnico/fase-3-cfdi.md).
+    case ViewCfdis = 'cfdi.view';
+    case IssueCfdis = 'cfdi.issue';
+    case CancelCfdis = 'cfdi.cancel';
+
     /**
      * @return list<Role>
      */
@@ -68,9 +73,11 @@ enum Permission: string
             self::ManageDonors, self::ManageTags, self::ManagePrograms, self::ManageCampaigns,
             self::ManageSubscriptions => $fundraising,
             self::ManageDonorTaxProfiles, self::ExportDonors, self::RegisterDonations, self::ExportDonations,
-            self::ExportPayments, self::ViewIncidents, self::ManageIncidents, self::ReceivePaymentAlerts => $staff,
+            self::ExportPayments, self::ViewIncidents, self::ManageIncidents, self::ReceivePaymentAlerts,
+            self::ViewCfdis => $staff,
             self::ConfirmDonations, self::ViewOrganizationSettings, self::ViewPaymentTechnicalDetails,
-            self::RequestRefunds, self::ViewDisputes, self::HandleTechnicalIncidents => $finance,
+            self::RequestRefunds, self::ViewDisputes, self::HandleTechnicalIncidents,
+            self::IssueCfdis, self::CancelCfdis => $finance,
             self::DeleteDonors, self::DeletePrograms, self::DeleteCampaigns,
             self::UpdateOrganizationSettings, self::ViewAuditLog, self::ManageUsers,
             self::ViewWebhooks, self::ViewPaymentSettings => [Role::Administrator],

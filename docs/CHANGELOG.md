@@ -2,6 +2,19 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+## [Fase 3 — CFDI] — en curso (sin PAC elegido)
+
+### Agregado
+- Tabla `cfdis` (un CFDI vigente por donativo; evidencia de timbrado y cancelación en CHECKs).
+- Contrato `CfdiProvider`, `FakeCfdiProvider` y `CfdiProviderRegistry`.
+- Reglas verificadas del SAT para donativos en dinero (ver `docs/tecnico/fase-3-cfdi.md`).
+- Timbrado en cola, idempotente, con reintentos y conciliación.
+- Cancelación con motivos 02 y 03.
+- XML y PDF en disco privado, con descarga solo con permiso.
+- Pantalla CFDI y acción "Emitir CFDI" en el donativo.
+- Permisos `cfdi.view`, `cfdi.issue` y `cfdi.cancel` (propuestos).
+- La emisión automática se deja preparada, pero **apagada** mientras no se resuelva la cuestión fiscal [F].
+
 ## [Fase 2 — Pagos en línea] — 2026-09-23 (sin validación en sandbox)
 
 ### Agregado

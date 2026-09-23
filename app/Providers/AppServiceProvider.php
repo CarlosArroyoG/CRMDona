@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Actions\Users\CreateUser;
+use App\Cfdi\CfdiProviderRegistry;
 use App\Models\AuditLog;
 use App\Models\Campaign;
+use App\Models\Cfdi;
 use App\Models\Donation;
 use App\Models\Donor;
 use App\Models\DonorTaxProfile;
@@ -46,6 +48,8 @@ class AppServiceProvider extends ServiceProvider
 
         // Pagos (ADR-011): una pasarela por proveedor, según configuración.
         $this->app->singleton(GatewayRegistry::class);
+        // CFDI (Fase 3): un solo PAC configurado.
+        $this->app->singleton(CfdiProviderRegistry::class);
         // Procedencia de los cambios en la bitácora: se reinicia en cada petición y Job.
         $this->app->scoped(AuditOrigin::class);
     }
@@ -81,6 +85,7 @@ class AppServiceProvider extends ServiceProvider
             'payment_incident' => PaymentIncident::class,
             'payment_incident_note' => PaymentIncidentNote::class,
             'webhook_event' => WebhookEvent::class,
+            'cfdi' => Cfdi::class,
         ]);
 
         // Dentro de un Job de la cola, los cambios se registran como "Proceso automático".

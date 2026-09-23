@@ -33,6 +33,8 @@ dataset('screens', [
     'disputas' => ['/admin/payment-disputes', 200, 403, 200, 403],
     'bandeja de webhooks' => ['/admin/webhook-events', 200, 403, 403, 403],
     'pasarelas de pago' => ['/admin/pasarelas', 200, 403, 403, 403],
+    // Fase 3
+    'CFDI' => ['/admin/cfdis', 200, 200, 200, 403],
 ]);
 
 it('abre o prohíbe cada pantalla según el rol', function (string $url, int $admin, int $coordinator, int $accountant, int $readOnly): void {

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\CfdiStatus;
 use App\Enums\DonationKind;
 use App\Enums\DonationOrigin;
 use App\Enums\DonationStatus;
@@ -15,6 +16,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
@@ -85,6 +87,24 @@ class Donation extends Model
     public function isOnline(): bool
     {
         return $this->origin === DonationOrigin::Online;
+    }
+
+    /**
+     * CFDI emitidos para el donativo (como máximo uno vigente).
+     *
+     * @return HasMany<Cfdi, $this>
+     */
+    public function cfdis(): HasMany
+    {
+        return $this->hasMany(Cfdi::class)->latest('id');
+    }
+
+    /**
+     * El CFDI vigente (no cancelado), si existe.
+     */
+    public function activeCfdi(): ?Cfdi
+    {
+        return $this->cfdis()->where('status', '!=', CfdiStatus::Cancelled->value)->first();
     }
 
     /**

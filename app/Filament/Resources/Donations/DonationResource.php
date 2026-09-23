@@ -14,6 +14,7 @@ use App\Enums\ManualPaymentMethod;
 use App\Enums\ProgramStatus;
 use App\Filament\Concerns\ReportsActionErrors;
 use App\Filament\Exports\DonationExporter;
+use App\Filament\Resources\Cfdis\CfdiResource;
 use App\Filament\Resources\Donations\Pages\CreateDonation;
 use App\Filament\Resources\Donations\Pages\EditDonation;
 use App\Filament\Resources\Donations\Pages\ListDonations;
@@ -147,6 +148,10 @@ class DonationResource extends Resource
                 TextEntry::make('effective_program')->label('Programa')
                     ->state(fn (Donation $record): ?string => $record->effectiveProgram()?->name)->placeholder('Fondo general'),
                 TextEntry::make('reference')->label('Referencia')->placeholder('—'),
+                TextEntry::make('cfdi')->label('CFDI')->placeholder('Sin CFDI')
+                    ->state(fn (Donation $record): ?string => $record->activeCfdi()?->status->getLabel())
+                    ->url(fn (Donation $record): ?string => ($cfdi = $record->activeCfdi()) !== null && Gate::allows('view', $cfdi)
+                        ? CfdiResource::getUrl('view', ['record' => $cfdi]) : null),
                 IconEntry::make('tax_receipt_requested')->label('Solicitó recibo deducible')->boolean(),
                 TextEntry::make('in_kind_description')->label('Descripción de lo donado')->columnSpanFull()
                     ->visible(fn (Donation $record): bool => $record->kind === DonationKind::InKind),

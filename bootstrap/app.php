@@ -16,6 +16,8 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         // Los webhooks de pagos se autentican con la firma del proveedor.
         $middleware->preventRequestForgery(except: ['webhooks/payments/*']);
+        // Rutas fuera del panel que exigen sesión (descargas de CFDI): al login de Filament.
+        $middleware->redirectGuestsTo(fn () => route('filament.admin.auth.login'));
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

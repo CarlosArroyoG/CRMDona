@@ -15,6 +15,7 @@ Guía para el personal que usa el panel del CRM. No requiere conocimientos técn
 9. [Pagos en línea, reembolsos y disputas](09-pagos-en-linea.md)
 10. [Donativos mensuales](10-donativos-mensuales.md)
 11. [Incidencias de pagos](11-incidencias.md)
+12. [CFDI](12-cfdi.md)
 
 ## Qué puede hacer cada rol
 
@@ -43,6 +44,8 @@ Guía para el personal que usa el panel del CRM. No requiere conocimientos técn
 | Atender incidencias | Todas | Solo operativas | Todas | No |
 | Recibir alertas de pagos | Siempre | Si se activa | Si se activa | Nunca |
 | Bandeja de webhooks y pasarelas de pago | Sí | No | No | No |
+| Ver y descargar CFDI | Sí | Sí | Sí | No |
+| Emitir, reintentar y cancelar CFDI | Sí | No | Sí | No |
 
 Si un botón no aparece, es porque tu rol no tiene esa acción.
 
@@ -50,7 +53,7 @@ Si un botón no aparece, es porque tu rol no tiene esa acción.
 
 | Grupo | Pantallas |
 |---|---|
-| Donativos | Donativos, Donantes |
+| Donativos | Donativos, Donantes, CFDI |
 | Pagos en línea | Pagos en línea, Donativos mensuales, Incidencias, Reembolsos, Disputas y contracargos, Bandeja de webhooks |
 | Destinos | Programas, Campañas |
 | Administración | Usuarios, Organización, Bitácora, Pasarelas de pago |
