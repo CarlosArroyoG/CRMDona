@@ -28,7 +28,7 @@ enum AuditSource: string implements HasLabel
             self::Job => 'Proceso automático',
             self::Synchronization => 'Sincronización con el proveedor',
             self::Console => 'Consola del servidor',
-            self::Donor => 'Donante (enlace de baja del correo)',
+            self::Donor => 'Donante (página pública o enlace de baja)',
         };
     }
 }

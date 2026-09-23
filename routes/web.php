@@ -5,11 +5,26 @@ declare(strict_types=1);
 use App\Http\Controllers\CfdiFileController;
 use App\Http\Controllers\DonationReceiptFileController;
 use App\Http\Controllers\PaymentWebhookController;
+use App\Http\Controllers\PublicDonationController;
 use App\Http\Controllers\UnsubscribeController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
+});
+
+// Página pública de donativos (Fase 6). Envíos con CSRF y límite por IP.
+// El token de sesión es aleatorio y solo sirve en el navegador que lo creó.
+Route::controller(PublicDonationController::class)->prefix('/donar')->name('donate.')->group(function (): void {
+    Route::get('/', 'create')->name('create');
+    Route::post('/', 'store')->middleware('throttle:public-donations')->name('store');
+    Route::get('/gracias', 'returned')->name('returned');
+    Route::get('/campana/{campaign}', 'create')->where('campaign', '[a-z0-9\-]{1,120}')->name('campaign');
+    Route::post('/campana/{campaign}', 'store')->where('campaign', '[a-z0-9\-]{1,120}')->middleware('throttle:public-donations')->name('campaign.store');
+    Route::get('/resumen/{token}', 'summary')->where('token', '[A-Za-z0-9]{40}')->name('summary');
+    Route::post('/pagar/{token}', 'pay')->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:public-donations')->name('pay');
+    Route::get('/estado/{token}', 'status')->where('token', '[A-Za-z0-9]{40}')->name('status');
+    Route::post('/reintentar/{token}', 'retry')->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:public-donations')->name('retry');
 });
 
 // Notificaciones de los proveedores de pago (sin sesión ni CSRF: se

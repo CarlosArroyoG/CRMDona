@@ -19,7 +19,7 @@
 | 16 | Límites de negocio de donativos en línea (mínimo y máximo) | [D] DECIDIDO 2026-09-23: permanecen `null` hasta decisión posterior | Después del sandbox | Solo aplica el técnico (Stripe 10 MXN; Mercado Pago sin verificar). No inventar valores |
 | 17 | Pausa en Stripe con `pause_collection.behavior = void` (el periodo pausado no acumula adeudo) | [D] APROBADO PROVISIONALMENTE 2026-09-23; validación real [S] | Stripe Test | Implementado como `void`; reversible en el adaptador |
 | 18 | Tratamiento fiscal de reembolsos y contracargos (recibo, CFDI) | PENDIENTE DE VALIDACIÓN FISCAL | Fase 3 (CFDI) | Hoy se bloquea la emisión si el pago tiene reembolso o disputa (#26); nada automático sobre CFDI ya timbrados |
-| 19 | Página pública de donación (Checkout embebido de Stripe y Bricks de Mercado Pago) | Técnico | Fase posterior | El dominio ya expone `StartOneTimeDonation` y `StartMonthlyDonation` |
+| 19 | ~~Página pública de donación~~ **Implementada en la Fase 6** con FakeGateway. Stripe (Checkout embebido) y Mercado Pago (Card Payment Brick) quedan [S] hasta su sandbox (#14, #15) | Cerrado salvo [S] | Fase 6 | `docs/tecnico/fase-6-pagina-publica.md` |
 | 20 | Envío de alertas de incidencias por correo al personal (RF-01) | Técnico | Siguiente bloque de comunicaciones (no incluido en la Fase 4) | Hoy: campana de Filament |
 | 21 | Opción B de Mercado Pago (cobros iniciados por el comercio, reintentos del CRM) | Alternativa futura | Solo si se decide | `retry_owner = crm` ya está previsto |
 | 22 | OXXO, SPEI y meses sin intereses | Ampliación futura | Solo si se decide | Serían capacidades nuevas del gateway |
@@ -38,3 +38,6 @@
 | 34 | [D] **APROBADO 2026-09-23**: agradecimiento, recibo y CFDI son transaccionales (no dependen del consentimiento ni la baja los bloquea); cumpleaños y comunicaciones no transaccionales exigen consentimiento. **El aviso de privacidad debe describir ambas finalidades** (pendiente de redacción legal) | DECIDIDO | Antes de producción (aviso) | `COMMUNICATIONS_TRANSACTIONAL_REQUIRES_CONSENT=true` lo invierte |
 | 35 | Logotipo en el PDF del recibo simple (hoy solo texto; el generador propio no incrusta imágenes) | Técnico (mejora) | Refactorización posterior | Sin paquete de PDF (requiere ADR) |
 | 36 | Baja "en un clic" (`List-Unsubscribe-Post`, RFC 8058) para grandes proveedores de correo | Técnico (mejora) | Tras #32 | Hoy el enlace lleva a una confirmación |
+| 37 | Aplicar a `crm` la migración `2026_09_28_000001_add_public_origin_to_donors_table` (aditiva; probada en `crm_validation`) para usar la página pública localmente | PENDIENTE (autorización) | Al probar la Fase 6 en local | Sin ella, `crm` no puede registrar donantes desde la página |
+| 38 | Compilar los estilos (`npm run build`) para ver la página con Tailwind en local; la imagen de producción ya los compila | Técnico (local) | Al probar la Fase 6 | Sin compilar, la página funciona pero sin estilos |
+| 39 | Cantidades sugeridas definitivas de la página pública (hoy 200, 500, 1000 y 2000 MXN, configurables) | [D] Negocio (reversible) | Antes de producción | `DONATIONS_SUGGESTED_AMOUNTS` |

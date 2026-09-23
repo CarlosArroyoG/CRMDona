@@ -31,10 +31,12 @@ use App\Models\WebhookEvent;
 use App\Payments\GatewayRegistry;
 use App\Support\AuditOrigin;
 use Filament\Actions\Exports\Models\Export as FilamentExport;
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Middleware\TrustProxies;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Number;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
@@ -100,6 +102,10 @@ class AppServiceProvider extends ServiceProvider
         Queue::failing(fn () => app(AuditOrigin::class)->leaveQueuedJob());
 
         $this->configureTrustedProxies();
+
+        // Página pública de donativos: envíos por IP y minuto.
+        RateLimiter::for('public-donations', fn (Request $request): Limit => Limit::perMinute(config()->integer('donations.public.rate_limit_per_minute'))
+            ->by((string) $request->ip()));
     }
 
     /**

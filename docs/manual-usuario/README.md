@@ -18,6 +18,7 @@ Guía para el personal que usa el panel del CRM. No requiere conocimientos técn
 12. [CFDI](12-cfdi.md)
 13. [Comunicaciones con donantes y recibo simple](13-comunicaciones.md)
 14. [Tablero y reportes](14-tablero-y-reportes.md)
+15. [Página pública de donativos](15-pagina-publica.md)
 
 ## Qué puede hacer cada rol
 

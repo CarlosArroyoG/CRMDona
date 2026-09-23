@@ -107,7 +107,7 @@ class OrganizationSettings extends Page
                             ->helperText('Ejemplo: 2026-09. Cámbiala cuando se publique un aviso nuevo.'),
                     ]),
                 Section::make('Donativos en línea')
-                    ->description('Reglas de la organización. Además siempre aplica el límite técnico de cada proveedor; se usa el más restrictivo (consulta "Pasarelas de pago").')
+                    ->description(fn (): string => 'Página pública: '.route('donate.create').' (cada campaña tiene la suya en su ficha). Reglas de la organización: además siempre aplica el límite técnico de cada proveedor; se usa el más restrictivo (consulta "Pasarelas de pago").')
                     ->columns(2)
                     ->schema([
                         TextInput::make('online_donation_min_amount')->label('Importe mínimo por donativo (MXN)')->prefix('$')->inputMode('decimal')

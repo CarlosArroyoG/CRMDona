@@ -2,6 +2,25 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+## [Fase 6 — Página pública de donativos] — 2026-09-23 (Stripe y Mercado Pago sin sandbox)
+
+### Agregado
+- **Páginas `/donar` y `/donar/campana/{identificador}`:**
+  - Blade + Tailwind, mobile-first y accesibles;
+  - identidad de la organización, cantidades sugeridas u otra cantidad, donativo único o mensual;
+  - datos del donante, datos fiscales opcionales, aviso de privacidad y consentimiento separado;
+  - resumen, estados de carga y página de estado real (confirmado, en proceso, rechazado o fallido).
+- **Pagos con las acciones de la Fase 2:**
+  - FakeGateway de punta a punta: Payment → Donation → recibo → agradecimiento → CFDI;
+  - Checkout embebido de Stripe y Brick de Mercado Pago preparados [S].
+- **Donantes desde la página pública:**
+  - `donors.origin` y `registered_by_id` nulo con CHECK; procedencia "Donante" en la bitácora;
+  - reutilización por correo sin modificar datos y con notas internas; nunca se fusiona.
+- **Seguridad:**
+  - CSRF, límite por IP, campo trampa y tiempo mínimo;
+  - importe, campaña y frecuencia validados en el servidor; tokens de sesión en lugar de IDs.
+- **Administración:** enlace público en la ficha de la campaña (con botón para abrirlo) y URL general en Organización.
+
 ## [Fase 5 — Tablero y reportes] — 2026-09-23
 
 ### Agregado

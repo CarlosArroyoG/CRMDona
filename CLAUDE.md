@@ -27,6 +27,11 @@ El documento de requisitos completo lo entregó el usuario al iniciar el proyect
 - **Fase 5 — Tablero y reportes: implementada** (2026-09-23), sin migraciones.
   - Los cálculos viven en `app/Reports` (`DashboardMetrics`, `PaymentReport`, `CfdiReport`), nunca en widgets ni pantallas.
   - Definiciones: `docs/tecnico/fase-5-reportes.md`.
+- **Fase 6 — Página pública: implementada con FakeGateway** (2026-09-23).
+  - Stripe y Mercado Pago quedan en [S].
+  - La migración de `donors.origin` está probada en `crm_validation` y **pendiente de aplicar a `crm`** (#37).
+  - Fuente de verdad: `docs/tecnico/fase-6-pagina-publica.md`.
+  - El controlador público solo orquesta (`app/PublicDonations`); pagos, CFDI y comunicaciones siguen en sus Actions.
 - **Base `crm`:** tiene datos persistentes de desarrollo. Se permiten `migrate` normales (con respaldo si hay riesgo).
   Nunca `migrate:fresh`, rollback destructivo ni experimentos contra `crm`; usar `crm_testing` o `crm_validation`.
 - Modelo de datos y reglas: `docs/tecnico/modelo-de-datos.md` y ADR-002 a ADR-011.

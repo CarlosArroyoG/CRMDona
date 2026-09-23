@@ -90,6 +90,11 @@ class CampaignResource extends Resource
                 TextEntry::make('starts_on')->label('Inicio')->date('d/m/Y')->placeholder('—'),
                 TextEntry::make('ends_on')->label('Fin')->date('d/m/Y')->placeholder('—'),
                 TextEntry::make('slug')->label('Identificador'),
+                TextEntry::make('public_url')->label('Página pública de donativos')->copyable()->columnSpanFull()
+                    ->state(fn (Campaign $record): string => route('donate.campaign', ['campaign' => $record->slug]))
+                    ->helperText(fn (Campaign $record): string => $record->acceptsDonations()
+                        ? 'Recibe donativos: activa, dentro de sus fechas y con programa activo.'
+                        : 'Por ahora NO recibe donativos (debe estar activa, dentro de sus fechas y con programa activo).'),
                 TextEntry::make('description')->label('Descripción')->placeholder('Sin descripción')->columnSpanFull(),
             ]),
         ]);

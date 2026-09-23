@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\CampaignStatus;
+use App\Enums\ProgramStatus;
 use App\Models\Concerns\Auditable;
+use Carbon\CarbonInterface;
 use Database\Factories\CampaignFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -47,6 +49,21 @@ class Campaign extends Model
     public static function auditNameOnlyFields(): array
     {
         return [];
+    }
+
+    /**
+     * Puede recibir donativos nuevos en la página pública: activa, dentro de
+     * sus fechas (si las tiene) y con su programa activo (si tiene programa).
+     * Borrador, terminada o archivada no aceptan operaciones nuevas.
+     */
+    public function acceptsDonations(?CarbonInterface $today = null): bool
+    {
+        $today = ($today ?? now())->toDateString();
+
+        return $this->status === CampaignStatus::Active
+            && ($this->starts_on === null || $this->starts_on->toDateString() <= $today)
+            && ($this->ends_on === null || $this->ends_on->toDateString() >= $today)
+            && ($this->program === null || $this->program->status === ProgramStatus::Active);
     }
 
     /**

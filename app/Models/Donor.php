@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\DonorOrigin;
 use App\Enums\DonorType;
 use App\Models\Concerns\Auditable;
 use Database\Factories\DonorFactory;
@@ -38,7 +39,8 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $communications_consent_updated_at
  * @property Carbon|null $archived_at
  * @property string|null $communications_token Enlace de baja (64 hex aleatorios).
- * @property int $registered_by_id
+ * @property int|null $registered_by_id Nulo solo si se registró desde la página pública.
+ * @property DonorOrigin $origin
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property-read DonorTaxProfile|null $taxProfile
@@ -59,7 +61,7 @@ class Donor extends Model
     {
         return [
             'type', 'archived_at', 'accepts_communications', 'communications_consent_updated_at',
-            'privacy_notice_version', 'privacy_notice_accepted_at', 'registered_by_id',
+            'privacy_notice_version', 'privacy_notice_accepted_at', 'registered_by_id', 'origin',
         ];
     }
 
@@ -136,6 +138,7 @@ class Donor extends Model
     {
         return [
             'type' => DonorType::class,
+            'origin' => DonorOrigin::class,
             'birth_date' => 'date',
             'privacy_notice_accepted_at' => 'datetime',
             'accepts_communications' => 'boolean',

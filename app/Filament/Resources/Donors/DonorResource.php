@@ -175,7 +175,7 @@ class DonorResource extends Resource
                     TextEntry::make('taxProfile.cfdi_use')->label('Uso de CFDI')->placeholder('Sin definir'),
                 ]),
             Section::make('Registro')->columns(2)->collapsed()->schema([
-                TextEntry::make('registeredBy.name')->label('Registrado por'),
+                TextEntry::make('registeredBy.name')->label('Registrado por')->placeholder('El propio donante (página pública)'),
                 TextEntry::make('created_at')->label('Registrado el')->dateTime('d/m/Y H:i'),
             ]),
         ]);
