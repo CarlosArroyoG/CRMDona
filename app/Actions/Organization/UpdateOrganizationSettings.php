@@ -8,7 +8,9 @@ use App\Actions\Concerns\NormalizesInput;
 use App\Enums\DonorType;
 use App\Enums\TaxRegime;
 use App\Models\OrganizationSetting;
+use App\Rules\MoneyAmount;
 use App\Rules\RfcFormat;
+use App\Support\Money;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -22,6 +24,7 @@ class UpdateOrganizationSettings
     private const array FIELDS = [
         'legal_name', 'rfc', 'tax_regime', 'tax_postal_code', 'authorization_number', 'authorization_date',
         'donation_legend', 'logo_path', 'email_signature', 'privacy_notice_url', 'privacy_notice_version',
+        'online_donation_min_amount', 'online_donation_max_amount',
     ];
 
     /**
@@ -48,6 +51,8 @@ class UpdateOrganizationSettings
             'email_signature' => ['nullable', 'string', 'max:2000'],
             'privacy_notice_url' => ['nullable', 'url:https,http', 'max:255', 'required_with:privacy_notice_version'],
             'privacy_notice_version' => ['nullable', 'string', 'max:50', 'required_with:privacy_notice_url'],
+            'online_donation_min_amount' => ['nullable', new MoneyAmount],
+            'online_donation_max_amount' => ['nullable', new MoneyAmount],
         ], [
             'tax_postal_code.regex' => 'El código postal fiscal debe tener 5 dígitos.',
         ], [
@@ -55,7 +60,21 @@ class UpdateOrganizationSettings
             'authorization_number' => 'número de oficio de autorización', 'authorization_date' => 'fecha de autorización',
             'donation_legend' => 'leyenda de donativo', 'logo_path' => 'logotipo', 'email_signature' => 'firma de correo',
             'privacy_notice_url' => 'URL del aviso de privacidad', 'privacy_notice_version' => 'versión del aviso de privacidad',
+            'online_donation_min_amount' => 'mínimo por donativo en línea', 'online_donation_max_amount' => 'máximo por donativo en línea',
         ])->validate();
+
+        foreach (['online_donation_min_amount', 'online_donation_max_amount'] as $limit) {
+            if (isset($data[$limit])) {
+                $data[$limit] = Money::normalize($data[$limit]);
+            }
+        }
+
+        if (isset($data['online_donation_min_amount'], $data['online_donation_max_amount'])
+            && bccomp($data['online_donation_min_amount'], $data['online_donation_max_amount'], 2) === 1) {
+            throw ValidationException::withMessages([
+                'online_donation_max_amount' => 'El máximo por donativo en línea no puede ser menor que el mínimo.',
+            ]);
+        }
 
         return DB::transaction(function () use ($data): OrganizationSetting {
             $settings = OrganizationSetting::current();

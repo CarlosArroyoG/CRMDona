@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\AuditEvent;
+use App\Enums\AuditSource;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -19,6 +20,7 @@ use Illuminate\Support\Carbon;
  * @property int $auditable_id
  * @property AuditEvent $event
  * @property int|null $user_id
+ * @property AuditSource|null $source Nulo en registros anteriores a la Fase 2.
  * @property list<string> $changed_fields
  * @property array<string, mixed>|null $old_values
  * @property array<string, mixed>|null $new_values
@@ -53,6 +55,7 @@ class AuditLog extends Model
     {
         return [
             'event' => AuditEvent::class,
+            'source' => AuditSource::class,
             'changed_fields' => 'array',
             'old_values' => 'array',
             'new_values' => 'array',

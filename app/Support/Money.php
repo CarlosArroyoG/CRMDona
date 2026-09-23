@@ -59,6 +59,42 @@ final class Money
         return ($negative ? '-$' : '$').$grouped.'.'.$decimals;
     }
 
+    /**
+     * @return numeric-string
+     */
+    public static function add(string $a, string $b): string
+    {
+        return bcadd(self::numeric($a), self::numeric($b), 2);
+    }
+
+    /**
+     * @return numeric-string
+     */
+    public static function subtract(string $a, string $b): string
+    {
+        return bcsub(self::numeric($a), self::numeric($b), 2);
+    }
+
+    /**
+     * -1, 0 o 1, como bccomp, con dos decimales.
+     */
+    public static function compare(string $a, string $b): int
+    {
+        return bccomp(self::numeric($a), self::numeric($b), 2);
+    }
+
+    /**
+     * @return numeric-string
+     */
+    private static function numeric(string $value): string
+    {
+        if (! is_numeric($value)) {
+            throw new InvalidArgumentException('Importe inválido.');
+        }
+
+        return $value;
+    }
+
     private static function clean(string $value): string
     {
         return str_replace([',', ' ', '$'], '', trim($value));

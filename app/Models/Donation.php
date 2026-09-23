@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\DonationKind;
+use App\Enums\DonationOrigin;
 use App\Enums\DonationStatus;
-use App\Enums\PaymentMethod;
+use App\Enums\ManualPaymentMethod;
 use App\Models\Concerns\Auditable;
 use Database\Factories\DonationFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -26,7 +27,7 @@ use Illuminate\Support\Carbon;
  * @property int|null $program_id
  * @property int|null $campaign_id
  * @property DonationKind $kind
- * @property PaymentMethod|null $payment_method
+ * @property ManualPaymentMethod|null $manual_payment_method
  * @property string $amount
  * @property string $currency
  * @property Carbon $received_on
@@ -35,7 +36,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $in_kind_description
  * @property bool $tax_receipt_requested
  * @property string|null $notes
- * @property int $registered_by_id
+ * @property int|null $registered_by_id Nulo solo en donativos en línea (sin actor humano).
  * @property Carbon|null $confirmed_at
  * @property int|null $confirmed_by_id
  * @property Carbon|null $cancelled_at
@@ -46,9 +47,12 @@ use Illuminate\Support\Carbon;
  * @property-read Donor $donor
  * @property-read Program|null $program
  * @property-read Campaign|null $campaign
+ * @property-read Payment|null $payment
+ * @property DonationOrigin $origin
+ * @property int|null $payment_id
  */
 #[Fillable([
-    'donor_id', 'program_id', 'campaign_id', 'kind', 'payment_method', 'amount', 'received_on',
+    'donor_id', 'program_id', 'campaign_id', 'kind', 'manual_payment_method', 'amount', 'received_on',
     'reference', 'in_kind_description', 'tax_receipt_requested', 'notes',
 ])]
 class Donation extends Model
@@ -61,9 +65,9 @@ class Donation extends Model
     public static function auditValueFields(): array
     {
         return [
-            'donor_id', 'program_id', 'campaign_id', 'kind', 'payment_method', 'amount', 'currency',
+            'donor_id', 'program_id', 'campaign_id', 'kind', 'manual_payment_method', 'amount', 'currency',
             'received_on', 'status', 'reference', 'in_kind_description', 'tax_receipt_requested',
-            'registered_by_id', 'confirmed_at', 'confirmed_by_id', 'cancelled_at', 'cancelled_by_id',
+            'registered_by_id', 'confirmed_at', 'confirmed_by_id', 'cancelled_at', 'cancelled_by_id', 'origin', 'payment_id',
             'cancellation_reason',
         ];
     }
@@ -76,6 +80,21 @@ class Donation extends Model
     public function isPending(): bool
     {
         return $this->status === DonationStatus::Pending;
+    }
+
+    public function isOnline(): bool
+    {
+        return $this->origin === DonationOrigin::Online;
+    }
+
+    /**
+     * Pago en línea que originó el donativo (solo origin = online).
+     *
+     * @return BelongsTo<Payment, $this>
+     */
+    public function payment(): BelongsTo
+    {
+        return $this->belongsTo(Payment::class);
     }
 
     /**
@@ -153,10 +172,11 @@ class Donation extends Model
     {
         return [
             'kind' => DonationKind::class,
-            'payment_method' => PaymentMethod::class,
+            'manual_payment_method' => ManualPaymentMethod::class,
             'amount' => 'decimal:2',
             'received_on' => 'date',
             'status' => DonationStatus::class,
+            'origin' => DonationOrigin::class,
             'tax_receipt_requested' => 'boolean',
             'confirmed_at' => 'datetime',
             'cancelled_at' => 'datetime',

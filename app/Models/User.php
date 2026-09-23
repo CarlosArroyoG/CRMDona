@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\IncidentType;
 use App\Enums\Permission;
 use App\Enums\Role;
 use App\Models\Concerns\Auditable;
@@ -27,6 +28,7 @@ use Illuminate\Support\Carbon;
  * @property Role|null $role
  * @property Carbon|null $deactivated_at
  * @property Carbon|null $password_change_required_at
+ * @property bool $receives_payment_alerts Solo aplica a Coordinador y Contador; el Administrador siempre las recibe.
  */
 #[Fillable(['name', 'email', 'password'])]
 #[Hidden(['password', 'remember_token'])]
@@ -39,7 +41,7 @@ class User extends Authenticatable implements FilamentUser
 
     public static function auditValueFields(): array
     {
-        return ['role', 'deactivated_at', 'password_change_required_at'];
+        return ['role', 'deactivated_at', 'password_change_required_at', 'receives_payment_alerts'];
     }
 
     public static function auditNameOnlyFields(): array
@@ -55,6 +57,34 @@ class User extends Authenticatable implements FilamentUser
     public function isActive(): bool
     {
         return $this->deactivated_at === null;
+    }
+
+    /**
+     * Destinatarios de alertas de pagos (fase-2-diseno-pagos.md §17): todo
+     * Administrador; Coordinador (solo incidencias operativas) y Contador si
+     * el Administrador activó su preferencia; Solo lectura nunca.
+     */
+    public function receivesPaymentAlertsFor(IncidentType $type): bool
+    {
+        if (! $this->hasPermission(Permission::ReceivePaymentAlerts)) {
+            return false;
+        }
+
+        return match ($this->role) {
+            Role::Administrator => true,
+            Role::FundraisingCoordinator => $this->receives_payment_alerts && $type->isOperational(),
+            Role::Accountant => $this->receives_payment_alerts,
+            default => false,
+        };
+    }
+
+    /**
+     * Puede ver y atender incidencias de este tipo: las técnicas son solo
+     * para quien tiene `incidents.technical`.
+     */
+    public function canHandleIncidentType(IncidentType $type): bool
+    {
+        return $type->isOperational() || $this->hasPermission(Permission::HandleTechnicalIncidents);
     }
 
     /**
@@ -95,6 +125,7 @@ class User extends Authenticatable implements FilamentUser
             'role' => Role::class,
             'deactivated_at' => 'datetime',
             'password_change_required_at' => 'datetime',
+            'receives_payment_alerts' => 'boolean',
         ];
     }
 }

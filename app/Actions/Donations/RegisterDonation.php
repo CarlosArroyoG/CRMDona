@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions\Donations;
 
+use App\Enums\DonationOrigin;
 use App\Enums\DonationStatus;
 use App\Models\Donation;
 use App\Models\User;
@@ -32,6 +33,7 @@ class RegisterDonation
             $donation->forceFill([
                 'status' => DonationStatus::Pending,
                 'currency' => 'MXN',
+                'origin' => DonationOrigin::Manual,
                 'registered_by_id' => $actor->id,
             ])->save();
 

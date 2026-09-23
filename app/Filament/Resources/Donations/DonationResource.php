@@ -8,8 +8,9 @@ use App\Actions\Donations\CancelDonation;
 use App\Actions\Donations\ConfirmDonation;
 use App\Enums\CampaignStatus;
 use App\Enums\DonationKind;
+use App\Enums\DonationOrigin;
 use App\Enums\DonationStatus;
-use App\Enums\PaymentMethod;
+use App\Enums\ManualPaymentMethod;
 use App\Enums\ProgramStatus;
 use App\Filament\Concerns\ReportsActionErrors;
 use App\Filament\Exports\DonationExporter;
@@ -18,6 +19,7 @@ use App\Filament\Resources\Donations\Pages\EditDonation;
 use App\Filament\Resources\Donations\Pages\ListDonations;
 use App\Filament\Resources\Donations\Pages\ViewDonation;
 use App\Filament\Resources\Donors\DonorResource;
+use App\Filament\Resources\Payments\PaymentResource;
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Donor;
@@ -84,7 +86,7 @@ class DonationResource extends Resource
                         ->helperText('Escribe parte del nombre o razón social. Los donantes archivados no aparecen.'),
                     Radio::make('kind')->label('Tipo de donativo')->options(DonationKind::class)
                         ->default(DonationKind::Monetary->value)->required()->inline()->live(),
-                    Select::make('payment_method')->label('Forma de pago')->options(PaymentMethod::class)
+                    Select::make('manual_payment_method')->label('Forma de pago')->options(ManualPaymentMethod::class)
                         ->required($monetary)->visible($monetary)->native(false),
                     TextInput::make('amount')->label(fn (Get $get): string => $inKind($get) ? 'Valor asignado (MXN)' : 'Importe (MXN)')
                         ->required()->prefix('$')->inputMode('decimal')
@@ -132,7 +134,14 @@ class DonationResource extends Resource
                 TextEntry::make('donor.display_name')->label('Donante')
                     ->url(fn (Donation $record): string => DonorResource::getUrl('view', ['record' => $record->donor_id])),
                 TextEntry::make('kind')->label('Tipo')->badge(),
-                TextEntry::make('payment_method')->label('Forma de pago')->placeholder('No aplica (especie)'),
+                TextEntry::make('origin')->label('Origen')->badge(),
+                TextEntry::make('manual_payment_method')->label('Forma de pago')
+                    ->placeholder(fn (Donation $record): string => $record->isOnline() ? 'Pago en línea' : 'No aplica (especie)'),
+                TextEntry::make('payment_id')->label('Pago en línea')->placeholder('—')
+                    ->visible(fn (Donation $record): bool => $record->isOnline())
+                    ->formatStateUsing(fn (int $state): string => "Ver pago #{$state}")
+                    ->url(fn (Donation $record): ?string => $record->payment_id !== null
+                        ? PaymentResource::getUrl('view', ['record' => $record->payment_id]) : null),
                 TextEntry::make('amount')->label('Importe o valor')->formatStateUsing(fn (string $state): string => Money::format($state).' MXN'),
                 TextEntry::make('campaign.name')->label('Campaña')->placeholder('Sin campaña'),
                 TextEntry::make('effective_program')->label('Programa')
@@ -144,9 +153,11 @@ class DonationResource extends Resource
                 TextEntry::make('notes')->label('Notas internas')->placeholder('Sin notas')->columnSpanFull(),
             ]),
             Section::make('Trazabilidad')->columns(3)->schema([
-                TextEntry::make('registeredBy.name')->label('Registrado por'),
+                TextEntry::make('registeredBy.name')->label('Registrado por')
+                    ->placeholder('Automático: pago en línea exitoso'),
                 TextEntry::make('created_at')->label('Registrado el')->dateTime('d/m/Y H:i'),
-                TextEntry::make('confirmedBy.name')->label('Confirmado por')->placeholder('—'),
+                TextEntry::make('confirmedBy.name')->label('Confirmado por')
+                    ->placeholder(fn (Donation $record): string => $record->isOnline() ? 'Automático: confirmado por el proveedor de pago' : '—'),
                 TextEntry::make('confirmed_at')->label('Confirmado el')->dateTime('d/m/Y H:i')->placeholder('—'),
                 TextEntry::make('cancelledBy.name')->label('Cancelado por')->placeholder('—'),
                 TextEntry::make('cancelled_at')->label('Cancelado el')->dateTime('d/m/Y H:i')->placeholder('—'),
@@ -168,7 +179,8 @@ class DonationResource extends Resource
                         ->whereHas('donor', fn (Builder $donor): Builder => Search::unaccent($donor, 'display_name', $search))
                         ->orWhere('reference', 'ilike', '%'.addcslashes(trim($search), '%_\\').'%'))),
                 TextColumn::make('kind')->label('Tipo')->badge()->toggleable(),
-                TextColumn::make('payment_method')->label('Forma de pago')->placeholder('—')->toggleable(),
+                TextColumn::make('origin')->label('Origen')->badge()->toggleable(),
+                TextColumn::make('manual_payment_method')->label('Forma de pago')->placeholder('—')->toggleable(),
                 TextColumn::make('amount')->label('Importe o valor')->alignEnd()->sortable()
                     ->formatStateUsing(fn (string $state): string => Money::format($state)),
                 TextColumn::make('destination')->label('Destino')
@@ -180,7 +192,8 @@ class DonationResource extends Resource
             ->filters([
                 SelectFilter::make('status')->label('Estado')->options(DonationStatus::class),
                 SelectFilter::make('kind')->label('Tipo')->options(DonationKind::class),
-                SelectFilter::make('payment_method')->label('Forma de pago')->options(PaymentMethod::class),
+                SelectFilter::make('origin')->label('Origen')->options(DonationOrigin::class),
+                SelectFilter::make('manual_payment_method')->label('Forma de pago')->options(ManualPaymentMethod::class),
                 SelectFilter::make('donor_id')->label('Donante')->searchable()
                     ->getSearchResultsUsing(fn (string $search): array => Search::unaccent(Donor::query(), 'display_name', $search)
                         ->orderBy('display_name')->limit(20)->pluck('display_name', 'id')->all())

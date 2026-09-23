@@ -6,7 +6,7 @@ use App\Enums\Permission;
 use App\Enums\Role;
 
 /*
- * Matriz aprobada para la Fase 1 (ADR-002). Si cambia, debe cambiar aquí a
+ * Matriz aprobada para las Fases 1 y 2 (ADR-002). Si cambia, debe cambiar aquí a
  * propósito: A = Administrador, C = Coordinador, Co = Contador, L = Solo lectura.
  */
 const APPROVED_MATRIX = [
@@ -32,6 +32,20 @@ const APPROVED_MATRIX = [
     'organization.update' => ['A'],
     'audit.view' => ['A'],
     'users.manage' => ['A'],
+    // Fase 2 (fase-2-diseno-pagos.md §15).
+    'payments.view' => ['A', 'C', 'Co', 'L'],
+    'payments.view_technical' => ['A', 'Co'],
+    'payments.export' => ['A', 'C', 'Co'],
+    'refunds.request' => ['A', 'Co'],
+    'subscriptions.view' => ['A', 'C', 'Co', 'L'],
+    'subscriptions.manage' => ['A', 'C'],
+    'disputes.view' => ['A', 'Co'],
+    'incidents.view' => ['A', 'C', 'Co'],
+    'incidents.manage' => ['A', 'C', 'Co'],
+    'incidents.technical' => ['A', 'Co'],
+    'payments.receive_alerts' => ['A', 'C', 'Co'],
+    'webhooks.view' => ['A'],
+    'payment_settings.view' => ['A'],
 ];
 
 function roleCode(Role $role): string
@@ -73,6 +87,11 @@ it('mantiene a Solo lectura sin crear, editar, confirmar, exportar datos persona
         Permission::ManageTags, Permission::ManagePrograms, Permission::ManageCampaigns, Permission::RegisterDonations,
         Permission::ConfirmDonations, Permission::ExportDonations, Permission::ViewOrganizationSettings,
         Permission::ViewAuditLog, Permission::ManageUsers,
+        // Pagos: solo ve la información operativa; ninguna acción, detalle técnico ni exportación.
+        Permission::ViewPaymentTechnicalDetails, Permission::ExportPayments, Permission::RequestRefunds,
+        Permission::ManageSubscriptions, Permission::ViewDisputes, Permission::ViewIncidents, Permission::ManageIncidents,
+        Permission::HandleTechnicalIncidents, Permission::ReceivePaymentAlerts, Permission::ViewWebhooks,
+        Permission::ViewPaymentSettings,
     ];
 
     foreach ($forbidden as $permission) {

@@ -19,6 +19,7 @@ use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
@@ -62,6 +63,10 @@ class UserResource extends Resource
                 TextInput::make('email')->label('Correo electrónico')->email()->required()->maxLength(255),
                 Select::make('role')->label('Rol')->options(Role::class)->required()->native(false)
                     ->helperText('Determina qué puede ver y hacer. Un usuario tiene un solo rol.'),
+            ]),
+            Section::make('Alertas de pagos')->visibleOn('edit')->schema([
+                Toggle::make('receives_payment_alerts')->label('Recibe alertas de pagos con problemas')
+                    ->helperText('Aplica a Coordinador (solo incidencias operativas) y Contador. Los Administradores siempre las reciben; Solo lectura nunca.'),
             ]),
             Section::make('Contraseña inicial')
                 ->description('Mínimo '.CreateUser::PASSWORD_MIN_LENGTH.' caracteres, con letras y números. Entrégala a la persona por un medio seguro; podrá cambiarla en "Cambiar contraseña".')

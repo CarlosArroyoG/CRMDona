@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Users\Pages;
 
+use App\Actions\Users\SetPaymentAlertPreference;
 use App\Actions\Users\UpdateUser;
 use App\Filament\Concerns\ReportsActionErrors;
 use App\Filament\Resources\Users\UserResource;
@@ -28,12 +29,17 @@ class EditUserPage extends EditRecord
     protected function handleRecordUpdate(Model $record, array $data): Model
     {
         /** @var User $record */
-        return self::withFormErrors(fn () => app(UpdateUser::class)->handle(
+        $user = self::withFormErrors(fn () => app(UpdateUser::class)->handle(
             $record,
             (string) $data['name'],
             (string) $data['email'],
             $data['role'] ?? null,
         ));
+
+        /** @var User $actor */
+        $actor = auth()->user();
+
+        return app(SetPaymentAlertPreference::class)->handle($user, (bool) ($data['receives_payment_alerts'] ?? false), $actor);
     }
 
     protected function getRedirectUrl(): string

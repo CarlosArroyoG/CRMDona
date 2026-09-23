@@ -12,13 +12,24 @@ use App\Models\Donor;
 use App\Models\DonorTaxProfile;
 use App\Models\Export;
 use App\Models\OrganizationSetting;
+use App\Models\Payment;
+use App\Models\PaymentAttempt;
+use App\Models\PaymentDispute;
+use App\Models\PaymentIncident;
+use App\Models\PaymentIncidentNote;
 use App\Models\Program;
+use App\Models\Refund;
+use App\Models\Subscription;
 use App\Models\Tag;
 use App\Models\User;
+use App\Models\WebhookEvent;
+use App\Payments\GatewayRegistry;
+use App\Support\AuditOrigin;
 use Filament\Actions\Exports\Models\Export as FilamentExport;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Middleware\TrustProxies;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Number;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
@@ -32,6 +43,11 @@ class AppServiceProvider extends ServiceProvider
     {
         // Exportaciones con purga a 7 días (ADR-007).
         $this->app->bind(FilamentExport::class, Export::class);
+
+        // Pagos (ADR-011): una pasarela por proveedor, según configuración.
+        $this->app->singleton(GatewayRegistry::class);
+        // Procedencia de los cambios en la bitácora: se reinicia en cada petición y Job.
+        $this->app->scoped(AuditOrigin::class);
     }
 
     /**
@@ -57,7 +73,20 @@ class AppServiceProvider extends ServiceProvider
             'organization_setting' => OrganizationSetting::class,
             'audit_log' => AuditLog::class,
             'export' => Export::class,
+            'payment' => Payment::class,
+            'payment_attempt' => PaymentAttempt::class,
+            'subscription' => Subscription::class,
+            'refund' => Refund::class,
+            'payment_dispute' => PaymentDispute::class,
+            'payment_incident' => PaymentIncident::class,
+            'payment_incident_note' => PaymentIncidentNote::class,
+            'webhook_event' => WebhookEvent::class,
         ]);
+
+        // Dentro de un Job de la cola, los cambios se registran como "Proceso automático".
+        Queue::before(fn () => app(AuditOrigin::class)->enterQueuedJob());
+        Queue::after(fn () => app(AuditOrigin::class)->leaveQueuedJob());
+        Queue::failing(fn () => app(AuditOrigin::class)->leaveQueuedJob());
 
         $this->configureTrustedProxies();
     }

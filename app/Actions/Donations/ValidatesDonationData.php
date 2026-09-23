@@ -6,7 +6,7 @@ namespace App\Actions\Donations;
 
 use App\Actions\Concerns\NormalizesInput;
 use App\Enums\DonationKind;
-use App\Enums\PaymentMethod;
+use App\Enums\ManualPaymentMethod;
 use App\Models\Campaign;
 use App\Models\Donor;
 use App\Models\Program;
@@ -43,7 +43,7 @@ trait ValidatesDonationData
             'campaign_id' => ['nullable', 'integer', Rule::exists(Campaign::class, 'id'), 'prohibits:program_id'],
             'program_id' => ['nullable', 'integer', Rule::exists(Program::class, 'id')],
             'kind' => ['required', new Enum(DonationKind::class)],
-            'payment_method' => [Rule::requiredIf(! $inKind), 'nullable', new Enum(PaymentMethod::class)],
+            'manual_payment_method' => [Rule::requiredIf(! $inKind), 'nullable', new Enum(ManualPaymentMethod::class)],
             'amount' => ['required', new MoneyAmount],
             'received_on' => ['required', 'date', 'before_or_equal:today'],
             'reference' => ['nullable', 'string', 'max:100'],
@@ -55,7 +55,7 @@ trait ValidatesDonationData
             'campaign_id.prohibits' => 'Elige una campaña o un programa, no ambos: el programa de la campaña se toma automáticamente.',
         ], [
             'donor_id' => 'donante', 'campaign_id' => 'campaña', 'program_id' => 'programa', 'kind' => 'tipo de donativo',
-            'payment_method' => 'forma de pago', 'amount' => $inKind ? 'valor asignado' : 'importe',
+            'manual_payment_method' => 'forma de pago', 'amount' => $inKind ? 'valor asignado' : 'importe',
             'received_on' => 'fecha de recepción', 'reference' => 'referencia',
             'in_kind_description' => 'descripción de lo donado', 'notes' => 'notas',
         ])->validate();
@@ -65,7 +65,7 @@ trait ValidatesDonationData
             'campaign_id' => isset($data['campaign_id']) ? (int) $data['campaign_id'] : null,
             'program_id' => isset($data['program_id']) ? (int) $data['program_id'] : null,
             'kind' => $data['kind'],
-            'payment_method' => $inKind ? null : $data['payment_method'],
+            'manual_payment_method' => $inKind ? null : $data['manual_payment_method'],
             'amount' => Money::normalize($data['amount']),
             'received_on' => $data['received_on'],
             'reference' => $data['reference'] ?? null,

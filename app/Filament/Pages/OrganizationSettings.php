@@ -72,6 +72,8 @@ class OrganizationSettings extends Page
             ]),
             'tax_regime' => $settings->tax_regime?->value,
             'authorization_date' => $settings->authorization_date?->toDateString(),
+            'online_donation_min_amount' => $settings->online_donation_min_amount,
+            'online_donation_max_amount' => $settings->online_donation_max_amount,
         ]);
     }
 
@@ -100,6 +102,15 @@ class OrganizationSettings extends Page
                         TextInput::make('privacy_notice_url')->label('URL del aviso de privacidad')->url()->maxLength(255),
                         TextInput::make('privacy_notice_version')->label('Versión vigente')->maxLength(50)
                             ->helperText('Ejemplo: 2026-09. Cámbiala cuando se publique un aviso nuevo.'),
+                    ]),
+                Section::make('Donativos en línea')
+                    ->description('Reglas de la organización. Además siempre aplica el límite técnico de cada proveedor; se usa el más restrictivo (consulta "Pasarelas de pago").')
+                    ->columns(2)
+                    ->schema([
+                        TextInput::make('online_donation_min_amount')->label('Importe mínimo por donativo (MXN)')->prefix('$')->inputMode('decimal')
+                            ->helperText('Vacío: sin mínimo propio; solo aplica el del proveedor.'),
+                        TextInput::make('online_donation_max_amount')->label('Importe máximo por donativo (MXN)')->prefix('$')->inputMode('decimal')
+                            ->helperText('Vacío: sin máximo adicional de la organización.'),
                     ]),
                 Section::make('Imagen y comunicación')->columns(2)->schema([
                     FileUpload::make('logo_path')->label('Logotipo')->image()->disk('public')->directory('organization')

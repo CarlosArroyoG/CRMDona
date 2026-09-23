@@ -38,6 +38,21 @@ enum Permission: string
     case ViewAuditLog = 'audit.view';
     case ManageUsers = 'users.manage';
 
+    // Fase 2 — pagos (fase-2-diseno-pagos.md §15).
+    case ViewPayments = 'payments.view';
+    case ViewPaymentTechnicalDetails = 'payments.view_technical';
+    case ExportPayments = 'payments.export';
+    case RequestRefunds = 'refunds.request';
+    case ViewSubscriptions = 'subscriptions.view';
+    case ManageSubscriptions = 'subscriptions.manage';
+    case ViewDisputes = 'disputes.view';
+    case ViewIncidents = 'incidents.view';
+    case ManageIncidents = 'incidents.manage';
+    case HandleTechnicalIncidents = 'incidents.technical';
+    case ReceivePaymentAlerts = 'payments.receive_alerts';
+    case ViewWebhooks = 'webhooks.view';
+    case ViewPaymentSettings = 'payment_settings.view';
+
     /**
      * @return list<Role>
      */
@@ -49,12 +64,16 @@ enum Permission: string
 
         return match ($this) {
             self::ViewDonors, self::ViewPrograms, self::ViewCampaigns, self::ViewDonations,
-            self::ExportPrograms, self::ExportCampaigns => Role::cases(),
-            self::ManageDonors, self::ManageTags, self::ManagePrograms, self::ManageCampaigns => $fundraising,
-            self::ManageDonorTaxProfiles, self::ExportDonors, self::RegisterDonations, self::ExportDonations => $staff,
-            self::ConfirmDonations, self::ViewOrganizationSettings => $finance,
+            self::ExportPrograms, self::ExportCampaigns, self::ViewPayments, self::ViewSubscriptions => Role::cases(),
+            self::ManageDonors, self::ManageTags, self::ManagePrograms, self::ManageCampaigns,
+            self::ManageSubscriptions => $fundraising,
+            self::ManageDonorTaxProfiles, self::ExportDonors, self::RegisterDonations, self::ExportDonations,
+            self::ExportPayments, self::ViewIncidents, self::ManageIncidents, self::ReceivePaymentAlerts => $staff,
+            self::ConfirmDonations, self::ViewOrganizationSettings, self::ViewPaymentTechnicalDetails,
+            self::RequestRefunds, self::ViewDisputes, self::HandleTechnicalIncidents => $finance,
             self::DeleteDonors, self::DeletePrograms, self::DeleteCampaigns,
-            self::UpdateOrganizationSettings, self::ViewAuditLog, self::ManageUsers => [Role::Administrator],
+            self::UpdateOrganizationSettings, self::ViewAuditLog, self::ManageUsers,
+            self::ViewWebhooks, self::ViewPaymentSettings => [Role::Administrator],
         };
     }
 

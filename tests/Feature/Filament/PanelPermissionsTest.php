@@ -25,6 +25,14 @@ dataset('screens', [
     'bitácora' => ['/admin/audit-logs', 200, 403, 403, 403],
     'organización' => ['/admin/organizacion', 200, 403, 200, 403],
     'cambiar contraseña' => ['/admin/profile', 200, 200, 200, 200],
+    // Fase 2
+    'pagos en línea' => ['/admin/payments', 200, 200, 200, 200],
+    'donativos mensuales' => ['/admin/subscriptions', 200, 200, 200, 200],
+    'incidencias' => ['/admin/payment-incidents', 200, 200, 200, 403],
+    'reembolsos' => ['/admin/refunds', 200, 403, 200, 403],
+    'disputas' => ['/admin/payment-disputes', 200, 403, 200, 403],
+    'bandeja de webhooks' => ['/admin/webhook-events', 200, 403, 403, 403],
+    'pasarelas de pago' => ['/admin/pasarelas', 200, 403, 403, 403],
 ]);
 
 it('abre o prohíbe cada pantalla según el rol', function (string $url, int $admin, int $coordinator, int $accountant, int $readOnly): void {

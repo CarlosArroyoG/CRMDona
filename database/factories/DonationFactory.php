@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace Database\Factories;
 
 use App\Enums\DonationKind;
+use App\Enums\DonationOrigin;
 use App\Enums\DonationStatus;
-use App\Enums\PaymentMethod;
+use App\Enums\ManualPaymentMethod;
 use App\Models\Donation;
 use App\Models\Donor;
 use App\Models\User;
@@ -21,8 +22,9 @@ class DonationFactory extends Factory
     {
         return [
             'donor_id' => Donor::factory(),
+            'origin' => DonationOrigin::Manual,
             'kind' => DonationKind::Monetary,
-            'payment_method' => fake()->randomElement(PaymentMethod::cases()),
+            'manual_payment_method' => fake()->randomElement(ManualPaymentMethod::cases()),
             'amount' => fake()->randomElement(['100.00', '250.00', '500.00', '1000.00', '1500.50', '5000.00']),
             'currency' => 'MXN',
             'received_on' => fake()->dateTimeBetween('-1 year', 'now')->format('Y-m-d'),
@@ -36,7 +38,7 @@ class DonationFactory extends Factory
     {
         return $this->state(fn (): array => [
             'kind' => DonationKind::InKind,
-            'payment_method' => null,
+            'manual_payment_method' => null,
             'in_kind_description' => fake()->randomElement(['Despensas para comedor', 'Útiles escolares', 'Equipo de cómputo usado']),
         ]);
     }

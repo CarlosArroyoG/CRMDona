@@ -14,7 +14,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        // Los webhooks de pagos se autentican con la firma del proveedor.
+        $middleware->preventRequestForgery(except: ['webhooks/payments/*']);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

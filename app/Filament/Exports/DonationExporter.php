@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace App\Filament\Exports;
 
 use App\Enums\DonationKind;
+use App\Enums\DonationOrigin;
 use App\Enums\DonationStatus;
-use App\Enums\PaymentMethod;
+use App\Enums\ManualPaymentMethod;
 use App\Filament\Exports\Concerns\WritesMoneyAsNumbers;
 use App\Models\Donation;
 use Filament\Actions\Exports\ExportColumn;
@@ -27,10 +28,13 @@ class DonationExporter extends Exporter
             ExportColumn::make('received_on')->label('Fecha de recepción')
                 ->formatStateUsing(fn (mixed $state): string => self::date($state)),
             ExportColumn::make('donor.display_name')->label('Donante'),
+            ExportColumn::make('origin')->label('Origen')
+                ->formatStateUsing(fn (?DonationOrigin $state): string => $state?->getLabel() ?? ''),
+            ExportColumn::make('payment_id')->label('Folio del pago en línea'),
             ExportColumn::make('kind')->label('Tipo')
                 ->formatStateUsing(fn (?DonationKind $state): string => $state?->getLabel() ?? ''),
-            ExportColumn::make('payment_method')->label('Forma de pago')
-                ->formatStateUsing(fn (?PaymentMethod $state): string => $state?->getLabel() ?? ''),
+            ExportColumn::make('manual_payment_method')->label('Forma de pago')
+                ->formatStateUsing(fn (?ManualPaymentMethod $state): string => $state?->getLabel() ?? ''),
             ExportColumn::make('amount')->label('Importe o valor (MXN)'),
             ExportColumn::make('currency')->label('Moneda'),
             ExportColumn::make('status')->label('Estado')

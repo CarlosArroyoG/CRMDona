@@ -28,7 +28,7 @@ function donationInput(array $overrides = []): array
     return [
         'donor_id' => Donor::factory()->create()->id,
         'kind' => 'monetary',
-        'payment_method' => 'cash',
+        'manual_payment_method' => 'cash',
         'amount' => '1500.50',
         'received_on' => now()->toDateString(),
         ...$overrides,
@@ -73,11 +73,11 @@ it('rechaza importes inválidos', function (string $amount): void {
 
 it('registra donativos en especie con descripción y valor asignado, sin forma de pago', function (): void {
     $donation = app(RegisterDonation::class)->handle(donationInput([
-        'kind' => 'in_kind', 'payment_method' => 'cash', 'amount' => '3200', 'in_kind_description' => 'Despensas para comedor',
+        'kind' => 'in_kind', 'manual_payment_method' => 'cash', 'amount' => '3200', 'in_kind_description' => 'Despensas para comedor',
     ]), userWithRole(Role::Administrator));
 
     expect($donation->kind)->toBe(DonationKind::InKind)
-        ->and($donation->payment_method)->toBeNull()
+        ->and($donation->manual_payment_method)->toBeNull()
         ->and($donation->in_kind_description)->toBe('Despensas para comedor');
 
     expect(donationErrors(fn () => app(RegisterDonation::class)->handle(donationInput(['kind' => 'in_kind']), userWithRole(Role::Administrator))))
@@ -85,7 +85,7 @@ it('registra donativos en especie con descripción y valor asignado, sin forma d
 });
 
 it('exige forma de pago y acepta los cuatro métodos manuales', function (string $method): void {
-    expect(app(RegisterDonation::class)->handle(donationInput(['payment_method' => $method]), userWithRole(Role::Administrator))->payment_method?->value)
+    expect(app(RegisterDonation::class)->handle(donationInput(['manual_payment_method' => $method]), userWithRole(Role::Administrator))->manual_payment_method?->value)
         ->toBe($method);
 })->with(['cash', 'bank_transfer', 'check', 'bank_deposit']);
 
@@ -190,5 +190,5 @@ it('exige evidencia coherente con el estado en la base de datos', function (arra
     'cancelado sin motivo' => [['status' => DonationStatus::Cancelled, 'cancelled_at' => now()]],
     'moneda distinta de MXN' => [['currency' => 'USD']],
     'importe cero' => [['amount' => '0.00']],
-    'especie sin descripción' => [['kind' => DonationKind::InKind, 'payment_method' => null]],
+    'especie sin descripción' => [['kind' => DonationKind::InKind, 'manual_payment_method' => null]],
 ]);

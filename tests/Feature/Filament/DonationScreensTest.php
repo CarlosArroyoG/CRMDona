@@ -24,7 +24,7 @@ it('registra un donativo desde el formulario como "Por confirmar"', function ():
         ->fillForm([
             'donor_id' => $donor->id,
             'kind' => 'monetary',
-            'payment_method' => 'bank_transfer',
+            'manual_payment_method' => 'bank_transfer',
             'amount' => '2,500.75',
             'received_on' => now()->toDateString(),
             'destination' => 'campaign',
@@ -47,7 +47,7 @@ it('muestra el error de importe en el campo del formulario', function (): void {
         ->fillForm([
             'donor_id' => Donor::factory()->create()->id,
             'kind' => 'monetary',
-            'payment_method' => 'cash',
+            'manual_payment_method' => 'cash',
             'amount' => '10.555',
             'received_on' => now()->toDateString(),
             'destination' => 'general',

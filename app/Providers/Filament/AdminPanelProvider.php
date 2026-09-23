@@ -33,7 +33,7 @@ class AdminPanelProvider extends PanelProvider
             ->login()
             ->profile(ChangePassword::class, isSimple: false)
             ->databaseNotifications()
-            ->navigationGroups(['Donativos', 'Destinos', 'Administración'])
+            ->navigationGroups(['Donativos', 'Pagos en línea', 'Destinos', 'Administración'])
             ->brandName(fn (): string => (string) config('app.name'))
             ->colors([
                 'primary' => Color::hex('#162562'),

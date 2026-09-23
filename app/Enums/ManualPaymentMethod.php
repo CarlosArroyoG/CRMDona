@@ -7,10 +7,10 @@ namespace App\Enums;
 use Filament\Support\Contracts\HasLabel;
 
 /**
- * Formas de pago de los donativos registrados a mano. Para agregar una,
- * basta un caso nuevo aquí y en el CHECK `donations_payment_method_valid`.
+ * Formas de pago de los donativos registrados a mano (origin = manual). Nunca "tarjeta": los pagos en línea viven en payments. Para agregar una,
+ * basta un caso nuevo aquí y en el CHECK `donations_manual_payment_method_valid`.
  */
-enum PaymentMethod: string implements HasLabel
+enum ManualPaymentMethod: string implements HasLabel
 {
     case Cash = 'cash';
     case BankTransfer = 'bank_transfer';

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\AuditLogs;
 
 use App\Enums\AuditEvent;
+use App\Enums\AuditSource;
 use App\Filament\Resources\AuditLogs\Pages\ListAuditLogs;
 use App\Filament\Resources\AuditLogs\Pages\ViewAuditLog;
 use App\Models\AuditLog;
@@ -47,7 +48,8 @@ class AuditLogResource extends Resource
         return $schema->components([
             Section::make('Registro')->columns(3)->schema([
                 TextEntry::make('created_at')->label('Fecha y hora')->dateTime('d/m/Y H:i:s'),
-                TextEntry::make('user.name')->label('Usuario')->placeholder('Sistema o consola'),
+                TextEntry::make('user.name')->label('Usuario')->placeholder('Sin usuario (proceso automático o consola)'),
+                TextEntry::make('source')->label('Procedencia')->placeholder('No registrada (antes de la Fase 2)'),
                 TextEntry::make('event')->label('Evento')->badge(),
                 TextEntry::make('auditable_type')->label('Tipo de registro')
                     ->formatStateUsing(fn (string $state): string => self::typeLabel($state)),
@@ -68,7 +70,8 @@ class AuditLogResource extends Resource
             ->modifyQueryUsing(fn (Builder $query): Builder => $query->with('user'))
             ->columns([
                 TextColumn::make('created_at')->label('Fecha y hora')->dateTime('d/m/Y H:i')->sortable(),
-                TextColumn::make('user.name')->label('Usuario')->placeholder('Sistema'),
+                TextColumn::make('user.name')->label('Usuario')->placeholder('Automático'),
+                TextColumn::make('source')->label('Procedencia')->placeholder('—')->toggleable(),
                 TextColumn::make('event')->label('Evento')->badge(),
                 TextColumn::make('auditable_type')->label('Tipo de registro')
                     ->formatStateUsing(fn (string $state): string => self::typeLabel($state)),
@@ -80,6 +83,7 @@ class AuditLogResource extends Resource
             ->defaultSort('created_at', 'desc')
             ->filters([
                 SelectFilter::make('event')->label('Evento')->options(AuditEvent::class),
+                SelectFilter::make('source')->label('Procedencia')->options(AuditSource::class),
                 SelectFilter::make('auditable_type')->label('Tipo de registro')
                     ->options(fn (): array => (array) trans('audit.types')),
                 SelectFilter::make('user_id')->label('Usuario')

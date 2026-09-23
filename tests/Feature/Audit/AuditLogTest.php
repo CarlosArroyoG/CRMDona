@@ -11,7 +11,14 @@ use App\Models\Donation;
 use App\Models\Donor;
 use App\Models\DonorTaxProfile;
 use App\Models\OrganizationSetting;
+use App\Models\Payment;
+use App\Models\PaymentAttempt;
+use App\Models\PaymentDispute;
+use App\Models\PaymentIncident;
+use App\Models\PaymentIncidentNote;
 use App\Models\Program;
+use App\Models\Refund;
+use App\Models\Subscription;
 use App\Models\Tag;
 use App\Models\User;
 use Illuminate\Database\QueryException;
@@ -120,6 +127,9 @@ it('tiene etiqueta en español para cada tipo y campo auditado', function (): vo
         'user' => User::class, 'donor' => Donor::class, 'donor_tax_profile' => DonorTaxProfile::class,
         'tag' => Tag::class, 'program' => Program::class, 'campaign' => Campaign::class,
         'donation' => Donation::class, 'organization_setting' => OrganizationSetting::class,
+        'payment' => Payment::class, 'payment_attempt' => PaymentAttempt::class, 'subscription' => Subscription::class,
+        'refund' => Refund::class, 'payment_dispute' => PaymentDispute::class, 'payment_incident' => PaymentIncident::class,
+        'payment_incident_note' => PaymentIncidentNote::class,
     ];
 
     foreach ($models as $type => $class) {

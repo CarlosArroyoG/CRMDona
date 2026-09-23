@@ -6,6 +6,7 @@ namespace App\Models\Concerns;
 
 use App\Enums\AuditEvent;
 use App\Models\AuditLog;
+use App\Support\AuditOrigin;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -25,6 +26,9 @@ use Illuminate\Database\Eloquent\Model;
 trait Auditable
 {
     private ?AuditEvent $pendingAuditEvent = null;
+
+    /** @var array<string, string|null> */
+    private array $pendingAuditContext = [];
 
     /**
      * @return list<string>
@@ -57,9 +61,14 @@ trait Auditable
         });
     }
 
-    public function auditAs(AuditEvent $event): static
+    /**
+     * @param  array<string, string|null>  $context  datos del evento que no son columnas
+     *                                               (por ejemplo, el motivo de una pausa). Solo texto seguro, nunca payloads.
+     */
+    public function auditAs(AuditEvent $event, array $context = []): static
     {
         $this->pendingAuditEvent = $event;
+        $this->pendingAuditContext = $context;
 
         return $this;
     }
@@ -78,6 +87,7 @@ trait Auditable
             'auditable_id' => $this->getKey(),
             'event' => $event,
             'user_id' => auth()->id(),
+            'source' => app(AuditOrigin::class)->current(),
             'changed_fields' => array_values(array_unique([...array_keys($oldValues), ...array_keys($newValues)])),
             'old_values' => $oldValues,
             'new_values' => $newValues,
@@ -90,13 +100,15 @@ trait Auditable
     private function writeAudit(AuditEvent $default, array $fields, bool $creating = false, bool $deleting = false): void
     {
         $event = $this->pendingAuditEvent ?? $default;
+        $context = $this->pendingAuditContext;
         $this->pendingAuditEvent = null;
+        $this->pendingAuditContext = [];
 
         $valueFields = static::auditValueFields();
         $audited = array_merge($valueFields, static::auditNameOnlyFields());
         $changed = $deleting ? [] : array_values(array_intersect($fields, $audited));
 
-        if (! $creating && ! $deleting && $changed === []) {
+        if (! $creating && ! $deleting && $changed === [] && $context === []) {
             return;
         }
 
@@ -109,11 +121,17 @@ trait Auditable
             $new[$field] = $this->getAttributes()[$field] ?? null;
         }
 
+        foreach ($context as $key => $value) {
+            $changed[] = $key;
+            $new[$key] = $value;
+        }
+
         AuditLog::query()->create([
             'auditable_type' => $this->getMorphClass(),
             'auditable_id' => $this->getKey(),
             'event' => $event,
             'user_id' => auth()->id(),
+            'source' => app(AuditOrigin::class)->current(),
             'changed_fields' => $changed,
             'old_values' => $old === [] ? null : $old,
             'new_values' => $new === [] ? null : $new,
