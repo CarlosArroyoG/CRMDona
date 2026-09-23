@@ -2,6 +2,19 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+## [Fiscal — cobertura CFDI] — 2026-09-23 (lista para Facturapi Test)
+
+### Agregado
+- Factura global configurable (`daily`, `weekly`, `monthly`; default operativo `daily`) con cierre idempotente, folio por operación y asociaciones Donation↔global.
+- CFDI individual de especie con forma de pago `12` y datos SAT del bien.
+- Residencia extranjera explícita con RFC genérico `XEXX010101000`.
+- Incidencias fiscales por emisión tardía, reembolso o contracargo con CFDI.
+- Configuración obligatoria de leyenda de donataria y visibilidad de ruta/periodo en Filament.
+
+### Cambiado
+- Todo donativo confirmado conserva cobertura `individual`, `public_general` o `blocked`; `tax_receipt_requested` sigue siendo informativo.
+- Facturapi y FakeCfdiProvider aceptan múltiples conceptos para la factura global.
+
 ## [Fase 7 — Operación, seguridad y rendimiento] — 2026-09-23 (cerrada localmente)
 
 ### Agregado

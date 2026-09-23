@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Actions\Cfdi\BuildDonationCfdiDraft;
 use App\Actions\Cfdi\RequestDonationCfdi;
 use App\Actions\Donations\ConfirmDonation;
 use App\Enums\ManualPaymentMethod;
@@ -37,7 +38,7 @@ beforeEach(function (): void {
     Mail::fake();
     OrganizationSetting::current()->forceFill([
         'legal_name' => 'FUNDACION DE PRUEBA', 'rfc' => 'FPR010101AAA', 'tax_regime' => TaxRegime::NonProfitLegalEntities,
-        'tax_postal_code' => '62000', 'authorization_number' => '600-04-02-2026-0001', 'authorization_date' => '2026-01-15',
+        'tax_postal_code' => '62000', 'authorization_number' => '600-04-02-2026-0001', 'authorization_date' => '2026-01-15', 'donation_legend' => BuildDonationCfdiDraft::DONATARIA_LEGEND,
     ])->save();
     actingAs(userWithRole(Role::Administrator));
 });

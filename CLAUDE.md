@@ -15,10 +15,10 @@ El documento de requisitos completo lo entregó el usuario al iniciar el proyect
   usuario. Ver `docs/fases/FASE-02-resumen.md`, `docs/tecnico/fase-2-diseno-pagos.md` (fuente de verdad)
   e `integraciones-pagos.md`. No marcar un [S] como [V] solo porque el código compile.
 - **Fase 2: bloque implementable cerrado administrativamente (2026-09-23)**. Sandbox abierto. Pausa `void` aprobada provisionalmente y límites en `null`.
-- **Fase 3 — CFDI: en curso.** PAC = **Facturapi** (`FacturapiCfdiProvider`, cliente HTTP, sin SDK), **sin probar en Facturapi Test** ([S]).
+- **Fase 3 — CFDI: lista para Facturapi Test.** PAC = **Facturapi** (`FacturapiCfdiProvider`, cliente HTTP, sin SDK), **sin probar todavía en Facturapi Test** ([S]).
   - El SAT obliga a emitir CFDI por todo donativo recibido. Rutas: individual, público en general (factura global [F], no habilitada) o bloqueo.
   - `tax_receipt_requested` es solo informativo.
-  - Fuente de verdad: `docs/tecnico/fase-3-cfdi.md`; pendientes #24–#31.
+  - Fuente de verdad: `docs/tecnico/fase-3-cfdi.md`; cobertura global, especie y extranjero implementadas localmente.
   - No inventar reglas fiscales: lo no verificado queda bloqueado en `BuildDonationCfdiDraft` con su motivo.
 - **Fase 4 — Comunicaciones: implementada con `Mail::fake()`** (2026-09-23): recibo simple, agradecimiento, envío del CFDI, cumpleaños, plantillas, historial y baja.
   - **Falta el servidor de correo real** (#32) y los rebotes (#33).

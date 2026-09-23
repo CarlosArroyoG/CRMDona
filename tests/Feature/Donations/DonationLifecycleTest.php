@@ -74,6 +74,8 @@ it('rechaza importes inválidos', function (string $amount): void {
 it('registra donativos en especie con descripción y valor asignado, sin forma de pago', function (): void {
     $donation = app(RegisterDonation::class)->handle(donationInput([
         'kind' => 'in_kind', 'manual_payment_method' => 'cash', 'amount' => '3200', 'in_kind_description' => 'Despensas para comedor',
+        'in_kind_quantity' => '10', 'in_kind_unit_code' => 'H87', 'in_kind_product_service_code' => '49101700',
+        'in_kind_unit_value' => '320.00', 'in_kind_total_value' => '3200.00',
     ]), userWithRole(Role::Administrator));
 
     expect($donation->kind)->toBe(DonationKind::InKind)

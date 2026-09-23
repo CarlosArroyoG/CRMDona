@@ -49,7 +49,7 @@ beforeEach(function (): void {
     Storage::fake('local');
     OrganizationSetting::current()->forceFill([
         'legal_name' => 'FUNDACION DE PRUEBA', 'rfc' => 'FPR010101AAA', 'tax_regime' => TaxRegime::NonProfitLegalEntities,
-        'tax_postal_code' => '62000', 'authorization_number' => '600-04-02-2026-0001', 'authorization_date' => '2026-01-15',
+        'tax_postal_code' => '62000', 'authorization_number' => '600-04-02-2026-0001', 'authorization_date' => '2026-01-15', 'donation_legend' => BuildDonationCfdiDraft::DONATARIA_LEGEND,
     ])->save();
 });
 
@@ -110,7 +110,6 @@ it('no inventa reglas: bloquea con motivo lo pendiente de decisión fiscal o de 
     expect(fn () => app(BuildDonationCfdiDraft::class)->handle($donation()))->toThrow(CfdiNotReadyException::class, $reason);
 })->with([
     'sin datos fiscales del donante (público en general)' => [fn () => Donation::factory()->confirmed()->create(), 'público en general'],
-    'especie' => [fn () => cfdiReadyDonation(['kind' => 'in_kind', 'manual_payment_method' => null, 'in_kind_description' => 'Útiles']), 'especie'],
     'depósito bancario' => [fn () => cfdiReadyDonation(['manual_payment_method' => ManualPaymentMethod::BankDeposit]), 'depósito'],
     'donativo por confirmar' => [fn () => Donation::factory()->create(), 'confirmados'],
     'uso de CFDI incorrecto en el perfil' => [function () {
@@ -289,7 +288,33 @@ it('ruta fiscal: individual lista, público en general (sin datos o RFC genéric
     expect($route(cfdiReadyDonation())->isReadyToIssue())->toBeTrue()
         ->and($route(Donation::factory()->confirmed()->create())->route)->toBe(FiscalRoute::PublicGeneral)
         ->and($route($generic->fresh() ?? $generic)->route)->toBe(FiscalRoute::PublicGeneral)
-        ->and($route(cfdiReadyDonation(['kind' => 'in_kind', 'manual_payment_method' => null, 'in_kind_description' => 'Útiles']))->route)->toBe(FiscalRoute::Blocked);
+        ->and($route(cfdiReadyDonation([
+            'kind' => 'in_kind', 'manual_payment_method' => null, 'in_kind_description' => 'Útiles',
+            'in_kind_quantity' => '2.000', 'in_kind_unit_code' => 'H87', 'in_kind_product_service_code' => '49101700',
+            'in_kind_unit_value' => '250.00', 'in_kind_total_value' => '500.00',
+        ]))->route)->toBe(FiscalRoute::Individual);
+});
+
+it('arma especie con forma 12 y los datos del bien', function (): void {
+    $draft = app(BuildDonationCfdiDraft::class)->handle(cfdiReadyDonation([
+        'kind' => 'in_kind', 'manual_payment_method' => null, 'in_kind_description' => 'Útiles',
+        'in_kind_quantity' => '1.000', 'in_kind_unit_code' => 'H87', 'in_kind_product_service_code' => '49101700',
+        'in_kind_unit_value' => '500.00', 'in_kind_total_value' => '500.00',
+    ]));
+
+    expect($draft->paymentForm)->toBe('12')
+        ->and($draft->productCode)->toBe('49101700')
+        ->and($draft->unitCode)->toBe('H87')
+        ->and($draft->quantity)->toBe('1.000')
+        ->and($draft->total)->toBe('500.00');
+});
+
+it('usa XEXX010101000 para un residente extranjero', function (): void {
+    $donation = cfdiReadyDonation();
+    $donation->donor->taxProfile?->forceFill(['foreign_resident' => true, 'rfc' => 'ABC123456T12'])->save();
+
+    expect(app(BuildDonationCfdiDraft::class)->handle($donation->fresh() ?? $donation)->receiverRfc)
+        ->toBe(BuildDonationCfdiDraft::FOREIGN_RFC);
 });
 
 it('donativo en línea: tarjeta de crédito 04 y de débito 28 según el proveedor', function (string $funding, string $form): void {

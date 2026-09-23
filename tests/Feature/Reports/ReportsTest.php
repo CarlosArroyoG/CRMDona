@@ -104,7 +104,7 @@ it('recaudado del mes: solo donativos confirmados en dinero por fecha de recepci
     confirmedDonation('0.20', '2026-09-30');
     confirmedDonation('1000.00', '2026-08-31');
     Donation::factory()->create(['amount' => '500.00', 'received_on' => '2026-09-10']); // por confirmar
-    confirmedDonation('700.00', '2026-09-10', ['kind' => 'in_kind', 'manual_payment_method' => null, 'in_kind_description' => 'Útiles']);
+    confirmedDonation('700.00', '2026-09-10', ['kind' => 'in_kind', 'manual_payment_method' => null, 'in_kind_description' => 'Útiles', 'in_kind_quantity' => '1.000', 'in_kind_unit_code' => 'H87', 'in_kind_product_service_code' => '49101700', 'in_kind_unit_value' => '700.00', 'in_kind_total_value' => '700.00']);
     $cancelled = confirmedDonation('300.00', '2026-09-11');
     DB::table('donations')->where('id', $cancelled->id)->update(['status' => DonationStatus::Cancelled->value, 'cancelled_at' => now(), 'cancelled_by_id' => $cancelled->registered_by_id, 'cancellation_reason' => 'Error de captura']);
 

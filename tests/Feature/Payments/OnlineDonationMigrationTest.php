@@ -37,6 +37,11 @@ function insertPhaseOneDonation(array $overrides = []): int
         'confirmed_by_id' => $user->id,
         'registered_by_id' => $user->id,
         'tax_receipt_requested' => false,
+        'in_kind_quantity' => '1.000',
+        'in_kind_unit_code' => 'H87',
+        'in_kind_product_service_code' => '49101700',
+        'in_kind_unit_value' => '1500.50',
+        'in_kind_total_value' => '1500.50',
         'created_at' => now(),
         'updated_at' => now(),
         ...$overrides,
@@ -86,11 +91,11 @@ it('no revierte si ya existen donativos en línea (no pierde su origen)', functi
 });
 
 it('todas las migraciones de la Fase 2 se revierten y se vuelven a aplicar', function (): void {
-    // La cadena de Fase 2 + Fase 3 + Fase 4 + Fase 6 + Fase 7 incluye
-    // 16 migraciones de este bloque. Si se usa un paso fijo menor, la
+    // La cadena de Fase 2 + Fase 3 + Fase 4 + Fase 6 + Fase 7 + cobertura
+    // fiscal incluye 18 migraciones de este bloque. Si se usa un paso menor,
     // columna `users.receives_payment_alerts` queda intacta y la prueba falla
     // aunque la migración sea reversible y segura.
-    Artisan::call('migrate:rollback', ['--step' => 16, '--force' => true]);
+    Artisan::call('migrate:rollback', ['--step' => 18, '--force' => true]);
 
     foreach (['payments', 'payment_attempts', 'subscriptions', 'refunds', 'payment_disputes', 'webhook_events', 'payment_incidents', 'payment_incident_notes'] as $table) {
         expect(Schema::hasTable($table))->toBeFalse();
@@ -114,7 +119,9 @@ it('la base de datos exige las reglas de origen manual y en línea', function (a
         'donor_id' => $payment->donor_id, 'kind' => 'monetary', 'manual_payment_method' => null, 'amount' => '100.00',
         'currency' => 'MXN', 'received_on' => '2026-09-01', 'status' => 'confirmed', 'confirmed_at' => now(),
         'confirmed_by_id' => null, 'registered_by_id' => null, 'origin' => 'online', 'payment_id' => $payment->id,
-        'tax_receipt_requested' => false, 'created_at' => now(), 'updated_at' => now(),
+        'tax_receipt_requested' => false, 'in_kind_quantity' => '1.000', 'in_kind_unit_code' => 'H87',
+        'in_kind_product_service_code' => '49101700', 'in_kind_unit_value' => '100.00', 'in_kind_total_value' => '100.00',
+        'created_at' => now(), 'updated_at' => now(),
     ];
     $attributes = array_map(fn (mixed $value): mixed => $value === ':user' ? $user->id : $value, $attributes);
 

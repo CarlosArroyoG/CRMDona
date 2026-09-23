@@ -31,7 +31,7 @@ La FAQ de 2024 solo se usa para S01/RESICO (ver la tabla).
 | Impuestos | ObjetoImp `01` (no objeto de impuesto) | Guía 2026 |
 | Complemento Donatarias 1.1 | Obligatorio, con `noAutorizacion`, `fechaAutorizacion` y la leyenda | CFF 29-A fr. V b; RMF 2026 3.10.1.2 y 2.7.1.26; `donat11.xsd` |
 | Público en general | Factura global diaria, semanal o mensual con: RFC `XAXX010101000`; `S01`; **con Complemento Donatarias** (ejemplo del caso C, verificado 2026-09-23); clave `01010101`; unidad `ACT`; número de folio de cada comprobante de operación; forma de pago del donativo de mayor monto. Se envía dentro de las 24 h siguientes al cierre del periodo | Guía 2026, caso C; RMF 2026 2.7.1.21 |
-| Especie | Forma de pago `12`; la clave y la unidad del bien | Guía 2026, casos B y D |
+| Especie | Forma de pago `12`; la clave, unidad, cantidad, descripción y valuación del bien | Guía 2026, casos B y D |
 | Motivos de cancelación | `01` sustitución: primero el CFDI nuevo con relación `04`, después cancelar con su UUID. `02` error sin relación: cancelar y reemitir. `03` operación no realizada. `04` operación nominativa incluida en una factura global | Esquema de cancelación 2026 |
 | Aceptación del receptor | 3 días hábiles; si no responde, se cancela. Sin aceptación, entre otros: CFDI de hasta $1,000, público en general y cancelación dentro del día hábil siguiente | RMF 2026 2.7.1.34 y 2.7.1.35 |
 | No cancelable | Un CFDI con documentos relacionados vigentes. La relación 04 se libera al pedir la cancelación | Esquema de cancelación 2026 |
@@ -43,26 +43,19 @@ Todo donativo confirmado cae en una de tres rutas (`ResolveDonationFiscalRoute`)
 | Ruta | Cuándo | Qué hace el sistema |
 |---|---|---|
 | **CFDI individual** | El donante tiene datos fiscales y el CFDI se puede armar | Lo timbra al confirmar (`CFDI_AUTO_ISSUE=true`). La conciliación vuelve a intentar los de las últimas 72 h |
-| **Público en general** | Sin datos fiscales, o con RFC `XAXX010101000` | No crea nada: la factura global está bloqueada ([F] §3) |
-| **Bloqueado** | Especie, reembolso o disputa, depósito bancario, tarjeta de prepago o de tipo desconocido, RFC extranjero, datos por corregir | No crea nada; muestra el motivo |
+| **Público en general** | Sin datos fiscales, o con RFC `XAXX010101000` | Se asocia al periodo global configurado (`daily` por defecto; también `weekly`/`monthly`) y conserva el folio de cada operación |
+| **Bloqueado** | Reembolso o disputa con CFDI, depósito bancario, tarjeta de prepago o de tipo desconocido, datos por corregir | Muestra el motivo y conserva la posibilidad de corrección/reintento |
+| **Extranjero** | Perfil marcado como residente extranjero | CFDI individual con RFC genérico `XEXX010101000`; no implica deducibilidad internacional |
 
 La ruta se ve en el detalle del donativo ("Cobertura fiscal"), para los roles con `cfdi.view`.
 
 ## 3. Cuestiones [F]
 
-1. **Factura global.** Falta decidir:
-   - periodicidad: diaria, semanal o mensual;
-   - qué cuenta como "comprobante de operación con el público en general": el folio del donativo en el CRM, un recibo propio o los "Recibos" de Facturapi;
-   - si se emiten comprobantes de operación para donativos menores de $100 (RMF 2.7.1.21).
-
-   Sin esas decisiones no se construye la factura global ni el motivo 04.
-2. **Especie:** clave del bien, unidad y valuación.
-3. **Depósito bancario:** si cuenta como efectivo (01) o como cheque (02).
-4. **Tarjeta de prepago** (no está en el catálogo como tal) y tipo de tarjeta desconocido.
-5. **Donante extranjero** (`XEXX010101000`).
-6. **Reembolsos y contracargos:** se bloquea la emisión si el pago los tiene. Nada es automático sobre un CFDI ya timbrado.
-7. **Vigencia de la autorización de donataria:** el CRM no la verifica; es responsabilidad del Administrador.
-8. **Emisión tardía:** donativos confirmados después de 24 h, o antes de configurar el PAC. Se pueden emitir a mano.
+1. **Depósito bancario:** si cuenta como efectivo (01) o como cheque (02); permanece bloqueado.
+2. **Tarjeta de prepago** (no está en el catálogo como tal) y tipo de tarjeta desconocido; permanecen bloqueados.
+3. **Reembolsos y contracargos:** se crea incidencia fiscal y nada cancela o sustituye automáticamente un CFDI ya timbrado.
+4. **Vigencia de la autorización de donataria:** el CRM no la verifica; es responsabilidad del Administrador.
+5. **Emisión tardía:** se señala como incidencia después de 24 h, sin descartar ni impedir el reintento.
 
 ## 4. Diseño (cambios de este bloque)
 
@@ -74,6 +67,10 @@ La ruta se ve en el detalle del donativo ("Cobertura fiscal"), para los roles co
   - índices: un CFDI vigente por donativo y, como máximo, una sustitución en curso.
 - **Cancelación directa:** solo motivos 02 y 03. El 01 va por sustitución; el 04 queda bloqueado hasta que exista la factura global.
 - **Descartar:** solo un CFDI rechazado que nunca se timbró (`discarded`; CHECK: sin UUID). Un error temporal no se descarta, porque su resultado es incierto.
+- **Factura global:** `global_cfdis` cierra el periodo anterior según `daily`, `weekly` o `monthly`; `donation_global_cfdi` conserva un folio de operación único por Donation. Se usa RFC `XAXX010101000`, `S01`, clave `01010101`, unidad `ACT`, Complemento Donatarias y la forma de pago de la operación de mayor monto. El cierre y el timbrado son idempotentes.
+- **Especie:** la Donation conserva descripción, cantidad, unidad SAT, clave de producto/servicio, valor unitario y total; el CFDI usa forma `12` y no crea Payment.
+- **Extranjero:** `donor_tax_profiles.foreign_resident` conserva la residencia y el borrador usa `XEXX010101000`.
+- **Incidencias fiscales:** `fiscal_incidents` registra tardanza, reembolso o contracargo con CFDI y requiere resolución humana.
 - **Tipo de tarjeta:**
   - `payment_attempts.card_funding` (credit, debit, prepaid, unknown);
   - Stripe lo toma de `card.funding` y Mercado Pago de `payment_method.type` ([S] #30).
