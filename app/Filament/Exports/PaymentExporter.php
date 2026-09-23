@@ -10,6 +10,7 @@ use App\Enums\PaymentStatus;
 use App\Enums\RefundState;
 use App\Filament\Exports\Concerns\WritesMoneyAsNumbers;
 use App\Models\Payment;
+use App\Reports\PaymentReport;
 use Filament\Actions\Exports\ExportColumn;
 use Filament\Actions\Exports\Exporter;
 use Illuminate\Database\Eloquent\Builder;
@@ -47,13 +48,19 @@ class PaymentExporter extends Exporter
             ExportColumn::make('effective_program')->label('Programa')
                 ->state(fn (Payment $record): string => $record->effectiveProgram()->name ?? ''),
             ExportColumn::make('succeeded_at')->label('Cobrado el')->formatStateUsing(fn (mixed $state): string => self::dateTime($state)),
+            ExportColumn::make('recovered')->label('Recuperado tras rechazo')
+                ->state(fn (Payment $record): string => $record->status === PaymentStatus::Succeeded && (bool) $record->getAttribute('had_failed_attempt') ? 'Sí' : 'No'),
             ExportColumn::make('donation.id')->label('Folio del donativo'),
         ];
     }
 
     public static function modifyQuery(Builder $query): Builder
     {
-        return $query->with(['donor', 'campaign.program', 'program', 'donation']);
+        // Reembolsos y "recuperado" precargados: sin una consulta por fila.
+        return tap(
+            $query->with(['donor', 'campaign.program', 'program', 'donation']),
+            fn (Builder $payments): Builder => PaymentReport::withFailedAttemptFlag(Payment::withRefundedAmount($payments)),
+        );
     }
 
     protected static function moneyColumns(): array

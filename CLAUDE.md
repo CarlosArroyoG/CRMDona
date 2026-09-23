@@ -24,6 +24,9 @@ El documento de requisitos completo lo entregó el usuario al iniciar el proyect
   - **Falta el servidor de correo real** (#32) y los rebotes (#33).
   - Fuente de verdad: `docs/tecnico/fase-4-comunicaciones.md`.
   - Sin paquetes nuevos: el PDF del recibo usa `App\Support\SimplePdf`, y las plantillas usan `TemplateRenderer` (nunca Blade).
+- **Fase 5 — Tablero y reportes: implementada** (2026-09-23), sin migraciones.
+  - Los cálculos viven en `app/Reports` (`DashboardMetrics`, `PaymentReport`, `CfdiReport`), nunca en widgets ni pantallas.
+  - Definiciones: `docs/tecnico/fase-5-reportes.md`.
 - **Base `crm`:** tiene datos persistentes de desarrollo. Se permiten `migrate` normales (con respaldo si hay riesgo).
   Nunca `migrate:fresh`, rollback destructivo ni experimentos contra `crm`; usar `crm_testing` o `crm_validation`.
 - Modelo de datos y reglas: `docs/tecnico/modelo-de-datos.md` y ADR-002 a ADR-011.

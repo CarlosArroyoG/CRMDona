@@ -2,6 +2,29 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+## [Fase 5 — Tablero y reportes] — 2026-09-23
+
+### Agregado
+- **Tablero:**
+  - recaudado del mes y comparación contra el mes anterior;
+  - donantes nuevos (primer donativo confirmado);
+  - donativos mensuales activos;
+  - tasa de fallos de pagos;
+  - reembolsado del mes;
+  - cumpleaños de los próximos 7 días.
+
+  Las definiciones exactas están en `docs/tecnico/fase-5-reportes.md`; los cálculos se hacen en NUMERIC y bcmath.
+- **Reporte de pagos:**
+  - filtro "Situación" (recuperados y cobros mensuales fallidos) y columna "Recuperado";
+  - totales del filtro (importe, cobrado y reembolsado);
+  - la exportación incluye "Recuperado tras rechazo" y ya no consulta por fila.
+- **Reporte CFDI:**
+  - por donativo: CFDI vigente, UUID, ruta fiscal, bloqueo o error y cancelaciones;
+  - filtros y exportación, con los permisos de `cfdi.view`.
+
+### Cambiado
+- Fase 4: queda aprobada la política de comunicaciones transaccionales (#34). El aviso de privacidad debe reflejarla.
+
 ## [Fase 4 — Comunicaciones] — 2026-09-23 (sin servidor de correo real)
 
 ### Agregado

@@ -29,6 +29,7 @@ use App\Models\Payment;
 use App\Models\PaymentAttempt;
 use App\Models\Program;
 use App\Models\User;
+use App\Reports\PaymentReport;
 use App\Support\Money;
 use App\Support\Search;
 use BackedEnum;
@@ -47,12 +48,15 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\Summarizers\Summarizer;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 
@@ -126,7 +130,7 @@ class PaymentResource extends Resource
         $technical = self::canViewTechnical();
 
         return $table
-            ->modifyQueryUsing(fn (Builder $query): Builder => Payment::withRefundedAmount($query->with(['donor', 'campaign', 'program'])))
+            ->modifyQueryUsing(fn (Builder $query): Builder => PaymentReport::withFailedAttemptFlag(Payment::withRefundedAmount($query->with(['donor', 'campaign', 'program']))))
             ->columns([
                 TextColumn::make('id')->label('Folio')->sortable(),
                 TextColumn::make('created_at')->label('Fecha')->dateTime('d/m/Y H:i')->sortable(),
@@ -134,12 +138,20 @@ class PaymentResource extends Resource
                     ->searchable(query: fn (Builder $query, string $search): Builder => $query
                         ->whereHas('donor', fn (Builder $donor): Builder => Search::unaccent($donor, 'display_name', $search))),
                 TextColumn::make('amount')->label('Importe')->alignEnd()->sortable()
-                    ->formatStateUsing(fn (string $state): string => Money::format($state)),
+                    ->formatStateUsing(fn (string $state): string => Money::format($state))
+                    ->summarize(Summarizer::make()->label('Totales del filtro')->using(function (QueryBuilder $query): string {
+                        $totals = PaymentReport::totals($query);
+
+                        return "{$totals['count']} pagos · Importe ".Money::format($totals['amount']).' · Cobrado '.Money::format($totals['succeeded']).' · Reembolsado '.Money::format($totals['refunded']);
+                    })),
                 TextColumn::make('provider')->label('Proveedor')->badge(),
                 TextColumn::make('kind')->label('Tipo')->badge(),
                 TextColumn::make('status')->label('Estado')->badge()->sortable(),
                 TextColumn::make('refund_state')->label('Reembolso')->badge()
                     ->state(fn (Payment $record): RefundState => RefundState::fromAmounts($record->amount, $record->refunds_succeeded_sum_amount)),
+                IconColumn::make('had_failed_attempt')->label('Recuperado')->boolean()->toggleable()
+                    ->state(fn (Payment $record): bool => $record->status === PaymentStatus::Succeeded && (bool) $record->getAttribute('had_failed_attempt'))
+                    ->trueIcon('heroicon-o-arrow-path')->falseIcon('heroicon-o-minus')->falseColor('gray'),
                 TextColumn::make('destination')->label('Destino')->toggleable()
                     ->state(fn (Payment $record): string => $record->campaign->name ?? $record->program->name ?? 'Fondo general'),
                 TextColumn::make('external_id')->label('Id. en el proveedor')->placeholder('—')
@@ -150,6 +162,10 @@ class PaymentResource extends Resource
                 SelectFilter::make('provider')->label('Proveedor')->options(PaymentProvider::class),
                 SelectFilter::make('status')->label('Estado')->options(PaymentStatus::class),
                 SelectFilter::make('kind')->label('Único o mensual')->options(PaymentKind::class),
+                SelectFilter::make('situation')->label('Situación')->options(PaymentReport::situations())
+                    ->query(fn (Builder $query, array $data): Builder => filled($data['value'] ?? null)
+                        ? PaymentReport::whereSituation($query, (string) $data['value'])
+                        : $query),
                 SelectFilter::make('failure_category')->label('Motivo de rechazo')->options(FailureCategory::class)
                     ->visible(fn (): bool => self::actor()?->hasPermission(Permission::ViewIncidents) ?? false)
                     ->query(fn (Builder $query, array $data): Builder => filled($data['value'] ?? null)

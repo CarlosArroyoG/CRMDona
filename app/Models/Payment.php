@@ -122,8 +122,10 @@ class Payment extends Model
     /**
      * Precarga la suma de reembolsos exitosos para listas y exportaciones.
      *
-     * @param  Builder<Model>  $query
-     * @return Builder<Model>
+     * @template TModel of Model
+     *
+     * @param  Builder<TModel>  $query
+     * @return Builder<TModel>
      */
     public static function withRefundedAmount(Builder $query): Builder
     {

@@ -13,7 +13,11 @@ Correos con el sistema de Mail de Laravel, sin paquetes nuevos. El proveedor rea
 - Si el CFDI ya está timbrado cuando sale el agradecimiento, se adjunta y no hay otro correo de CFDI.
 - Si todavía no está timbrado, el agradecimiento sale igual. Si el donativo va por la ruta individual y hay PAC, avisa que el CFDI llegará aparte; en público en general o bloqueo no promete nada.
 - Si el CFDI se timbra mientras sale el agradecimiento, al terminar el envío se vuelve a revisar y se manda por separado.
-- `communications.transactional_requires_consent` (`COMMUNICATIONS_TRANSACTIONAL_REQUIRES_CONSENT`, `false`) permite exigir el consentimiento también en los transaccionales.
+- **Decisión aprobada (2026-09-23):**
+  - agradecimiento, recibo y entrega de CFDI son transaccionales: no dependen del consentimiento, y la baja no los bloquea;
+  - el cumpleaños y cualquier comunicación no transaccional sí exigen consentimiento;
+  - `COMMUNICATIONS_TRANSACTIONAL_REQUIRES_CONSENT=false` se conserva como configuración reversible.
+- **Aviso de privacidad:** debe describir ambas finalidades (transaccionales sin consentimiento adicional; informativas con consentimiento y baja). Queda como pendiente de redacción legal (#34).
 - Los interruptores "Agradecimiento" y "Cumpleaños" están en Administración → Organización.
 
 ## 2. Recibo simple (`donation_receipts`)

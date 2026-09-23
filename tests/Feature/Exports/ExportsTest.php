@@ -23,18 +23,6 @@ beforeEach(function (): void {
     Storage::fake('local');
 });
 
-function exportedCsv(Export $export): string
-{
-    $disk = Storage::disk('local');
-    // Como Filament al armar el archivo final: encabezados y luego los bloques.
-    $files = collect($disk->files($export->getFileDirectory()))
-        ->filter(fn (string $file): bool => str_ends_with($file, '.csv'))
-        ->sortBy(fn (string $file): string => str_ends_with($file, 'headers.csv') ? '0' : '1'.$file)
-        ->values();
-
-    return $files->map(fn (string $file): string => (string) $disk->get($file))->implode('');
-}
-
 it('exporta donativos a CSV con BOM, acentos e importes exactos', function (): void {
     $user = userWithRole(Role::Accountant);
     actingAs($user);

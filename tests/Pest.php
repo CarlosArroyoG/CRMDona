@@ -7,6 +7,7 @@ use App\Actions\Subscriptions\StartMonthlyDonation;
 use App\Enums\PaymentProvider;
 use App\Enums\Role;
 use App\Models\Donor;
+use App\Models\Export;
 use App\Models\Payment;
 use App\Models\Subscription;
 use App\Models\User;
@@ -15,6 +16,7 @@ use App\Payments\Gateways\FakeGateway;
 use App\Payments\Gateways\FakeScenario;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Testing\TestResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -122,4 +124,19 @@ function deliverFakeWebhook(string $eventType, string $resourceType, string $res
         ['CONTENT_TYPE' => 'application/json'],
         ['HTTP_'.strtoupper(str_replace('-', '_', FakeGateway::SIGNATURE_HEADER)) => $webhook['headers'][FakeGateway::SIGNATURE_HEADER]],
     ), $webhook['body']);
+}
+
+/**
+ * Contenido CSV de una exportación terminada, como lo arma Filament:
+ * encabezados y luego los bloques.
+ */
+function exportedCsv(Export $export): string
+{
+    $disk = Storage::disk('local');
+    $files = collect($disk->files($export->getFileDirectory()))
+        ->filter(fn (string $file): bool => str_ends_with($file, '.csv'))
+        ->sortBy(fn (string $file): string => str_ends_with($file, 'headers.csv') ? '0' : '1'.$file)
+        ->values();
+
+    return $files->map(fn (string $file): string => (string) $disk->get($file))->implode('');
 }
