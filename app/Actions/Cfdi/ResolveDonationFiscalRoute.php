@@ -15,8 +15,8 @@ use App\Models\Donation;
  *
  * 1. Individual: el donante tiene datos fiscales y el CFDI se puede armar.
  * 2. Público en general: sin datos fiscales (o con RFC genérico) → factura
- *    global. [F] Aún no habilitada (periodicidad, comprobantes de operación y
- *    complemento; docs/tecnico/fase-3-cfdi.md).
+ *    global (con Complemento Donatarias [V]). [F] Aún no habilitada:
+ *    periodicidad y comprobantes de operación (docs/tecnico/fase-3-cfdi.md).
  * 3. Bloqueado: especie, reembolso, disputa, forma de pago sin resolver o
  *    datos por corregir.
  *
@@ -36,7 +36,7 @@ class ResolveDonationFiscalRoute
 
         if ($this->draft->isPublicGeneral($donation)) {
             return new FiscalCoverage(FiscalRoute::PublicGeneral, [
-                '[F] La factura global de donativos al público en general aún no está habilitada: falta decidir periodicidad, comprobantes de operación y si lleva complemento de donatarias.',
+                '[F] La factura global de donativos al público en general aún no está habilitada: falta decidir periodicidad y comprobantes de operación.',
             ]);
         }
 

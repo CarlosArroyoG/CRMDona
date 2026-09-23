@@ -30,7 +30,7 @@ La FAQ de 2024 solo se usa para S01/RESICO (ver la tabla).
 | Descripción | El propósito del donativo. Implementado: "Donativo para {campaña o programa}" o "para el fondo general" | Guía 2026 |
 | Impuestos | ObjetoImp `01` (no objeto de impuesto) | Guía 2026 |
 | Complemento Donatarias 1.1 | Obligatorio, con `noAutorizacion`, `fechaAutorizacion` y la leyenda | CFF 29-A fr. V b; RMF 2026 3.10.1.2 y 2.7.1.26; `donat11.xsd` |
-| Público en general | Factura global diaria, semanal o mensual con: RFC `XAXX010101000`; `S01`; clave `01010101`; unidad `ACT`; número de folio de cada comprobante de operación; forma de pago del donativo de mayor monto. Se envía dentro de las 24 h siguientes al cierre del periodo | Guía 2026, caso C; RMF 2026 2.7.1.21 |
+| Público en general | Factura global diaria, semanal o mensual con: RFC `XAXX010101000`; `S01`; **con Complemento Donatarias** (ejemplo del caso C, verificado 2026-09-23); clave `01010101`; unidad `ACT`; número de folio de cada comprobante de operación; forma de pago del donativo de mayor monto. Se envía dentro de las 24 h siguientes al cierre del periodo | Guía 2026, caso C; RMF 2026 2.7.1.21 |
 | Especie | Forma de pago `12`; la clave y la unidad del bien | Guía 2026, casos B y D |
 | Motivos de cancelación | `01` sustitución: primero el CFDI nuevo con relación `04`, después cancelar con su UUID. `02` error sin relación: cancelar y reemitir. `03` operación no realizada. `04` operación nominativa incluida en una factura global | Esquema de cancelación 2026 |
 | Aceptación del receptor | 3 días hábiles; si no responde, se cancela. Sin aceptación, entre otros: CFDI de hasta $1,000, público en general y cancelación dentro del día hábil siguiente | RMF 2026 2.7.1.34 y 2.7.1.35 |
@@ -53,7 +53,6 @@ La ruta se ve en el detalle del donativo ("Cobertura fiscal"), para los roles co
 1. **Factura global.** Falta decidir:
    - periodicidad: diaria, semanal o mensual;
    - qué cuenta como "comprobante de operación con el público en general": el folio del donativo en el CRM, un recibo propio o los "Recibos" de Facturapi;
-   - si la factura global lleva complemento de donatarias. La guía 2026 no lo dice en el caso C; el CFF lo pide para "donativos deducibles";
    - si se emiten comprobantes de operación para donativos menores de $100 (RMF 2.7.1.21).
 
    Sin esas decisiones no se construye la factura global ni el motivo 04.
