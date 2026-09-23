@@ -56,9 +56,10 @@ A = Administrador · C = Coordinador de procuración de fondos · Co = Contador 
 | Ver configuración de la organización | ✔ | — | ✔ | — |
 | Editar configuración de la organización | ✔ | — | — | — |
 | Bitácora de auditoría | ✔ | — | — | — |
-| Usuarios | ✔ | — | — | — |
+| Usuarios, incluido restablecer contraseñas de otros (`users.manage`) | ✔ | — | — | — |
 
-Todos los roles pueden cambiar su propia contraseña. Nadie elimina donativos ni registros de la
+Todos los roles pueden cambiar su propia contraseña; mientras tengan una contraseña temporal no
+ejercen ningún permiso (ADR-010). Nadie elimina donativos ni registros de la
 bitácora (ADR-008). La prueba `tests/Unit/Enums/PermissionMatrixTest.php` compara el código con
 esta tabla: cambiarla exige cambiar ambas a propósito.
 

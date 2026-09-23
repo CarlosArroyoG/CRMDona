@@ -28,9 +28,15 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
   tampoco (FK `restrict`). ADR-008.
 - Seeder de demostración ficticio (solo local/testing) sin credenciales utilizables.
 - Manual de usuario por módulo, guía del modelo de datos, ADR-003 a ADR-009.
+- **Restablecimiento de contraseñas** (ADR-010): acción "Restablecer contraseña" para el
+  Administrador (sobre otros usuarios) con contraseña temporal generada por el sistema, mostrada
+  una sola vez, cambio obligatorio al entrar (middleware persistente `EnsurePasswordIsCurrent`),
+  vigencia configurable (`AUTH_TEMPORARY_PASSWORD_TTL_HOURS`, 72 h), cierre de las demás sesiones y
+  evento de bitácora sin secretos. Comando `app:reset-user-password` para recuperar el acceso
+  desde el servidor. Migración `users.password_change_required_at`.
 - `docs/tecnico/requisitos-fases-futuras.md` con el requisito RF-01 (alertas de pagos y donativos
   con problemas) como dependencia de la Fase 2 y de la fase de comunicaciones.
-- 202 pruebas (695 aserciones).
+- 223 pruebas (784 aserciones).
 
 ### Cambiado
 - `Role::canAccessPanel()` se elimina: el acceso lo decide `User::canAccessPanel()` (rol + activo).

@@ -62,6 +62,7 @@ mismos valores** en los tres. Nunca se escriben en git. La referencia es `.env.e
 | `SESSION_DRIVER` / `CACHE_STORE` / `QUEUE_CONNECTION` | `redis` |
 | `SESSION_ENCRYPT` | `true` |
 | `SESSION_SECURE_COOKIE` | `true` (la cookie de sesión solo viaja por HTTPS) |
+| `AUTH_TEMPORARY_PASSWORD_TTL_HOURS` | `72` (vigencia de una contraseña temporal, ADR-010) |
 | `TRUSTED_PROXIES` | `10.0.0.0/8,172.16.0.0/12,192.168.0.0/16` (redes internas de Docker donde vive el proxy de Coolify) |
 | `MAIL_*` | Se definen en la fase de comunicaciones |
 
@@ -139,6 +140,9 @@ php artisan app:create-admin
 
 El comando pide nombre, correo (propone `licarroyogarfias@gmail.com`) y la contraseña dos
 veces, sin mostrarla. Detalle en [`administrador-inicial.md`](administrador-inicial.md).
+
+Si en el futuro ningún Administrador puede entrar (contraseña olvidada), la recuperación es
+`php artisan app:reset-user-password` desde la misma terminal (ver `administrador-inicial.md`).
 
 Después, desde el panel: **Administración → Organización** (datos fiscales, autorización y aviso
 de privacidad con URL y versión) y **Administración → Usuarios** para dar de alta al resto del

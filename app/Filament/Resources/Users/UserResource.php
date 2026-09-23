@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Users;
 
 use App\Actions\Users\CreateUser;
+use App\Actions\Users\ResetUserPassword;
 use App\Actions\Users\SetUserActive;
 use App\Enums\Role;
 use App\Filament\Concerns\ReportsActionErrors;
@@ -18,6 +19,7 @@ use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
@@ -28,6 +30,7 @@ use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\ValidationException;
 
 /**
  * Solo el Administrador. Los usuarios no se eliminan: se desactivan.
@@ -97,6 +100,7 @@ class UserResource extends Resource
             ->recordActions([
                 EditAction::make(),
                 self::toggleActiveAction(),
+                self::resetPasswordAction(),
             ])
             ->emptyStateHeading('No hay usuarios con esos filtros');
     }
@@ -120,6 +124,47 @@ class UserResource extends Resource
                     fn () => app(SetUserActive::class)->handle($record, $activate, $actor),
                     $activate ? 'Usuario reactivado' : 'Usuario desactivado',
                 );
+            });
+    }
+
+    /**
+     * Genera una contraseña temporal y la muestra una sola vez en una
+     * notificación de pantalla (no se guarda en la base ni en la bitácora).
+     */
+    public static function resetPasswordAction(): Action
+    {
+        return Action::make('resetPassword')
+            ->label('Restablecer contraseña')
+            ->icon(Heroicon::OutlinedKey)
+            ->color('warning')
+            ->requiresConfirmation()
+            ->modalHeading('Restablecer contraseña')
+            ->modalDescription(fn (User $record): string => 'Se generará una contraseña temporal para '.$record->name
+                .'. Se mostrará una sola vez: entrégala por un medio seguro. La persona deberá cambiarla al entrar y vence en '
+                .config()->integer('auth.temporary_password_ttl_hours').' horas. Sus demás sesiones se cerrarán. No cambia su rol ni su estado.')
+            ->modalSubmitActionLabel('Generar contraseña temporal')
+            ->visible(fn (User $record): bool => Gate::allows('resetPassword', $record))
+            ->action(function (User $record): void {
+                /** @var User $actor */
+                $actor = auth()->user();
+
+                try {
+                    $temporary = app(ResetUserPassword::class)->generateTemporary($record, $actor);
+                } catch (ValidationException $exception) {
+                    Notification::make()->danger()->title('No se pudo restablecer')
+                        ->body(implode(' ', $exception->validator->errors()->all()))->send();
+
+                    return;
+                }
+
+                Notification::make()
+                    ->success()
+                    ->title('Contraseña temporal de '.$record->name.': '.$temporary)
+                    ->body('Cópiala ahora: no se volverá a mostrar. Vence en '
+                        .config()->integer('auth.temporary_password_ttl_hours').' horas.'
+                        .($record->isActive() ? '' : ' El usuario sigue desactivado: reactívalo si debe entrar.'))
+                    ->persistent()
+                    ->send();
             });
     }
 

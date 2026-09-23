@@ -26,6 +26,30 @@ en **Cambiar contraseña**. El sistema **nunca muestra** contraseñas guardadas.
 
 Botón **Editar**: nombre, correo y rol. Cada persona tiene **un solo rol**.
 
+## Restablecer la contraseña de otra persona
+
+Cuando alguien olvidó su contraseña:
+
+1. En la lista de usuarios (o al editarlo), presiona **Restablecer contraseña** →
+   **Generar contraseña temporal**.
+2. Aparece un aviso con la **contraseña temporal**. **Cópiala en ese momento: no se vuelve a
+   mostrar** y nadie puede consultarla después.
+3. Entrégala a la persona por un medio seguro (en persona o por teléfono; evita dejarla escrita).
+4. Al entrar, la persona **solo podrá cambiar su contraseña**; hasta hacerlo no verá ninguna otra
+   pantalla. Así tú nunca conoces su contraseña definitiva.
+
+Detalles:
+
+- La contraseña temporal **vence en 72 horas**. Si vence, genera otra; la anterior deja de servir.
+- Se cierran las demás sesiones abiertas de esa persona.
+- No cambia su rol ni su estado: si el usuario está **desactivado**, sigue sin poder entrar hasta
+  que lo reactives.
+- No puedes restablecer tu propia contraseña con este botón: usa **Cambiar contraseña**.
+- Queda registrado en la bitácora (sin la contraseña).
+
+Si **ningún Administrador** puede entrar, el equipo técnico puede restablecer el acceso desde el
+servidor.
+
 ## Desactivar o reactivar
 
 - **Desactivar:** la persona ya no puede entrar. Su historial se conserva. Los usuarios no se

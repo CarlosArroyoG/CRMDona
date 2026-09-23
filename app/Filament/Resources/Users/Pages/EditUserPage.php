@@ -21,6 +21,7 @@ class EditUserPage extends EditRecord
     {
         return [
             UserResource::toggleActiveAction(),
+            UserResource::resetPasswordAction(),
         ];
     }
 

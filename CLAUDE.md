@@ -12,7 +12,7 @@ El documento de requisitos completo lo entregó el usuario al iniciar el proyect
 - **Fase 1 — Núcleo del CRM: implementada y validada localmente** (2026-09-22); **pendiente de
   aprobación del usuario**. Ver `docs/fases/FASE-01-resumen.md`.
 - **Siguiente:** Fase 2 (pasarela de pagos), solo con aprobación explícita. Antes preguntar la pasarela.
-- Modelo de datos y reglas: `docs/tecnico/modelo-de-datos.md` y ADR-002 a ADR-009.
+- Modelo de datos y reglas: `docs/tecnico/modelo-de-datos.md` y ADR-002 a ADR-010.
 - Decisiones fiscales pendientes (uso de CFDI, régimen, especie): `docs/pendientes.md`. No codificarlas sin confirmación.
 - Docker Desktop con motor libkrun (no WSL2). La carpeta del proyecto se comparte mediante
   `FilesharingDirectories` en `%APPDATA%\Docker\settings-store.json` (la interfaz no lo guardaba).
@@ -66,6 +66,9 @@ Roles oficiales, según el prompt maestro original, que es la fuente de verdad:
 - Auditoría: cada modelo declara `auditValueFields()` y `auditNameOnlyFields()`; datos personales/fiscales sin valor (ADR-006).
 - Escribir datos de negocio solo mediante `app/Actions` (los `update` masivos no se auditan).
 - Búsquedas de texto con `App\Support\Search::unaccent()` (lista cerrada de columnas).
+- Contraseñas (ADR-010): el Administrador restablece la de otros con una temporal generada por el sistema (mostrada una vez,
+  solo hash). `users.password_change_required_at` obliga a cambiarla (middleware persistente `EnsurePasswordIsCurrent`) y vence a
+  las `auth.temporary_password_ttl_hours` (72). Con temporal, `hasPermission()` es falso. Nunca auditar contraseñas ni hashes.
 
 ## Requisitos para fases futuras (no perder)
 
@@ -119,6 +122,7 @@ No hay PHP ni Composer en el equipo: todo corre en Docker. Detalle en `docs/tecn
 
 - `docker compose up -d` — levanta app (http://localhost:8000), worker, scheduler, postgres y redis.
 - `docker compose exec app php artisan app:create-admin` — crea un administrador (contraseña oculta).
+- `docker compose exec app php artisan app:reset-user-password` — recupera el acceso de un usuario existente (temporal, oculta, sin cambiar rol).
 - `docker compose exec -e DB_DATABASE=crm_validation app php artisan migrate:fresh --seed` — datos de demostración en una base desechable (`migrate:fresh` en `crm` borra tu administrador local).
 - `docker compose exec app vendor/bin/pest` — pruebas (usan la base `crm_testing`).
 - `docker compose exec app vendor/bin/pint` — formato.

@@ -38,3 +38,26 @@ El comando pide:
 - Comando (solo captura datos y muestra el resultado): `app/Console/Commands/CreateAdminCommand.php`.
 - Pruebas: `tests/Feature/Users/CreateAdministratorTest.php` y
   `tests/Feature/Console/CreateAdminCommandTest.php`.
+
+## Recuperar el acceso de un usuario (sin otro Administrador disponible)
+
+Si un usuario olvidó su contraseña, lo normal es que un Administrador use **Usuarios → Restablecer
+contraseña** en el panel (ADR-010). Si **no hay ningún Administrador que pueda entrar**, desde la
+terminal del servidor:
+
+| Entorno | Comando |
+|---|---|
+| Local | `docker compose exec app php artisan app:reset-user-password` |
+| Producción (Coolify) | Recurso `app` → *Terminal* → `php artisan app:reset-user-password` |
+
+El comando:
+
+1. Pide el **correo** del usuario (debe existir; **no crea usuarios**).
+2. Muestra nombre, rol y estado, y pide **confirmación**.
+3. Pide la **nueva contraseña** dos veces, sin mostrarla (mínimo 12 caracteres, con letras y números).
+4. La deja como **contraseña temporal**: al entrar, el usuario debe cambiarla por una propia, y vence
+   a las 72 horas (`AUTH_TEMPORARY_PASSWORD_TTL_HOURS`). Así quien opera el servidor no conoce la
+   contraseña definitiva.
+
+No cambia el rol ni reactiva a un usuario desactivado. Queda en la bitácora como
+"Restablecimiento de contraseña" (sin la contraseña).

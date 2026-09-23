@@ -1,7 +1,7 @@
 # Modelo de datos (Fase 1)
 
 Código, tablas y columnas en inglés; la interfaz muestra etiquetas en español (enums con
-`getLabel()`). Decisiones en `docs/tecnico/decisiones/ADR-002` a `ADR-009`.
+`getLabel()`). Decisiones en `docs/tecnico/decisiones/ADR-002` a `ADR-010`.
 
 ## Relaciones
 
@@ -29,7 +29,7 @@ Futuro (tablas propias que apuntarán a donations; no existen aún):
 
 | Tabla | Propósito | Reglas en base de datos |
 |---|---|---|
-| `users` | Personal del CRM | `role` (4 valores), `deactivated_at` |
+| `users` | Personal del CRM | `role` (4 valores), `deactivated_at`, `password_change_required_at` (contraseña temporal, ADR-010) |
 | `organization_settings` | Datos de la organización | `CHECK id = 1`; URL y versión del aviso de privacidad juntas |
 | `programs` | Destinos permanentes | `slug` único; `name` único sin distinguir mayúsculas |
 | `campaigns` | Esfuerzos de procuración | `slug` único; fin ≥ inicio; meta > 0; FK `program_id` restrict; trigger `campaigns_program_locked` |
@@ -74,7 +74,7 @@ Las funciones usan `create or replace`, porque `migrate:fresh` borra tablas pero
 
 | Área | Actions (`app/Actions`) |
 |---|---|
-| Usuarios | `CreateUser`, `CreateAdministrator`, `UpdateUser`, `SetUserActive`, `EnsureActiveAdministratorRemains` |
+| Usuarios | `CreateUser`, `CreateAdministrator`, `UpdateUser`, `SetUserActive`, `EnsureActiveAdministratorRemains`, `ResetUserPassword` |
 | Donantes | `SaveDonor`, `SaveDonorTaxProfile`, `FindDonorDuplicates`, `SetDonorArchived`, `DeleteDonor` |
 | Programas y campañas | `SaveProgram`, `DeleteProgram`, `SaveCampaign`, `DeleteCampaign` |
 | Donativos | `RegisterDonation`, `UpdatePendingDonation`, `ConfirmDonation`, `CancelDonation` |

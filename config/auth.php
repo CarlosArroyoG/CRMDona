@@ -116,4 +116,16 @@ return [
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Contraseña temporal (restablecimiento por el Administrador)
+    |--------------------------------------------------------------------------
+    |
+    | Horas de vigencia de una contraseña temporal. Vencida, no da acceso y
+    | hace falta un nuevo restablecimiento (App\Actions\Users\ResetUserPassword).
+    |
+    */
+
+    'temporary_password_ttl_hours' => (int) env('AUTH_TEMPORARY_PASSWORD_TTL_HOURS', 72),
+
 ];

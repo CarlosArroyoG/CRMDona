@@ -14,12 +14,12 @@
 | Donantes | Persona física/moral con reglas en base de datos; datos fiscales 1:1 opcionales; etiquetas; consentimientos independientes; aviso de duplicados por correo o RFC; archivar/reactivar; eliminar solo sin donativos |
 | Programas y campañas | `Program 1 → N Campaign`; estados; vigencia; meta; identificador para enlaces futuros; una campaña con donativos no cambia de programa |
 | Donativos | Efectivo, transferencia, cheque, depósito y especie; destino único; flujo `Por confirmar → Confirmado / Cancelado` con trazabilidad; confirmados no editables; nunca se eliminan |
-| Usuarios | Solo Administrador: alta con rol, cambio de rol, desactivar/reactivar; siempre queda un Administrador activo; cambio de la propia contraseña para todos |
+| Usuarios | Solo Administrador: alta con rol, cambio de rol, desactivar/reactivar y **restablecer contraseña** de otros (temporal generada por el sistema, cambio obligatorio, vigencia de 72 h configurable); siempre queda un Administrador activo; cambio de la propia contraseña para todos; comando `app:reset-user-password` para recuperar el acceso (ADR-010) |
 | Permisos | Matriz única (`Permission`) + Policies; los cuatro roles entran al panel |
 | Auditoría | Bitácora propia de solo inserción, lista cerrada de campos por modelo, eventos de negocio |
 | Búsqueda y filtros | Sin acentos (`unaccent`) en donantes, donativos, programas, campañas y usuarios; filtros de la sección B |
 | Exportación | CSV (UTF-8 con BOM) y XLSX nativos de Filament, en cola, descarga solo para quien la generó, purga del archivo a 7 días |
-| Documentación | Manual de usuario por módulo, modelo de datos, ADR-003 a ADR-009 |
+| Documentación | Manual de usuario por módulo, modelo de datos, ADR-003 a ADR-010 |
 
 **No implementado (fuera de alcance, por decisión):** pasarela de pagos, suscripciones, webhooks,
 PAC/CFDI, envío de correos, página pública, recibos PDF.
@@ -36,6 +36,7 @@ PAC/CFDI, envío de correos, página pública, recibos PDF.
 | Exportaciones nativas de Filament; importes numéricos en XLSX; purga a 7 días del archivo | ADR-007 |
 | Donativos nunca se eliminan; archivar en lugar de borrar; retención pendiente de validación | ADR-008 |
 | `unaccent` + `f_unaccent`; sin índices por ahora | ADR-009 |
+| Restablecimiento: temporal generada por el sistema, mostrada una vez, cambio obligatorio, 72 h configurables, consola que también deja la contraseña como temporal | ADR-010 |
 | Cuatro formas de pago manuales: efectivo, transferencia bancaria, cheque, depósito bancario | `PaymentMethod` |
 | El Contador edita datos fiscales desde su propio formulario (no los generales) | `DonorPolicy::updateTaxProfile` |
 | El seeder de demostración usa un usuario técnico sin rol, desactivado y con contraseña aleatoria | `DemoDataSeeder` |
@@ -57,7 +58,7 @@ PAC/CFDI, envío de correos, página pública, recibos PDF.
 
 | Área | Archivos |
 |---|---|
-| Migraciones | `database/migrations/2026_09_22_163601…` a `2026_09_23_000007…` |
+| Migraciones | `database/migrations/2026_09_22_163601…` a `2026_09_23_000008…` |
 | Enums | `app/Enums/{DonorType,ProgramStatus,CampaignStatus,DonationKind,PaymentMethod,DonationStatus,TaxRegime,CfdiUse,AuditEvent,Permission}.php` |
 | Modelos | `app/Models/{OrganizationSetting,Program,Campaign,Donor,DonorTaxProfile,Tag,Donation,AuditLog,Export}.php`, `Concerns/Auditable.php` |
 | Actions | `app/Actions/{Users,Donors,Programs,Campaigns,Donations,Organization,Concerns}` |
@@ -68,7 +69,7 @@ PAC/CFDI, envío de correos, página pública, recibos PDF.
 
 ## Pruebas
 
-**202 pruebas, 695 aserciones** (antes 40), todas contra `crm_testing`.
+**223 pruebas, 784 aserciones** (antes 40), todas contra `crm_testing`.
 
 | Archivo | Qué cubre |
 |---|---|
@@ -79,6 +80,7 @@ PAC/CFDI, envío de correos, página pública, recibos PDF.
 | `Feature/Campaigns/ProgramsAndCampaignsTest` | Slugs, nombres únicos, fechas y meta, bloqueo de programa (Action y trigger), eliminación |
 | `Feature/Audit/AuditLogTest` | Quién/qué/cuándo, sin datos personales ni fiscales, sin contraseñas, eventos de negocio, solo inserción, etiquetas en español |
 | `Feature/Users/UserManagementTest` | Alta por rol, política de contraseña, cambio de rol, último Administrador, desactivar/reactivar |
+| `Feature/Users/PasswordResetTest` | Solo Administrador y nunca sobre sí mismo; temporal conforme a la política y solo como hash; cambio obligatorio y bloqueo (HTTP, Livewire, descargas); vigencia y caducidad configurables; nueva temporal invalida la anterior; cambio a definitiva; sesiones previas invalidadas; bitácora sin secretos; consola sin cambiar rol ni crear usuarios; desactivado sin acceso |
 | `Feature/Organization/OrganizationSettingsTest` | Fila única, guardado, aviso de privacidad completo |
 | `Feature/Exports/ExportsTest` | CSV con BOM y acentos, filtros respetados, importes numéricos en XLSX, permisos, descarga, purga a 7 días |
 | `Feature/Filament/*` | Pantallas por rol (200/403), formularios, búsqueda sin acentos, filtros, confirmar/cancelar, datos fiscales del Contador, usuarios, organización, cambio de contraseña, bitácora, fichas y edición |
@@ -89,17 +91,17 @@ PAC/CFDI, envío de correos, página pública, recibos PDF.
 | Verificación | Resultado |
 |---|---|
 | `docker compose down` + `up -d --build` | PASS: 5 servicios, 0 reinicios, `app` sano |
-| `migrate` en la base de desarrollo `crm` | PASS: 9 migraciones nuevas; el administrador local se conserva |
-| `migrate:fresh --seed` (base desechable `crm_validation`, `APP_ENV=local`), dos veces seguidas | PASS: 13 migraciones; 4 programas, 3 campañas, 13 donantes, 33 donativos; 1 usuario técnico sin rol y desactivado |
-| Rollback completo (`migrate:reset`) y re-migración | PASS: 13 y 13 |
-| Pint | PASS (162 archivos) |
+| `migrate` en la base de desarrollo `crm` | PASS: 10 migraciones nuevas; el administrador local se conserva (sin contraseña temporal) |
+| `migrate:fresh --seed` (base desechable `crm_validation`, `APP_ENV=local`), dos veces seguidas | PASS: 14 migraciones; 4 programas, 3 campañas, 13 donantes, 33 donativos; 1 usuario técnico sin rol y desactivado |
+| Rollback completo (`migrate:reset`) y re-migración; rollback de la migración de contraseña temporal | PASS: 14 y 14; 1 y 1 |
+| Pint | PASS (167 archivos) |
 | Larastan nivel 8 | PASS (sin errores) |
-| Pest | PASS: 202 pruebas, 695 aserciones en `crm_testing`; la base `crm` intacta |
+| Pest | PASS: 223 pruebas, 784 aserciones en `crm_testing`; la base `crm` intacta |
 | `/up`, `/`, `/admin/login` | 200, 200, 200 (login en español, sin claves) |
 | `/admin` y pantallas sin sesión | 302 → `/admin/login` |
 | Logs de app, worker y scheduler | Sin errores |
 | Build `prod` con `--no-cache` | PASS |
-| Imagen `prod` contra base vacía | PASS: aplica 13 migraciones y 3 triggers al arrancar; `/up` 200 |
+| Imagen `prod` contra base vacía | PASS: aplica 14 migraciones y 3 triggers al arrancar; `/up` 200; incluye `app:reset-user-password` |
 
 ## Pendientes y riesgos
 
@@ -109,14 +111,14 @@ despliegue (incluye `unaccent` y volumen compartido por app, worker y scheduler)
 **PENDIENTE DE VALIDACIÓN LEGAL/FISCAL:** plazo de retención; reglas fiscales (uso de CFDI, régimen,
 RFC genérico, especie); vigencia de los catálogos SAT.
 
-**Verificación manual sugerida:** una exportación real desde el panel con `worker` y Redis (las
-pruebas usan cola síncrona).
+**Verificación manual:** exportación real CSV/XLSX con `worker` y Redis — **realizada por el
+responsable con resultado correcto** (2026-09-22).
 
 **Riesgos:**
 - La base local `crm` ya tiene el esquema de la Fase 1 pero sin datos de demostración; cargarlos
   con `migrate:fresh --seed` en `crm` borraría el administrador local (usar `crm_validation`).
-- No hay recuperación de contraseña por correo; si alguien la olvida, hoy no hay restablecimiento
-  por el Administrador (pendiente #9).
+- La recuperación de contraseña por correo (autoservicio) queda para la fase de comunicaciones
+  (pendiente #9); hoy la hace el Administrador o, sin Administrador disponible, la consola.
 - Imagen `prod` de ~1.1 GB; `EXPOSE 80` heredado (fijar 8080 en Coolify).
 
 ## Qué necesita la siguiente fase
@@ -131,7 +133,7 @@ pruebas usan cola síncrona).
   automático, actores humano o sistema sin usuario ficticio, significado de `payment_method`,
   reembolsos distintos de la cancelación) que se presentarán en el diseño antes de cualquier
   migración. Ver `docs/tecnico/requisitos-fases-futuras.md`.
-- Decidir si se agrega el restablecimiento de contraseña por el Administrador.
+- Restablecimiento de contraseñas: resuelto (ADR-010); la recuperación por correo queda para la fase de comunicaciones.
 
 ## Cómo probarlo manualmente
 

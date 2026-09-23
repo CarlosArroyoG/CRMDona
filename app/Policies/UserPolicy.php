@@ -38,6 +38,15 @@ class UserPolicy
         return $user->hasPermission(Permission::ManageUsers) && ! $user->is($model) && $model->isActive();
     }
 
+    /**
+     * Independiente del cambio de rol: no toca rol ni estado. Nunca sobre uno
+     * mismo (para eso está "Cambiar contraseña").
+     */
+    public function resetPassword(User $user, User $model): bool
+    {
+        return $user->hasPermission(Permission::ManageUsers) && ! $user->is($model);
+    }
+
     public function reactivate(User $user, User $model): bool
     {
         return $user->hasPermission(Permission::ManageUsers) && ! $model->isActive();

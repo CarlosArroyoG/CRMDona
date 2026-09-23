@@ -29,6 +29,7 @@ Guía para el personal que usa el panel del CRM. No requiere conocimientos técn
 | Consultar la configuración de la organización | Sí | No | Sí | No |
 | Editar la configuración de la organización | Sí | No | No | No |
 | Usuarios y bitácora | Sí | No | No | No |
+| Restablecer la contraseña de otra persona | Sí | No | No | No |
 | Cambiar su propia contraseña | Sí | Sí | Sí | Sí |
 
 Si un botón no aparece, es porque tu rol no tiene esa acción.

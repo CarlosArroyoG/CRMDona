@@ -26,6 +26,7 @@ use Illuminate\Support\Carbon;
  * @property string $email
  * @property Role|null $role
  * @property Carbon|null $deactivated_at
+ * @property Carbon|null $password_change_required_at
  */
 #[Fillable(['name', 'email', 'password'])]
 #[Hidden(['password', 'remember_token'])]
@@ -38,7 +39,7 @@ class User extends Authenticatable implements FilamentUser
 
     public static function auditValueFields(): array
     {
-        return ['role', 'deactivated_at'];
+        return ['role', 'deactivated_at', 'password_change_required_at'];
     }
 
     public static function auditNameOnlyFields(): array
@@ -56,9 +57,29 @@ class User extends Authenticatable implements FilamentUser
         return $this->deactivated_at === null;
     }
 
+    /**
+     * Mientras tenga contraseña temporal no ejerce ningún permiso: solo puede
+     * cambiarla (EnsurePasswordIsCurrent) o cerrar sesión.
+     */
     public function hasPermission(Permission $permission): bool
     {
-        return $this->isActive() && $permission->allows($this->role);
+        return $this->isActive() && ! $this->mustChangePassword() && $permission->allows($this->role);
+    }
+
+    /**
+     * La contraseña actual es temporal (la generó un restablecimiento).
+     */
+    public function mustChangePassword(): bool
+    {
+        return $this->password_change_required_at !== null;
+    }
+
+    public function temporaryPasswordExpired(): bool
+    {
+        return $this->password_change_required_at !== null
+            && $this->password_change_required_at->copy()
+                ->addHours(config()->integer('auth.temporary_password_ttl_hours'))
+                ->isPast();
     }
 
     /**
@@ -73,6 +94,7 @@ class User extends Authenticatable implements FilamentUser
             'password' => 'hashed',
             'role' => Role::class,
             'deactivated_at' => 'datetime',
+            'password_change_required_at' => 'datetime',
         ];
     }
 }

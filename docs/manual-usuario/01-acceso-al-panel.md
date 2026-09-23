@@ -38,4 +38,14 @@ estructura válida: dos palabras y un número, como "girasol-azul-2026" (no uses
 
 ## Olvidé mi contraseña
 
-Todavía no hay recuperación por correo. Pide ayuda al Administrador del sistema.
+Todavía no hay recuperación por correo. Pide al Administrador que **restablezca tu contraseña**: te
+entregará una **contraseña temporal**.
+
+1. Entra con tu correo y la contraseña temporal.
+2. Verás directamente **Cambiar contraseña** con el aviso "Tu contraseña es temporal…". No podrás
+   usar otras pantallas hasta terminar.
+3. Escribe la temporal en **Contraseña actual** y elige una **Nueva contraseña** que solo tú
+   conozcas (distinta de la temporal). Presiona **Guardar cambios**.
+
+La contraseña temporal **vence en 72 horas**. Si vence verás "Tu contraseña temporal venció. Pide al
+Administrador un nuevo restablecimiento." y tendrás que pedir otra.

@@ -32,6 +32,7 @@ return [
         'role' => 'Rol',
         'deactivated_at' => 'Desactivado el',
         'password' => 'Contraseña',
+        'password_change_required_at' => 'Contraseña temporal generada el',
         // Donante
         'type' => 'Tipo de persona',
         'first_name' => 'Nombre(s)',
