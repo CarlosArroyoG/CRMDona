@@ -2,6 +2,45 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+## [Fase 2 — Pagos en línea] — 2026-09-23 (sin validación en sandbox)
+
+### Agregado
+- **Modelo de pagos** (`fase-2-diseno-pagos.md` v3, ADR-011):
+  - `subscriptions`, `payments` (un cobro; cada mensualidad es uno), `payment_attempts`, `refunds`, `payment_disputes`, `webhook_events`, `payment_incidents` y `payment_incident_notes`;
+  - restricciones en PostgreSQL: llaves únicas, CHECKs, el trigger `refunds_within_payment_amount` y notas de solo inserción.
+- **Donativos en línea:**
+  - `donations.origin` (`manual` / `online`) y `donations.payment_id` único;
+  - CHECKs de origen; sin usuario "sistema";
+  - un pago exitoso crea como máximo un donativo, ya confirmado.
+- **Pasarelas por capacidad** (`app/Payments`):
+  - `GatewayRegistry`, contratos, snapshots y `FakeGateway` determinista;
+  - adaptador de **Stripe** con `stripe/stripe-php` v21.3.2 (Checkout embebido, Smart Retries, reembolsos, disputas);
+  - adaptador de **Mercado Pago** con el cliente HTTP de Laravel (Orders, `/preapproval` sin plan, reembolsos, contracargos, firma `x-signature`).
+- **Bandeja de webhooks** (`POST /webhooks/payments/{proveedor}`):
+  - firma y guardado único con lista permitida;
+  - procesamiento en cola que consulta el estado actual;
+  - protección ante eventos duplicados, simultáneos, fuera de orden y reintentos.
+- **Reembolsos:** motivo obligatorio (catálogo más comentario) y defensa en profundidad (Action, bloqueo, idempotencia y trigger). Nunca cancelan el donativo.
+- **Incidencias (RF-01):**
+  - estados Nueva → En revisión → Resuelta, con `dedupe_key` por hecho y notas de solo inserción;
+  - alertas en la campana: Administradores, y Coordinadores y Contadores con la preferencia activa.
+- **Conciliación programada** (`ReconcilePayments`, cada 15 minutos).
+- **Límites de negocio** de donativos en línea (mínimo y máximo configurables); se aplica el más restrictivo junto con el técnico del proveedor.
+- **Bitácora:** `audit_logs.source` (usuario, webhook, proceso automático, sincronización, consola) y eventos de pausa, reanudación e incidencias.
+- **Sanitización central** (`SensitiveData`): lista permitida para webhooks y redacción en todos los canales de log.
+- **Pantallas de Filament:**
+  - Pagos en línea (con intentos, reembolsos y disputas), Donativos mensuales (pausar, reanudar, cancelar), Incidencias, Reembolsos, Disputas, Bandeja de webhooks y Pasarelas de pago;
+  - preferencia de alertas en Usuarios y límites en Organización.
+- **Permisos de la Fase 2** en la matriz (ADR-002).
+- **Pruebas de concurrencia** con procesos reales contra PostgreSQL (`tests/Concurrency`).
+- **Documentación:** `docs/tecnico/integraciones-pagos.md` (con instrucciones de sandbox), ADR-011 y manual de usuario (páginas 09 a 11).
+
+### Cambiado
+- `donations.payment_method` → `manual_payment_method` (enum `ManualPaymentMethod`); los donativos existentes quedan `origin = manual` sin perder su forma de pago.
+- `donations.registered_by_id` acepta nulo solo en donativos en línea.
+- `Auditable::auditAs()` acepta un contexto seguro (por ejemplo, el motivo de una pausa).
+- La etiqueta de bitácora `type` pasa a "Tipo" (la comparten donantes e incidencias).
+
 ## [Fase 1 — Núcleo del CRM] — 2026-09-22
 
 ### Agregado

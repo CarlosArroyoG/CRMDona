@@ -12,6 +12,9 @@ Guía para el personal que usa el panel del CRM. No requiere conocimientos técn
 6. [Usuarios](06-usuarios.md) — solo Administrador
 7. [Configuración de la organización](07-organizacion.md)
 8. [Bitácora](08-bitacora.md) — solo Administrador
+9. [Pagos en línea, reembolsos y disputas](09-pagos-en-linea.md)
+10. [Donativos mensuales](10-donativos-mensuales.md)
+11. [Incidencias de pagos](11-incidencias.md)
 
 ## Qué puede hacer cada rol
 
@@ -31,6 +34,15 @@ Guía para el personal que usa el panel del CRM. No requiere conocimientos técn
 | Usuarios y bitácora | Sí | No | No | No |
 | Restablecer la contraseña de otra persona | Sí | No | No | No |
 | Cambiar su propia contraseña | Sí | Sí | Sí | Sí |
+| Consultar pagos en línea y donativos mensuales | Sí | Sí | Sí | Sí (sin datos técnicos) |
+| Ver detalle técnico de pagos (intentos, identificadores) | Sí | No | Sí | No |
+| Exportar pagos | Sí | Sí | Sí | No |
+| Solicitar reembolsos | Sí | No | Sí | No |
+| Pausar, reanudar o cancelar donativos mensuales | Sí | Sí | No | No |
+| Ver disputas y reembolsos | Sí | No | Sí | No |
+| Atender incidencias | Todas | Solo operativas | Todas | No |
+| Recibir alertas de pagos | Siempre | Si se activa | Si se activa | Nunca |
+| Bandeja de webhooks y pasarelas de pago | Sí | No | No | No |
 
 Si un botón no aparece, es porque tu rol no tiene esa acción.
 
@@ -39,7 +51,8 @@ Si un botón no aparece, es porque tu rol no tiene esa acción.
 | Grupo | Pantallas |
 |---|---|
 | Donativos | Donativos, Donantes |
+| Pagos en línea | Pagos en línea, Donativos mensuales, Incidencias, Reembolsos, Disputas y contracargos, Bandeja de webhooks |
 | Destinos | Programas, Campañas |
-| Administración | Usuarios, Organización, Bitácora |
+| Administración | Usuarios, Organización, Bitácora, Pasarelas de pago |
 
-La campana de la esquina superior muestra avisos, por ejemplo cuando una exportación está lista.
+La campana de la esquina superior muestra avisos, por ejemplo cuando una exportación está lista o cuando hay una incidencia de pagos.

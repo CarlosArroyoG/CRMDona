@@ -67,6 +67,17 @@ cuándo. Botones: **Editar** (solo "Por confirmar"), **Confirmar**, **Cancelar**
 **Cancelar** pide el motivo, por ejemplo: "Importe capturado con error; se registró de nuevo con el
 folio 128".
 
+## Donativos en línea
+
+Los donativos con origen **Pago en línea** los crea el sistema cuando un pago con tarjeta queda **Exitoso** (ver [Pagos en línea](09-pagos-en-linea.md)).
+
+- Nacen ya **Confirmados**. En "Registrado por" y "Confirmado por" aparece que fue automático: ninguna persona los capturó.
+- No se editan. El enlace **Pago en línea** lleva al pago que los originó.
+- Si hubiera un error, se cancelan con motivo como cualquier otro donativo.
+- Un reembolso del pago **no** cancela el donativo.
+
+Usa el filtro **Origen** para ver solo los manuales o solo los de pagos en línea. La forma de pago (efectivo, transferencia, cheque, depósito) aplica solo a los donativos manuales.
+
 ## Errores frecuentes
 
 | Mensaje | Qué hacer |

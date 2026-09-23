@@ -15,6 +15,7 @@ posteriores, y el aviso de privacidad vigente.
 | URL del aviso de privacidad, versión vigente | **Obligatorias juntas.** Sin ellas no se puede registrar que un donante aceptó el aviso |
 | Logotipo | PNG o JPG, máximo 2 MB |
 | Firma de correo | Texto simple para los correos futuros |
+| Importe mínimo y máximo por donativo en línea | Reglas propias de la Fundación. **Vacío = sin límite propio.** Además siempre aplica el límite técnico del proveedor de pago (por ejemplo, Stripe no acepta cargos menores a $10 MXN); se usa el más restrictivo |
 
 Presiona **Guardar**. Cuando publiquen un aviso de privacidad nuevo, cambia la **versión**: las
 aceptaciones siguientes quedarán registradas con la versión nueva.

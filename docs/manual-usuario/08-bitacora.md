@@ -11,7 +11,8 @@
 | Columna | Significado |
 |---|---|
 | Fecha y hora | Cuándo ocurrió |
-| Usuario | Quién lo hizo ("Sistema" si fue un proceso técnico) |
+| Usuario | Quién lo hizo ("Automático" si no fue una persona) |
+| Procedencia | Usuario, Notificación del proveedor, Proceso automático, Sincronización con el proveedor o Consola del servidor. Vacía en registros anteriores a los pagos en línea |
 | Evento | Creación, Modificación, Eliminación, Confirmación, Cancelación, Archivado, Reactivación, Cambio de etiquetas, Desactivación de usuario… |
 | Tipo de registro | Donante, Donativo, Campaña, Usuario… |
 | Número | Número interno del registro |

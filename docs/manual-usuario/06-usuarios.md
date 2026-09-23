@@ -58,6 +58,16 @@ servidor.
 
 No puedes desactivarte a ti mismo, y siempre debe quedar al menos un Administrador activo.
 
+## Alertas de pagos
+
+Al editar un usuario, la opción **Recibe alertas de pagos con problemas** decide si recibe en la campana los avisos de [incidencias](11-incidencias.md):
+
+- Aplica a **Coordinadores** (solo incidencias operativas) y **Contadores**.
+- Los **Administradores** siempre las reciben.
+- **Solo lectura** nunca las recibe.
+
+El cambio queda en la bitácora.
+
 ## Errores frecuentes
 
 | Mensaje | Qué hacer |

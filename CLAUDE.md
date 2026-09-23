@@ -9,10 +9,12 @@ El documento de requisitos completo lo entregó el usuario al iniciar el proyect
 ## Estado actual
 
 - **Fase 0 — Cimientos: cerrada** (2026-09-22). Ver `docs/fases/FASE-00-resumen.md`.
-- **Fase 1 — Núcleo del CRM: implementada y validada localmente** (2026-09-22); **pendiente de
-  aprobación del usuario**. Ver `docs/fases/FASE-01-resumen.md`.
-- **Siguiente:** Fase 2 (pasarela de pagos), solo con aprobación explícita. Antes preguntar la pasarela.
-- Modelo de datos y reglas: `docs/tecnico/modelo-de-datos.md` y ADR-002 a ADR-010.
+- **Fase 1 — Núcleo del CRM: cerrada** (2026-09-22). Ver `docs/fases/FASE-01-resumen.md`.
+- **Fase 2 — Pagos en línea (Stripe y Mercado Pago): implementada y validada con FakeGateway**
+  (2026-09-23). **Falta el sandbox real** de ambos proveedores (puntos [S]) y la aprobación del
+  usuario. Ver `docs/fases/FASE-02-resumen.md`, `docs/tecnico/fase-2-diseno-pagos.md` (fuente de verdad)
+  e `integraciones-pagos.md`. No marcar un [S] como [V] solo porque el código compile.
+- Modelo de datos y reglas: `docs/tecnico/modelo-de-datos.md` y ADR-002 a ADR-011.
 - Decisiones fiscales pendientes (uso de CFDI, régimen, especie): `docs/pendientes.md`. No codificarlas sin confirmación.
 - Docker Desktop con motor libkrun (no WSL2). La carpeta del proyecto se comparte mediante
   `FilesharingDirectories` en `%APPDATA%\Docker\settings-store.json` (la interfaz no lo guardaba).
@@ -30,6 +32,7 @@ El documento de requisitos completo lo entregó el usuario al iniciar el proyect
 - Docker (Dockerfile propio) para Coolify con 5 recursos: `app`, `worker`, `scheduler`, `postgres`, `redis`.
 - GitHub Actions: Pint, Larastan, Pest y construcción de la imagen `prod` en cada push.
 - Del esqueleto de Laravel se conservan `laravel/tinker` y `laravel/pail` (ADR-001).
+- `stripe/stripe-php ^21.3` (ADR-011), usado solo en `app/Payments/Gateways/Stripe`.
 - Cualquier paquete fuera de esta lista requiere ADR y autorización del usuario.
 
 ## Datos de la organización
@@ -70,22 +73,24 @@ Roles oficiales, según el prompt maestro original, que es la fuente de verdad:
   solo hash). `users.password_change_required_at` obliga a cambiarla (middleware persistente `EnsurePasswordIsCurrent`) y vence a
   las `auth.temporary_password_ttl_hours` (72). Con temporal, `hasPermission()` es falso. Nunca auditar contraseñas ni hashes.
 
-## Requisitos para fases futuras (no perder)
+## Reglas de pagos (Fase 2, ADR-011)
 
-Detalle completo en `docs/tecnico/requisitos-fases-futuras.md`. Leerlo antes de diseñar la Fase 2.
-
-- Separación obligatoria: `Donation ≠ Payment ≠ PaymentAttempt ≠ Subscription ≠ DonationReceipt ≠ Cfdi`.
-  Método de pago en línea, marca, últimos 4 dígitos y códigos de rechazo pertenecen al pago/intento, nunca al donativo.
-- **RF-01 — Alertas de pagos y donativos con problemas** (diseño en Fase 2, correo en la fase de comunicaciones):
-  - Flujo: `PaymentAttempt → fallo → registro persistente → incidencia → notificación CRM → correo → seguimiento`. El CRM es la fuente de verdad; el correo solo avisa.
-  - Incidencias `new → reviewing → resolved` (Nueva → En revisión → Resuelta) con causa, pago/intento, quién y cuándo revisó/resolvió, notas y resolución. Leer ≠ resolver.
-  - Destinatarios por **usuarios/roles** (mínimo Administrador; solución mínima); nunca correos en el código.
-  - Webhook inbox con identificador externo único: un reintento no duplica pago, donativo, incidencia ni alerta; un intento nuevo sí se registra.
-  - Fallos normalizados (categoría interna) + código del proveedor + mensaje sanitizado, por separado. Nunca PAN, CVV, banda ni datos de autenticación.
-  - Recurrentes: un intento fallido no cancela la suscripción; historial completo de intentos.
-- **Sin migrar antes de aprobar el diseño de la Fase 2:** origen manual/automático del donativo; actores humano vs sistema
-  (**sin "usuario sistema" ficticio**); significado de `donations.payment_method` (no agregar métodos en línea por suposición);
-  reembolsos (**no** equivalen a cancelar; nunca borrar pago ni donativo).
+- Separación: `Donation ≠ Payment ≠ PaymentAttempt ≠ Subscription ≠ Refund ≠ PaymentDispute ≠ DonationReceipt ≠ Cfdi`.
+  Marca, últimos 4 dígitos y códigos de rechazo viven en el intento, nunca en el donativo.
+- **Integraciones:**
+  - Solo detrás de `app/Payments` (contratos por capacidad y `GatewayRegistry`); ninguna Action ni pantalla usa un SDK.
+  - Stripe con `stripe/stripe-php`; Mercado Pago con el cliente HTTP de Laravel (su SDK no está autorizado).
+  - `FakeGateway` para todas las pruebas: las pruebas nunca llaman APIs reales (`phpunit.xml` fuerza las llaves vacías).
+- **Pagos y donativos:**
+  - `Payment 1 → N PaymentAttempt`; cada mensualidad es un Payment. Solo un Payment `succeeded` crea un Donation (`origin = online`, `payment_id` único, sin actor humano).
+  - No existe usuario "sistema": la procedencia está en `audit_logs.source` y en `webhook_events`.
+- **Webhooks:** firma → guardado único (lista permitida) → cola → consulta del estado actual → aplicación con bloqueo. Nunca mantener una transacción abierta durante una llamada HTTP.
+- **Reintentos:** los hace el proveedor (`retry_owner = provider`); el CRM no tiene scheduler de cobros. Un intento fallido nunca cancela una suscripción.
+- **Reembolsos:** motivo obligatorio del catálogo; reservan saldo los `pending` y `succeeded` (Action + trigger). Nunca cancelan el donativo.
+- **Incidencias:** `dedupe_key` por hecho concreto. Coordinador: solo operativas. Alertas: todo Administrador, más Coordinador o Contador con `receives_payment_alerts`. Leer ≠ resolver.
+- **Sanitización:** `App\Support\SensitiveData`. Nunca PAN, CVV, secretos, `Authorization`, firmas ni payloads crudos en base de datos, logs, bitácora o exportaciones.
+- **Credenciales:** solo en `.env` o en las variables de Coolify. Nunca pedir llaves por chat.
+- **Concurrencia:** `tests/Concurrency` usa procesos reales (`tests/Support/race.php`, excluido de la imagen) y limpia sus tablas; no usa `RefreshDatabase`.
 
 ## Convenciones
 
@@ -124,7 +129,8 @@ No hay PHP ni Composer en el equipo: todo corre en Docker. Detalle en `docs/tecn
 - `docker compose exec app php artisan app:create-admin` — crea un administrador (contraseña oculta).
 - `docker compose exec app php artisan app:reset-user-password` — recupera el acceso de un usuario existente (temporal, oculta, sin cambiar rol).
 - `docker compose exec -e DB_DATABASE=crm_validation app php artisan migrate:fresh --seed` — datos de demostración en una base desechable (`migrate:fresh` en `crm` borra tu administrador local).
-- `docker compose exec app vendor/bin/pest` — pruebas (usan la base `crm_testing`).
+- `docker compose exec app vendor/bin/pest` — pruebas (usan la base `crm_testing`; en serie: `--parallel` no aplica por la protección de la base).
+- `docker compose exec app vendor/bin/pest tests/Concurrency` — solo las condiciones de carrera (procesos reales).
 - `docker compose exec app vendor/bin/pint` — formato.
 - `docker compose exec app vendor/bin/phpstan analyse --memory-limit=1G` — Larastan.
 - `docker build --target prod -t crm-donataria:prod .` — imagen de producción (Apache en el puerto 8080).
