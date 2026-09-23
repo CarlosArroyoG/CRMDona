@@ -103,10 +103,15 @@ function useDatabaseQueue(int $tries = 1): void
 
 /**
  * Ejecuta un worker real hasta vaciar la cola.
+ *
+ * `--memory` alto: el worker corre dentro del proceso de PHPUnit, cuya memoria
+ * crece a lo largo de la suite. Con el límite por defecto (128 MB) el worker se
+ * detenía después del primer job al final de la suite completa y dejaba jobs
+ * sin procesar (prueba intermitente de WebhookInboxTest).
  */
 function runQueueWorker(): void
 {
-    Artisan::call('queue:work', ['connection' => 'database', '--stop-when-empty' => true, '--sleep' => 0]);
+    Artisan::call('queue:work', ['connection' => 'database', '--stop-when-empty' => true, '--sleep' => 0, '--memory' => 4096]);
 }
 
 /**

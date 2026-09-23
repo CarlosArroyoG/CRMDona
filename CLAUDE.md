@@ -27,9 +27,10 @@ El documento de requisitos completo lo entregó el usuario al iniciar el proyect
 - **Fase 5 — Tablero y reportes: implementada** (2026-09-23), sin migraciones.
   - Los cálculos viven en `app/Reports` (`DashboardMetrics`, `PaymentReport`, `CfdiReport`), nunca en widgets ni pantallas.
   - Definiciones: `docs/tecnico/fase-5-reportes.md`.
-- **Fase 6 — Página pública: implementada con FakeGateway** (2026-09-23).
+- **Fase 6 — Página pública: cerrada** (2026-09-23), validada con FakeGateway.
   - Stripe y Mercado Pago quedan en [S].
-  - La migración de `donors.origin` está probada en `crm_validation` y **pendiente de aplicar a `crm`** (#37).
+  - Cerrada el 2026-09-23 (`docs/fases/FASE-06-resumen.md`); migración de `donors.origin` aplicada a `crm`.
+  - Build local de assets en Windows: `node node_modules/vite/bin/vite.js build` (libkrun no guarda enlaces simbólicos).
   - Fuente de verdad: `docs/tecnico/fase-6-pagina-publica.md`.
   - El controlador público solo orquesta (`app/PublicDonations`); pagos, CFDI y comunicaciones siguen en sus Actions.
 - **Base `crm`:** tiene datos persistentes de desarrollo. Se permiten `migrate` normales (con respaldo si hay riesgo).

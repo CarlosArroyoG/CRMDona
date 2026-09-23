@@ -51,6 +51,19 @@ function truncateAllTables(): void
     DB::statement("truncate {$tables} restart identity cascade");
 }
 
+/**
+ * Ambos procesos terminaron sin excepción. Si alguno falla, el mensaje muestra
+ * la excepción y el texto del proceso hijo (no solo "false is true").
+ *
+ * @param  array{ok: bool, result: mixed, error: string|null, message: string|null}  ...$results
+ */
+function raceSucceeded(array ...$results): void
+{
+    foreach ($results as $index => $result) {
+        expect($result['ok'])->toBeTrue("El proceso {$index} falló: ".($result['error'] ?? '?').' — '.($result['message'] ?? ''));
+    }
+}
+
 function fakeGatewayForRace(): FakeGateway
 {
     /** @var FakeGateway $gateway */
@@ -105,8 +118,8 @@ it('la misma solicitud de reembolso enviada dos veces a la vez crea un solo reem
 
     [$a, $b] = Race::run('request-refund', $args, $args);
 
-    expect($a['ok'])->toBeTrue()->and($b['ok'])->toBeTrue()
-        ->and($a['result'])->toBe($b['result'])
+    raceSucceeded($a, $b);
+    expect($a['result'])->toBe($b['result'])
         ->and(Refund::query()->count())->toBe(1)
         ->and(fakeGatewayForRace()->refundIdsFor((string) $payment->external_id))->toHaveCount(1);
 });
@@ -116,8 +129,8 @@ it('doble clic simultáneo con la misma llave: un solo pago, un solo cobro y un 
 
     [$a, $b] = Race::run('start-donation', $args, $args);
 
-    expect($a['ok'])->toBeTrue()->and($b['ok'])->toBeTrue()
-        ->and($a['result'])->toBe($b['result'])
+    raceSucceeded($a, $b);
+    expect($a['result'])->toBe($b['result'])
         ->and(Payment::query()->count())->toBe(1)
         ->and(PaymentAttempt::query()->count())->toBe(1)
         ->and(Donation::query()->count())->toBe(1);
@@ -150,8 +163,8 @@ it('dos notificaciones distintas del mismo pago procesadas a la vez generan un s
 
     [$a, $b] = Race::run('sync-payment', $args, $args);
 
-    expect($a['ok'])->toBeTrue()->and($b['ok'])->toBeTrue()
-        ->and(Donation::query()->where('payment_id', $payment->id)->count())->toBe(1)
+    raceSucceeded($a, $b);
+    expect(Donation::query()->where('payment_id', $payment->id)->count())->toBe(1)
         ->and(PaymentAttempt::query()->where('payment_id', $payment->id)->count())->toBe(1)
         ->and($payment->fresh()?->status)->toBe(PaymentStatus::Succeeded);
 });
@@ -161,8 +174,8 @@ it('dos procesos creando el donativo del mismo pago a la vez: uno solo', functio
 
     [$a, $b] = Race::run('create-donation', ['payment_id' => $payment->id], ['payment_id' => $payment->id]);
 
-    expect($a['ok'])->toBeTrue()->and($b['ok'])->toBeTrue()
-        ->and($a['result'])->toBe($b['result'])
+    raceSucceeded($a, $b);
+    expect($a['result'])->toBe($b['result'])
         ->and(Donation::query()->count())->toBe(1);
 });
 
@@ -173,8 +186,8 @@ it('la misma incidencia abierta a la vez por dos procesos: una incidencia y una 
 
     [$a, $b] = Race::run('open-incident', $args, $args);
 
-    expect($a['ok'])->toBeTrue()->and($b['ok'])->toBeTrue()
-        ->and($a['result'])->toBe($b['result'])
+    raceSucceeded($a, $b);
+    expect($a['result'])->toBe($b['result'])
         ->and(PaymentIncident::query()->count())->toBe(1)
         ->and(DatabaseNotification::query()->where('notifiable_id', $admin->id)->count())->toBe(1);
 });

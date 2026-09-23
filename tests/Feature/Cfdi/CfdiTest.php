@@ -36,7 +36,6 @@ use Carbon\CarbonImmutable;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\QueryException;
 use Illuminate\Database\UniqueConstraintViolationException;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -173,7 +172,7 @@ it('error temporal del PAC: queda con error y el reintento no duplica el timbrad
 
     $cfdi = app(RequestDonationCfdi::class)->handle(cfdiReadyDonation(), $admin);
     config(['cfdi.stamping.tries' => 1]);
-    Artisan::call('queue:work', ['connection' => 'database', '--stop-when-empty' => true, '--sleep' => 0]);
+    runQueueWorker();
     expect($cfdi->refresh()->status)->toBe(CfdiStatus::Failed)->and($cfdi->last_error_code)->toBe('unavailable');
 
     config(['queue.default' => 'sync']);

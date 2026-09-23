@@ -2,7 +2,11 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
-## [Fase 6 — Página pública de donativos] — 2026-09-23 (Stripe y Mercado Pago sin sandbox)
+## [Fase 6 — Página pública de donativos] — 2026-09-23 (cerrada; Stripe y Mercado Pago sin sandbox)
+
+### Corregido
+- Prueba intermitente de `WebhookInboxTest`: el worker de pruebas se detenía por el límite de memoria por defecto (128 MB) al final de la suite. `runQueueWorker()` usa ahora `--memory=4096`.
+- Las pruebas de concurrencia muestran la excepción del proceso hijo si fallan.
 
 ### Agregado
 - **Páginas `/donar` y `/donar/campana/{identificador}`:**
