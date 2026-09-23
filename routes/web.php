@@ -9,9 +9,8 @@ use App\Http\Controllers\PublicDonationController;
 use App\Http\Controllers\UnsubscribeController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// La raíz lleva a la página pública de donativos.
+Route::redirect('/', '/donar');
 
 // Página pública de donativos (Fase 6). Envíos con CSRF y límite por IP.
 // El token de sesión es aleatorio y solo sirve en el navegador que lo creó.

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 use function Pest\Laravel\get;
 
-it('muestra la página inicial', function (): void {
-    get('/')->assertOk();
+it('redirige la raíz a la página pública de donativos', function (): void {
+    get('/')->assertRedirect('/donar');
 });
 
 it('muestra el inicio de sesión del panel interno', function (): void {

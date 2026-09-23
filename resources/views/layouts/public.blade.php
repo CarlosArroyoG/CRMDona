@@ -8,7 +8,7 @@
     @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
         @vite(['resources/css/app.css'])
     @endif
-    <style>
+    <style nonce="{{ Vite::cspNonce() }}">
         :root { --brand: {{ $colors['primary'] }}; --brand-accent: {{ $colors['secondary'] }}; }
         .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); border:0; }
     </style>

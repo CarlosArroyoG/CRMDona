@@ -2,6 +2,20 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+## [Fase 7 — Operación, seguridad y rendimiento] — 2026-09-23 (cerrada localmente)
+
+### Agregado
+- Hardening de seguridad con CSP, HSTS, trusted proxies y protección de comandos destructivos.
+- Alertas operativas RF-01 para incidencias de pagos, con notificación CRM, correo idempotente y preferencias por responsable.
+- Índices PostgreSQL respaldados por consultas reales.
+- Validación documentada de migraciones, backup/restore PostgreSQL local, build frontend e imagen de producción.
+
+### Corregido
+- El test de rollback/reapply ahora retrocede las 16 migraciones reales de la ventana Fase 2 a Fase 7.
+
+### Pendiente [S]
+- Stripe, Mercado Pago, Facturapi Test, SMTP, rebotes, S3, dominio HTTPS, Coolify y credenciales productivas.
+
 ## [Fase 6 — Página pública de donativos] — 2026-09-23 (cerrada; Stripe y Mercado Pago sin sandbox)
 
 ### Corregido

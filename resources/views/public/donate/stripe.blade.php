@@ -9,8 +9,8 @@
 @endsection
 
 @push('scripts')
-    <script src="https://js.stripe.com/v3/"></script>
-    <script>
+    <script nonce="{{ Vite::cspNonce() }}" src="https://js.stripe.com/v3/"></script>
+    <script nonce="{{ Vite::cspNonce() }}">
         (async function () {
             const stripe = Stripe(@json($publishableKey));
             const checkout = await stripe.initEmbeddedCheckout({ fetchClientSecret: async () => @json($clientSecret) });

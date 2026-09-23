@@ -37,15 +37,19 @@ class FundraisingOverview extends StatsOverviewWidget
         $previous = $month->subMonthNoOverflow();
         $user = self::actor();
 
+        // Comparación homogénea: del día 1 a hoy contra los mismos días del mes anterior.
+        $periods = $metrics->comparablePeriods($month);
         $raised = $metrics->raisedInMonth($month);
-        $raisedBefore = $metrics->raisedInMonth($previous);
-        $change = $metrics->changePercent($raised, $raisedBefore);
+        $raisedToDate = $metrics->raisedBetween(...$periods['current']);
+        $raisedBefore = $metrics->raisedBetween(...$periods['previous']);
+        $change = $metrics->changePercent($raisedToDate, $raisedBefore);
+        $window = '1 al '.$periods['previous'][1]->day.' de '.$previous->translatedFormat('F');
 
         $stats = [
             Stat::make('Recaudado en '.$month->translatedFormat('F'), Money::format($raised).' MXN')
                 ->description($change === null
-                    ? 'Mes anterior sin donativos: sin base de comparación'
-                    : ($change[0] === '-' ? "{$change} %" : "+{$change} %").' vs '.$previous->translatedFormat('F').' ('.Money::format($raisedBefore).')')
+                    ? "Sin donativos del {$window}: sin base de comparación"
+                    : ($change[0] === '-' ? "{$change} %" : "+{$change} %")." vs {$window} (".Money::format($raisedBefore).')')
                 ->descriptionIcon($change !== null && $change[0] === '-' ? 'heroicon-m-arrow-trending-down' : 'heroicon-m-arrow-trending-up')
                 ->color($change !== null && $change[0] === '-' ? 'danger' : 'success'),
             Stat::make('Donantes nuevos', (string) $metrics->newDonorsInMonth($month))

@@ -14,8 +14,11 @@ use App\Cfdi\Exceptions\CfdiProviderUnavailableException;
 use App\Cfdi\Exceptions\CfdiRejectedException;
 use App\Enums\AuditSource;
 use App\Enums\CfdiStatus;
+use App\Enums\Permission;
+use App\Filament\Resources\Cfdis\CfdiResource;
 use App\Models\Cfdi;
 use App\Support\AuditOrigin;
+use App\Support\OperationalAlerts;
 use App\Support\SensitiveData;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -133,5 +136,22 @@ class StampCfdi implements ShouldQueue
             'last_error_code' => $code !== null ? mb_substr($code, 0, 100) : null,
             'last_error' => SensitiveData::safeText($message),
         ])->save();
+
+        // Fase 7: un rechazo por datos, o un error temporal que ya agotó los
+        // intentos del Job, requieren intervención de quien emite CFDI.
+        if ($status === CfdiStatus::Rejected || $cfdi->attempts >= $this->tries) {
+            self::alertIntervention($cfdi, $status === CfdiStatus::Rejected ? 'rechazado' : 'con errores repetidos');
+        }
+    }
+
+    public static function alertIntervention(Cfdi $cfdi, string $situation): void
+    {
+        rescue(fn () => OperationalAlerts::send(
+            "cfdi:{$cfdi->id}:{$situation}",
+            Permission::IssueCfdis,
+            "CFDI {$situation}: requiere intervención",
+            ["CFDI folio {$cfdi->id} del donativo #{$cfdi->donation_id}.", 'Estado: '.$cfdi->status->getLabel().'.'],
+            CfdiResource::getUrl('view', ['record' => $cfdi->id], panel: 'admin'),
+        ));
     }
 }

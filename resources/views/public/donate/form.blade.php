@@ -175,7 +175,7 @@
 @endsection
 
 @push('scripts')
-    <script>
+    <script nonce="{{ Vite::cspNonce() }}">
         (function () {
             const form = document.querySelector('[data-loading-form]');
             if (!form) { return; }

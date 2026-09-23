@@ -30,15 +30,44 @@ final class DashboardMetrics
      */
     public function raisedInMonth(CarbonImmutable $month): string
     {
+        return $this->raisedBetween($month->startOfMonth(), $month->endOfMonth());
+    }
+
+    /**
+     * Mismo criterio que raisedInMonth en un rango de fechas (inclusive).
+     *
+     * @return numeric-string
+     */
+    public function raisedBetween(CarbonImmutable $from, CarbonImmutable $to): string
+    {
         /** @var numeric-string $sum */
         $sum = (string) DB::table('donations')
             ->where('status', DonationStatus::Confirmed->value)
             ->where('kind', DonationKind::Monetary->value)
-            ->whereBetween('received_on', [$month->startOfMonth()->toDateString(), $month->endOfMonth()->toDateString()])
+            ->whereBetween('received_on', [$from->toDateString(), $to->toDateString()])
             ->selectRaw('coalesce(sum(amount), 0)::numeric(14,2)::text as total')
             ->value('total');
 
         return $sum;
+    }
+
+    /**
+     * Periodos homogéneos para la comparación del tablero: del día 1 a hoy
+     * del mes en curso contra el día 1 al mismo número de días del mes
+     * anterior. Si el mes anterior es más corto (por ejemplo, hoy 31 de marzo
+     * y febrero de 28 días), su periodo termina en su último día.
+     *
+     * @return array{current: array{0: CarbonImmutable, 1: CarbonImmutable}, previous: array{0: CarbonImmutable, 1: CarbonImmutable}}
+     */
+    public function comparablePeriods(CarbonImmutable $today): array
+    {
+        $previousStart = $today->startOfMonth()->subMonthNoOverflow();
+        $previousEnd = $previousStart->addDays(min($today->day, $previousStart->daysInMonth) - 1);
+
+        return [
+            'current' => [$today->startOfMonth(), $today->startOfDay()],
+            'previous' => [$previousStart, $previousEnd],
+        ];
     }
 
     /**

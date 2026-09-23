@@ -35,6 +35,11 @@ dataset('screens', [
     'pasarelas de pago' => ['/admin/pasarelas', 200, 403, 403, 403],
     // Fase 3
     'CFDI' => ['/admin/cfdis', 200, 200, 200, 403],
+    // Fases 4–6.
+    'historial de envíos' => ['/admin/communications', 200, 200, 200, 403],
+    'plantillas' => ['/admin/message-templates', 200, 200, 403, 403],
+    'reporte CFDI' => ['/admin/reporte-cfdi', 200, 200, 200, 403],
+    'tablero' => ['/admin', 200, 200, 200, 200],
 ]);
 
 it('abre o prohíbe cada pantalla según el rol', function (string $url, int $admin, int $coordinator, int $accountant, int $readOnly): void {

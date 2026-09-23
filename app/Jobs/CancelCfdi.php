@@ -72,6 +72,10 @@ class CancelCfdi implements ShouldQueue
                 default => [],
             } + ['cancellation_provider_status' => mb_substr($result->providerStatus, 0, 50)])->save();
 
+            if ($result->outcome === CancellationResult::REJECTED) {
+                StampCfdi::alertIntervention($locked, 'con cancelación rechazada');
+            }
+
             // Sustitución completa: el CFDI nuevo queda como el vigente del donativo.
             if ($locked->status === CfdiStatus::Cancelled) {
                 Cfdi::query()->where('substitutes_cfdi_id', $locked->id)->where('replacement_pending', true)->get()

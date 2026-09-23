@@ -33,6 +33,10 @@ El documento de requisitos completo lo entregó el usuario al iniciar el proyect
   - Build local de assets en Windows: `node node_modules/vite/bin/vite.js build` (libkrun no guarda enlaces simbólicos).
   - Fuente de verdad: `docs/tecnico/fase-6-pagina-publica.md`.
   - El controlador público solo orquesta (`app/PublicDonations`); pagos, CFDI y comunicaciones siguen en sus Actions.
+- **Fase 7 — Operación, seguridad y rendimiento:** cerrada localmente (2026-09-23). Ver `docs/fases/FASE-07-resumen.md` y `docs/tecnico/backup-restore-local.md`.
+  - Pest 611 pruebas / 2487 aserciones, Pint 421 archivos y Larastan nivel 8 sin errores.
+  - Build frontend e imagen `prod` validados con Docker; backup/restore PostgreSQL local probado en bases desechables.
+  - No declara producción validada. Stripe, Mercado Pago, Facturapi, SMTP, rebotes, S3, dominio, Coolify y credenciales productivas siguen `[S]`.
 - **Base `crm`:** tiene datos persistentes de desarrollo. Se permiten `migrate` normales (con respaldo si hay riesgo).
   Nunca `migrate:fresh`, rollback destructivo ni experimentos contra `crm`; usar `crm_testing` o `crm_validation`.
 - Modelo de datos y reglas: `docs/tecnico/modelo-de-datos.md` y ADR-002 a ADR-011.

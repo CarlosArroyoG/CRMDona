@@ -86,8 +86,11 @@ it('no revierte si ya existen donativos en línea (no pierde su origen)', functi
 });
 
 it('todas las migraciones de la Fase 2 se revierten y se vuelven a aplicar', function (): void {
-    // 11 de la Fase 2 más las 2 de CFDI (Fase 3) la de comunicaciones (Fase 4) y la de donantes públicos (Fase 6), que son posteriores.
-    Artisan::call('migrate:rollback', ['--step' => 15, '--force' => true]);
+    // La cadena de Fase 2 + Fase 3 + Fase 4 + Fase 6 + Fase 7 incluye
+    // 16 migraciones de este bloque. Si se usa un paso fijo menor, la
+    // columna `users.receives_payment_alerts` queda intacta y la prueba falla
+    // aunque la migración sea reversible y segura.
+    Artisan::call('migrate:rollback', ['--step' => 16, '--force' => true]);
 
     foreach (['payments', 'payment_attempts', 'subscriptions', 'refunds', 'payment_disputes', 'webhook_events', 'payment_incidents', 'payment_incident_notes'] as $table) {
         expect(Schema::hasTable($table))->toBeFalse();

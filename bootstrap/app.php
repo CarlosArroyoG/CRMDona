@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -14,6 +15,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Cabeceras de seguridad y CSP en todas las respuestas (panel incluido).
+        $middleware->append(SecurityHeaders::class);
         // Los webhooks de pagos se autentican con la firma del proveedor.
         $middleware->preventRequestForgery(except: ['webhooks/payments/*']);
         // Rutas fuera del panel que exigen sesión (descargas de CFDI): al login de Filament.

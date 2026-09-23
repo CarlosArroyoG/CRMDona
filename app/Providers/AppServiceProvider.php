@@ -6,6 +6,8 @@ namespace App\Providers;
 
 use App\Actions\Users\CreateUser;
 use App\Cfdi\CfdiProviderRegistry;
+use App\Listeners\CheckDatabaseHealth;
+use App\Listeners\ReportFailedJob;
 use App\Models\AuditLog;
 use App\Models\Campaign;
 use App\Models\Cfdi;
@@ -33,8 +35,12 @@ use App\Support\AuditOrigin;
 use Filament\Actions\Exports\Models\Export as FilamentExport;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Foundation\Events\DiagnosingHealth;
 use Illuminate\Http\Middleware\TrustProxies;
 use Illuminate\Http\Request;
+use Illuminate\Queue\Events\JobFailed;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Number;
@@ -100,12 +106,33 @@ class AppServiceProvider extends ServiceProvider
         Queue::before(fn () => app(AuditOrigin::class)->enterQueuedJob());
         Queue::after(fn () => app(AuditOrigin::class)->leaveQueuedJob());
         Queue::failing(fn () => app(AuditOrigin::class)->leaveQueuedJob());
+        // Fase 7: log crítico y aviso a Administradores por cada Job que agota sus intentos.
+        Event::listen(JobFailed::class, ReportFailedJob::class);
+        // `/up` comprueba también la conexión a PostgreSQL.
+        Event::listen(DiagnosingHealth::class, CheckDatabaseHealth::class);
 
         $this->configureTrustedProxies();
+        $this->prohibitDestructiveCommandsOutsideDisposableDatabases();
 
         // Página pública de donativos: envíos por IP y minuto.
         RateLimiter::for('public-donations', fn (Request $request): Limit => Limit::perMinute(config()->integer('donations.public.rate_limit_per_minute'))
             ->by((string) $request->ip()));
+    }
+
+    /**
+     * migrate:fresh, migrate:refresh, migrate:reset, migrate:rollback y db:wipe
+     * solo se permiten fuera de producción y contra una base desechable
+     * (`security.destructive_databases` o las copias paralelas de crm_testing).
+     * `php artisan migrate` normal nunca se bloquea.
+     */
+    private function prohibitDestructiveCommandsOutsideDisposableDatabases(): void
+    {
+        $database = (string) config('database.connections.'.config()->string('database.default').'.database');
+        /** @var list<string> $allowed */
+        $allowed = config()->array('security.destructive_databases');
+        $disposable = in_array($database, $allowed, true) || str_starts_with($database, 'crm_testing_test_');
+
+        DB::prohibitDestructiveCommands(! config()->boolean('security.allow_destructive_commands') && (app()->isProduction() || ! $disposable));
     }
 
     /**

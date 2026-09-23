@@ -68,7 +68,7 @@
 @endsection
 
 @push('scripts')
-    <script>
+    <script nonce="{{ Vite::cspNonce() }}">
         (function () {
             const form = document.querySelector('[data-loading-form]');
             if (form) {
@@ -82,8 +82,8 @@
         })();
     </script>
     @if ($provider === \App\Enums\PaymentProvider::MercadoPago && $mercadoPagoPublicKey)
-        <script src="https://sdk.mercadopago.com/js/v2"></script>
-        <script>
+        <script nonce="{{ Vite::cspNonce() }}" src="https://sdk.mercadopago.com/js/v2"></script>
+        <script nonce="{{ Vite::cspNonce() }}">
             (function () {
                 const mp = new MercadoPago(@json($mercadoPagoPublicKey), { locale: 'es-MX' });
                 mp.bricks().create('cardPayment', 'cardPaymentBrick_container', {
