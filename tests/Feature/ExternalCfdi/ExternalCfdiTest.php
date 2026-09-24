@@ -8,6 +8,7 @@ use App\Actions\ExternalCfdi\RemoveExternalCfdi;
 use App\Enums\AuditEvent;
 use App\Enums\ManualPaymentMethod;
 use App\Enums\Role;
+use App\ExternalCfdi\CfdiXmlReader;
 use App\Filament\Resources\Donations\Pages\ViewDonation;
 use App\Filament\Resources\Donations\RelationManagers\ExternalCfdisRelationManager;
 use App\Models\AuditLog;
@@ -80,6 +81,18 @@ it('rechaza XML con DOCTYPE o entidades (XXE) sin leerlos ni guardar nada', func
     'entidad externa' => ['<?xml version="1.0"?><!DOCTYPE r [<!ENTITY x SYSTEM "file:///etc/passwd">]><cfdi:Comprobante xmlns:cfdi="http://www.sat.gob.mx/cfd/4">&x;</cfdi:Comprobante>'],
     'bomba de entidades' => ['<?xml version="1.0"?><!DOCTYPE lolz [<!ENTITY lol "lol"><!ENTITY lol2 "&lol;&lol;">]><r>&lol2;</r>'],
 ]);
+
+it('rechaza un DOCTYPE escondido en otra codificación (UTF-16) que el filtro de texto no ve', function (): void {
+    $xml = str_replace(
+        ['encoding="UTF-8"?>', '<cfdi:Comprobante '],
+        ['encoding="UTF-16"?>', '<!DOCTYPE cfdi:Comprobante><cfdi:Comprobante '],
+        externalCfdiXml(),
+    );
+    $utf16 = "\xFF\xFE".mb_convert_encoding($xml, 'UTF-16LE', 'UTF-8');
+
+    expect(preg_match('/<!(DOCTYPE|ENTITY)/i', $utf16))->toBe(0)
+        ->and(fn () => app(CfdiXmlReader::class)->read($utf16))->toThrow(ValidationException::class, 'DOCTYPE');
+});
 
 it('valida contenido, tamaño, RFC emisor, estado del donativo y UUID duplicado', function (): void {
     $donation = confirmedForCfdi();

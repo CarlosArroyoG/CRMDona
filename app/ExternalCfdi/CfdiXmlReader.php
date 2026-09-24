@@ -49,6 +49,11 @@ final class CfdiXmlReader
             libxml_use_internal_errors($previous);
         }
 
+        // Segunda barrera: el filtro de texto no ve un DOCTYPE en otra codificación (UTF-16).
+        if ($loaded && $document->doctype !== null) {
+            $this->fail('El XML contiene declaraciones DOCTYPE o ENTITY, que no se aceptan.');
+        }
+
         $root = $document->documentElement;
         if (! $loaded || ! $root instanceof DOMElement || $root->localName !== 'Comprobante'
             || ! in_array($root->namespaceURI, self::COMPROBANTE_NAMESPACES, true)) {

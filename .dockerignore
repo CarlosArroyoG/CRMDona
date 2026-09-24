@@ -11,6 +11,15 @@ storage/logs/*
 storage/framework/cache/*
 storage/framework/sessions/*
 storage/framework/views/*
+# Archivos locales con datos (CFDI, recibos, exportaciones, logos) y cachés:
+# nunca entran a la imagen. Se conservan los .gitignore para mantener las carpetas.
+storage/app/private/*
+!storage/app/private/.gitignore
+storage/app/public/*
+!storage/app/public/.gitignore
+storage/framework/testing/*
+bootstrap/cache/*.php
+public/storage
 docs
 tests
 docker-compose.yml

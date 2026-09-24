@@ -116,8 +116,10 @@ class OrganizationSettings extends Page
                             ->helperText('Vacío: sin máximo adicional de la organización.'),
                     ]),
                 Section::make('Imagen y comunicación')->columns(2)->schema([
-                    FileUpload::make('logo_path')->label('Logotipo')->image()->disk('public')->directory('organization')
-                        ->maxSize(2048)->helperText('PNG o JPG, máximo 2 MB.'),
+                    // Solo PNG o JPG, por contenido y por extensión: image() admite SVG, y Filament guarda la
+                    // extensión del cliente (un PNG llamado .html se serviría como página desde el disco público).
+                    FileUpload::make('logo_path')->label('Logotipo')->image()->acceptedFileTypes(['image/png', 'image/jpeg'])
+                        ->rules(['extensions:png,jpg,jpeg'])->disk('public')->directory('organization')->maxSize(2048)->helperText('PNG o JPG, máximo 2 MB.'),
                     Textarea::make('email_signature')->label('Firma de correo')->rows(4)->maxLength(2000)
                         ->helperText('Texto simple. Aparece al final de los correos a donantes.'),
                 ]),

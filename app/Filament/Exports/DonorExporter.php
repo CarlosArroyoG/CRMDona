@@ -34,7 +34,8 @@ class DonorExporter extends Exporter
             ExportColumn::make('legal_name')->label('Razón social'),
             ExportColumn::make('contact_name')->label('Persona de contacto'),
             ExportColumn::make('email')->label('Correo electrónico'),
-            ExportColumn::make('phone')->label('Teléfono'),
+            // Validado como solo dígitos, espacios y + ( ) -: nunca forma una fórmula; se exporta sin apóstrofo.
+            ExportColumn::make('phone')->label('Teléfono')->preventFormulaInjection(false),
             ExportColumn::make('birth_date')->label('Fecha de nacimiento')
                 ->formatStateUsing(fn (mixed $state): string => self::date($state)),
             ExportColumn::make('tags_list')->label('Etiquetas')

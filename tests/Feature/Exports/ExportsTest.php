@@ -44,6 +44,19 @@ it('exporta donativos a CSV con BOM, acentos e importes exactos', function (): v
         ->and(Storage::disk('local')->exists($export->getFileDirectory().'/'.$export->file_name.'.xlsx'))->toBeTrue();
 });
 
+it('neutraliza fórmulas de hoja de cálculo en los datos exportados (CWE-1236)', function (): void {
+    $user = userWithRole(Role::Administrator);
+    actingAs($user);
+    Donor::factory()->create(['first_name' => '=1+1', 'last_name' => '@SUMA(A1)', 'second_last_name' => null, 'phone' => '+52 777 123 4567']);
+
+    Livewire::test(ListDonors::class)->callAction(TestAction::make('export')->table());
+
+    $csv = exportedCsv(Export::query()->where('user_id', $user->id)->sole());
+    expect($csv)->toContain("'=1+1")->toContain("'@SUMA(A1)")->toContain('+52 777 123 4567')
+        ->and(str_contains((string) $csv, "'+52"))->toBeFalse()
+        ->and(preg_match('/(^|,)(=1\+1|@SUMA)/m', (string) $csv))->toBe(0);
+});
+
 it('respeta los filtros aplicados al exportar', function (): void {
     $user = userWithRole(Role::Administrator);
     actingAs($user);

@@ -37,6 +37,7 @@ use App\Models\User;
 use App\Models\WebhookEvent;
 use App\Payments\GatewayRegistry;
 use App\Support\AuditOrigin;
+use Filament\Actions\Exports\ExportColumn;
 use Filament\Actions\Exports\Models\Export as FilamentExport;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -130,6 +131,10 @@ class AppServiceProvider extends ServiceProvider
         $this->configureOutgoingMail();
         $this->configureTrustedProxies();
         $this->prohibitDestructiveCommandsOutsideDisposableDatabases();
+
+        // Exportaciones: un valor que empiece con =, +, -, @ (p. ej., un nombre capturado en la
+        // página pública) se escribe como texto y nunca se ejecuta como fórmula en Excel (CWE-1236).
+        ExportColumn::configureUsing(fn (ExportColumn $column): ExportColumn => $column->preventFormulaInjection());
 
         // Página pública de donativos: envíos por IP y minuto.
         RateLimiter::for('public-donations', fn (Request $request): Limit => Limit::perMinute(config()->integer('donations.public.rate_limit_per_minute'))
