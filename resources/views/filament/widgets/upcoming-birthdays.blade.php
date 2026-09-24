@@ -1,15 +1,20 @@
 <x-filament-widgets::widget>
-    <x-filament::section heading="Cumpleaños próximos (7 días)">
+    <x-filament::section heading="Cumpleaños próximos" description="Donantes que cumplen años hoy y en los próximos 7 días." icon="heroicon-o-cake">
         @forelse ($birthdays as $birthday)
-            <div style="display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid rgba(128,128,128,.15);">
-                <span>{{ $birthday['name'] }}</span>
-                <span style="white-space:nowrap;opacity:.8;">
-                    {{ $birthday['days'] === 0 ? 'Hoy' : ($birthday['days'] === 1 ? 'Mañana' : $birthday['date']) }}
-                    · {{ $birthday['greeted'] ? 'Recibirá felicitación' : 'Sin felicitación automática' }}
+            <div class="db-list-row">
+                <span class="db-list-row__main">{{ $birthday['name'] }}</span>
+                <span class="db-list-row__meta">
+                    <span @class(['db-chip', 'db-chip--accent' => $birthday['days'] === 0])>
+                        {{ $birthday['days'] === 0 ? 'Hoy' : ($birthday['days'] === 1 ? 'Mañana' : $birthday['date']) }}
+                    </span>
+                    {{ $birthday['greeted'] ? 'Recibirá felicitación' : 'Sin felicitación automática' }}
                 </span>
             </div>
         @empty
-            <p style="opacity:.7;">Nadie cumple años en los próximos 7 días.</p>
+            <div class="db-empty">
+                <x-filament::icon icon="heroicon-o-cake" class="db-empty__icon" />
+                <p>Nadie cumple años en los próximos 7 días.</p>
+            </div>
         @endforelse
     </x-filament::section>
 </x-filament-widgets::widget>
