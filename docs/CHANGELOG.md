@@ -2,6 +2,20 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+## [MFA obligatorio] — 2026-09-24
+
+### Seguridad
+- Verificación en dos pasos (#45) obligatoria en `/admin` para los cuatro roles. Usa el MFA nativo de Filament 5: aplicación autenticadora (TOTP) con códigos de recuperación de un solo uso (`AppAuthentication::make()->recoverable()`, `isRequired: true`). Sin paquetes nuevos.
+- El secreto TOTP se guarda cifrado con la llave de la aplicación. Los códigos de recuperación se guardan con hash dentro de un arreglo cifrado. Ambos quedan ocultos en la serialización y fuera de la bitácora.
+- `EnsurePasswordIsCurrent` permite la pantalla nativa de configuración del MFA. Así, un usuario con contraseña temporal configura primero el MFA y luego cambia la contraseña, sin redirecciones en bucle.
+
+### Agregado
+- Migración reversible `2026_10_03_000001_add_app_authentication_to_users_table` (`app_authentication_secret`, `app_authentication_recovery_codes`).
+- Manual: configuración, QR, código, códigos de recuperación y qué hacer si se pierde el celular. Pendiente #48: recuperar una cuenta sin autenticador ni códigos.
+
+### CI
+- El job de pruebas compila los assets de Vite (Node 24, `npm ci`, `npm run build`) antes de Pest.
+
 ## [Revisión de seguridad y duplicados] — 2026-09-24
 
 ### Seguridad

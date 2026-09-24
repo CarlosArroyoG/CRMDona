@@ -39,6 +39,10 @@ Si no ves un botón, es porque tu rol no tiene esa acción. La tabla completa es
 ## 1. Entrar al panel
 
 - Entra con tu correo y contraseña.
+- Después escribe el **código de 6 dígitos** de tu aplicación autenticadora. La verificación en dos
+  pasos es **obligatoria para todos**; la primera vez el CRM te guía para configurarla.
+- **Guarda tus códigos de recuperación fuera del CRM.** Sin celular y sin esos códigos no se puede
+  entrar a la cuenta.
 - Si olvidaste la contraseña, usa **"¿Olvidaste tu contraseña?"** o pide al Administrador una
   temporal.
 - Una contraseña temporal te obliga a cambiarla en cuanto entras. Vence en 72 horas.
