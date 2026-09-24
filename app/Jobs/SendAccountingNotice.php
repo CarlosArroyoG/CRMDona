@@ -9,6 +9,7 @@ use App\Enums\AccountingNoticeStatus;
 use App\Enums\Permission;
 use App\Filament\Resources\Users\UserResource;
 use App\Mail\DonorMessage;
+use App\Mail\Outgoing\OutgoingMailConfig;
 use App\Models\AccountingNotice;
 use App\Models\User;
 use App\Support\OperationalAlerts;
@@ -96,7 +97,7 @@ class SendAccountingNotice implements ShouldQueue
         } catch (Throwable $exception) {
             $notice->forceFill([
                 'status' => AccountingNoticeStatus::Failed,
-                'last_error' => SensitiveData::safeText($exception->getMessage(), 500),
+                'last_error' => SensitiveData::safeText(app(OutgoingMailConfig::class)->scrub($exception->getMessage()), 500),
             ])->save();
 
             throw $exception;

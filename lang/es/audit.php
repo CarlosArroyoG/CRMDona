@@ -28,6 +28,7 @@ return [
         'accounting_notice' => 'Aviso a Contabilidad',
         'donation_receipt' => 'Recibo simple',
         'message_template' => 'Plantilla de correo',
+        'mail_setting' => 'Correo saliente',
     ],
 
     'fields' => [
@@ -202,5 +203,22 @@ return [
         'processed_by_id' => 'Procesado por (usuario)',
         'processing_note' => 'Nota contable',
         'receives_accounting_notices' => 'Recibe avisos a Contabilidad',
+        // Correo saliente (la contraseña nunca se registra)
+        'enabled' => 'Habilitado',
+        'host' => 'Servidor SMTP',
+        'port' => 'Puerto',
+        'encryption' => 'Seguridad',
+        'username' => 'Usuario SMTP',
+        'smtp_password' => 'Contraseña SMTP',
+        'from_address' => 'Correo del remitente',
+        'from_name' => 'Nombre del remitente',
+        'reply_to_address' => 'Responder a',
+        'reply_to_name' => 'Nombre para respuestas',
+        'timeout' => 'Tiempo de espera',
+        'last_successful_test_at' => 'Última prueba aceptada',
+        'last_successful_test_by_id' => 'Probado por (usuario)',
+        'result' => 'Resultado',
+        'error_category' => 'Tipo de error',
+        'recipient' => 'Destinatario',
     ],
 ];

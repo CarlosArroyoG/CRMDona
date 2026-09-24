@@ -31,6 +31,8 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
+            // Recuperación por correo: sale por el correo saliente vigente (panel o MAIL_*).
+            ->passwordReset()
             ->profile(ChangePassword::class, isSimple: false)
             ->databaseNotifications()
             ->navigationGroups(['Donativos', 'Pagos en línea', 'Destinos', 'Administración'])

@@ -32,6 +32,7 @@ const APPROVED_MATRIX = [
     'organization.update' => ['A'],
     'audit.view' => ['A'],
     'users.manage' => ['A'],
+    'mail.manage' => ['A'],
     // Fase 2 (fase-2-diseno-pagos.md §15).
     'payments.view' => ['A', 'C', 'Co', 'L'],
     'payments.view_technical' => ['A', 'Co'],

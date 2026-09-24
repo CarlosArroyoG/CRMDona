@@ -6,7 +6,10 @@ namespace App\Providers;
 
 use App\Actions\Users\CreateUser;
 use App\Listeners\CheckDatabaseHealth;
+use App\Listeners\ClearTemporaryPasswordOnReset;
 use App\Listeners\ReportFailedJob;
+use App\Mail\Outgoing\OutgoingMailConfig;
+use App\Mail\Outgoing\SmtpTransportFactory;
 use App\Models\AccountingNotice;
 use App\Models\AuditLog;
 use App\Models\Campaign;
@@ -18,6 +21,7 @@ use App\Models\Donor;
 use App\Models\DonorTaxProfile;
 use App\Models\Export;
 use App\Models\ExternalCfdi;
+use App\Models\MailSetting;
 use App\Models\MessageTemplate;
 use App\Models\OrganizationSetting;
 use App\Models\Payment;
@@ -34,11 +38,14 @@ use App\Models\WebhookEvent;
 use App\Payments\GatewayRegistry;
 use App\Support\AuditOrigin;
 use Filament\Actions\Exports\Models\Export as FilamentExport;
+use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Events\DiagnosingHealth;
 use Illuminate\Http\Middleware\TrustProxies;
 use Illuminate\Http\Request;
+use Illuminate\Mail\MailManager;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
@@ -47,6 +54,7 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Number;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use Symfony\Component\Mailer\Transport\TransportInterface;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -62,6 +70,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(GatewayRegistry::class);
         // Procedencia de los cambios en la bitácora: se reinicia en cada petición y Job.
         $this->app->scoped(AuditOrigin::class);
+        // Correo saliente: una sola pieza decide entre el SMTP del panel y MAIL_* del entorno.
+        $this->app->singleton(OutgoingMailConfig::class, fn (Application $app): OutgoingMailConfig => new OutgoingMailConfig($app->make('mail.manager')));
     }
 
     /**
@@ -101,17 +111,23 @@ class AppServiceProvider extends ServiceProvider
             'donation_receipt' => DonationReceipt::class,
             'message_template' => MessageTemplate::class,
             'communication' => Communication::class,
+            'mail_setting' => MailSetting::class,
         ]);
 
         // Dentro de un Job de la cola, los cambios se registran como "Proceso automático".
         Queue::before(fn () => app(AuditOrigin::class)->enterQueuedJob());
+        // El worker vive mucho: antes de cada Job usa la configuración de correo vigente.
+        Queue::before(fn () => $this->app->resolved('mail.manager') ? app(OutgoingMailConfig::class)->refresh() : null);
         Queue::after(fn () => app(AuditOrigin::class)->leaveQueuedJob());
         Queue::failing(fn () => app(AuditOrigin::class)->leaveQueuedJob());
         // Fase 7: log crítico y aviso a Administradores por cada Job que agota sus intentos.
         Event::listen(JobFailed::class, ReportFailedJob::class);
         // `/up` comprueba también la conexión a PostgreSQL.
         Event::listen(DiagnosingHealth::class, CheckDatabaseHealth::class);
+        // La recuperación por correo sustituye la contraseña temporal (ADR-010).
+        Event::listen(PasswordReset::class, ClearTemporaryPasswordOnReset::class);
 
+        $this->configureOutgoingMail();
         $this->configureTrustedProxies();
         $this->prohibitDestructiveCommandsOutsideDisposableDatabases();
 
@@ -134,6 +150,24 @@ class AppServiceProvider extends ServiceProvider
         $disposable = in_array($database, $allowed, true) || str_starts_with($database, 'crm_testing_test_');
 
         DB::prohibitDestructiveCommands(! config()->boolean('security.allow_destructive_commands') && (app()->isProduction() || ! $disposable));
+    }
+
+    /**
+     * El mailer `crm` construye el transporte SMTP con la configuración del
+     * panel; OutgoingMailConfig lo elige (o conserva MAIL_*) al resolverse el
+     * gestor de correo en cada proceso.
+     */
+    private function configureOutgoingMail(): void
+    {
+        $configure = function (MailManager $manager): void {
+            $manager->extend(OutgoingMailConfig::MAILER, fn (): TransportInterface => $this->app->make(SmtpTransportFactory::class)->make(MailSetting::current()));
+            $this->app->make(OutgoingMailConfig::class)->refresh();
+        };
+
+        $this->app->afterResolving('mail.manager', $configure);
+        if ($this->app->resolved('mail.manager')) {
+            $configure($this->app->make('mail.manager'));
+        }
     }
 
     /**

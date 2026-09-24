@@ -37,6 +37,8 @@ enum Permission: string
     case UpdateOrganizationSettings = 'organization.update';
     case ViewAuditLog = 'audit.view';
     case ManageUsers = 'users.manage';
+    // Correo saliente (SMTP del panel, docs/tecnico/correo-saliente.md): solo Administrador.
+    case ManageMailSettings = 'mail.manage';
 
     // Fase 2 — pagos (fase-2-diseno-pagos.md §15).
     case ViewPayments = 'payments.view';
@@ -87,7 +89,7 @@ enum Permission: string
             self::RequestRefunds, self::ViewDisputes, self::HandleTechnicalIncidents,
             self::ManageExternalCfdis, self::ProcessAccounting => $finance,
             self::DeleteDonors, self::DeletePrograms, self::DeleteCampaigns,
-            self::UpdateOrganizationSettings, self::ViewAuditLog, self::ManageUsers,
+            self::UpdateOrganizationSettings, self::ViewAuditLog, self::ManageUsers, self::ManageMailSettings,
             self::ViewWebhooks, self::ViewPaymentSettings => [Role::Administrator],
         };
     }

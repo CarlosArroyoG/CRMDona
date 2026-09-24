@@ -8,6 +8,7 @@ use App\Actions\Communications\QueueCommunication;
 use App\Communications\MessageComposer;
 use App\Enums\CommunicationStatus;
 use App\Mail\DonorMessage;
+use App\Mail\Outgoing\OutgoingMailConfig;
 use App\Models\Communication;
 use App\Support\SensitiveData;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -73,7 +74,7 @@ class SendCommunication implements ShouldQueue
         } catch (Throwable $exception) {
             $communication->forceFill([
                 'status' => CommunicationStatus::Failed,
-                'last_error' => SensitiveData::safeText($exception->getMessage(), 500),
+                'last_error' => SensitiveData::safeText(app(OutgoingMailConfig::class)->scrub($exception->getMessage()), 500),
             ])->save();
 
             throw $exception;

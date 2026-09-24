@@ -122,7 +122,7 @@ class OrganizationSettings extends Page
                         ->helperText('Texto simple. Aparece al final de los correos a donantes.'),
                 ]),
                 Section::make('Correos automáticos a donantes')
-                    ->description('Los textos se editan en Comunicaciones → Plantillas. El servidor de correo se configura en el entorno (MAIL_*).')
+                    ->description('Los textos se editan en Comunicaciones → Plantillas. El servidor de correo se configura en Administración → Correo saliente.')
                     ->columns(2)
                     ->schema([
                         Toggle::make('thank_you_emails_enabled')->label('Agradecimiento al confirmar un donativo')
