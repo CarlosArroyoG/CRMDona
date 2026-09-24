@@ -14,7 +14,7 @@
 | 10 | ~~Probar una exportación real con `worker` y Redis~~ | Cerrado | — | Verificada manualmente por el responsable (2026-09-22) |
 | 11 | Índice GIN (`pg_trgm`) para la búsqueda sin acentos si el volumen de donantes crece | Técnico (mejora) | Cuando haga falta | ADR-009 |
 | 12 | Reducir el tamaño de la imagen `prod` (~1.1 GB) separando las herramientas de compilación | Técnico (mejora) | Refactorización posterior | No afecta el funcionamiento |
-| 14 | **Stripe Test** validado el 2026-09-23 con un sandbox: pago único aprobado (webhook firmado, idempotencia, orden de eventos, Payment → Donation → recibo → agradecimiento → aviso contable) y rechazo mensual sin efectos. Faltan: ciclo mensual con Test Clocks, Smart Retries y la cuenta institucional | Parcial [S] | Antes de habilitar Stripe en producción | Rotar la `sk_test` usada en la validación |
+| 14 | **Stripe Test: validación funcional completada** (2026-09-23): pago aprobado, pago rechazado, webhook real firmado, rechazo de firma inválida, idempotencia, eventos fuera de orden y Payment → Donation → recibo → agradecimiento → aviso contable. Pendiente para producción: cuenta y credenciales institucionales Live y configuración productiva | Test validado; Live PENDIENTE DE LA INSTITUCIÓN | Antes de habilitar Stripe en producción | Acción de seguridad: rotar la `sk_test_` expuesta durante las pruebas |
 | 15 | **Mercado Pago — PENDIENTE DE LA INSTITUCIÓN** (no es un defecto del CRM ni bloquea otros bloques). Pasos: 1) crear la cuenta institucional; 2) crear la aplicación o integración; 3) obtener credenciales **Test**; 4) configurar `MERCADO_PAGO_ACCESS_TOKEN` y `MERCADO_PAGO_PUBLIC_KEY` solo en `.env` o en Coolify, nunca en Git; 5) configurar el webhook HTTPS `/webhooks/payments/mercado_pago` (en local, con un túnel HTTPS); 6) configurar `MERCADO_PAGO_WEBHOOK_SECRET`; 7) validar un pago aprobado; 8) validar un pago rechazado; 9) validar webhook e idempotencia; 10) solo después, credenciales productivas | PENDIENTE EXTERNO | Antes de habilitar Mercado Pago | `integraciones-pagos.md` §3.2 |
 | 16 | Límites de negocio de donativos en línea (mínimo y máximo) | [D] DECIDIDO 2026-09-23: permanecen `null` hasta decisión posterior | Después del sandbox | Solo aplica el técnico (Stripe 10 MXN; Mercado Pago sin verificar). No inventar valores |
 | 17 | Pausa en Stripe con `pause_collection.behavior = void` (el periodo pausado no acumula adeudo) | [D] APROBADO PROVISIONALMENTE 2026-09-23; validación real [S] | Stripe Test | Implementado como `void`; reversible en el adaptador |
@@ -64,7 +64,7 @@
   - plazos de conservación (#5);
   - URL pública y versión, capturadas en Organización (`docs/privacidad/aviso-privacidad-contenido-funcional.md`).
 - **Dominio y DNS:** dominios definitivos del panel y de la página pública y acceso al DNS (#2).
-- **Stripe:** cuenta institucional para producción (#14).
+- **Stripe:** cuenta y credenciales institucionales Live y configuración productiva (#14); Test ya validado.
 
 ### Técnicos (nuestros)
 
