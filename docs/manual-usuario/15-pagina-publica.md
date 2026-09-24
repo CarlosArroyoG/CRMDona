@@ -7,7 +7,7 @@
 
 1. Elige **una sola vez** o **cada mes**, y la cantidad (sugerida u otra).
 2. Escribe sus datos. Si quiere su comprobante fiscal a su nombre, también sus datos fiscales.
-3. Acepta el aviso de privacidad (obligatorio) y, si quiere, recibir comunicaciones (opcional).
+3. Lee el resumen de privacidad (cómo se usan sus datos, incluidos los fiscales si pide CFDI y que no se guarda su tarjeta), acepta el aviso de privacidad (obligatorio, con su versión) y, si quiere, recibir comunicaciones informativas (opcional).
 4. Revisa el resumen y paga en el formulario seguro del proveedor.
 5. Ve el estado real de su donativo: confirmado, en proceso o no realizado (con opción de intentar de nuevo).
 

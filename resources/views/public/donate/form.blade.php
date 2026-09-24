@@ -152,20 +152,29 @@
                     </select>
                 </div>
             </div>
-            <p class="mt-3 text-sm text-slate-600">Si no los capturas, tu donativo se registra igual y la Fundación cumple sus obligaciones fiscales.</p>
+            <p class="mt-3 text-sm text-slate-600">Solo los necesitamos si quieres un CFDI a tu nombre; sin ellos tu donativo se registra igual. Estos datos solo los consulta el personal autorizado de Contabilidad, que emite el CFDI fuera de esta plataforma; podemos conservar una copia del CFDI emitido como antecedente de tu donativo.</p>
         </fieldset>
 
         <fieldset class="rounded-lg bg-white p-4 shadow-sm">
             <legend class="px-1 font-semibold">Privacidad</legend>
-            <label class="mt-2 flex items-start gap-2">
+            <div class="mt-1 text-sm text-slate-700" data-privacy-summary>
+                <p>En resumen, así usamos tus datos (el detalle está en el aviso de privacidad):</p>
+                <ul class="mt-1 list-disc space-y-1 pl-5">
+                    <li>Tu nombre y datos de contacto, para registrar tu donativo y enviarte el agradecimiento y el recibo.</li>
+                    <li>Tus datos fiscales, solo si pides CFDI: los recibe el personal autorizado de Contabilidad para emitirlo fuera de esta plataforma.</li>
+                    <li>El pago lo procesa la pasarela de pago; no guardamos el número completo de tu tarjeta ni su código de seguridad (CVV).</li>
+                    <li>Los mensajes informativos, como felicitaciones y noticias, solo si los aceptas abajo; puedes darte de baja con el enlace de cada correo.</li>
+                </ul>
+            </div>
+            <label class="mt-3 flex items-start gap-2">
                 <input type="checkbox" name="privacy_accepted" value="1" required @checked(old('privacy_accepted')) class="mt-1">
-                <span>He leído y acepto el <a href="{{ $privacyUrl }}" target="_blank" rel="noopener" class="underline">aviso de privacidad</a>. (Obligatorio)</span>
+                <span>He leído y acepto el <a href="{{ $privacyUrl }}" target="_blank" rel="noopener" class="underline">aviso de privacidad</a>@if ($privacyVersion) (versión {{ $privacyVersion }})@endif. (Obligatorio)</span>
             </label>
             <label class="mt-3 flex items-start gap-2">
                 <input type="checkbox" name="accepts_communications" value="1" @checked(old('accepts_communications')) class="mt-1">
                 <span>Acepto recibir comunicaciones informativas de {{ $organization }}, como felicitaciones y noticias. (Opcional; puedes darte de baja cuando quieras.)</span>
             </label>
-            <p class="mt-2 text-sm text-slate-600">Siempre te enviaremos el agradecimiento y el recibo de tu donativo. Si pides comprobante fiscal (CFDI), nuestra área de contabilidad lo emite por separado.</p>
+            <p class="mt-2 text-sm text-slate-600">El agradecimiento y el recibo de tu donativo te llegan siempre, aunque no aceptes mensajes informativos, porque son parte del donativo. Si pides comprobante fiscal (CFDI), nuestra área de contabilidad lo emite por separado.</p>
         </fieldset>
 
         <button type="submit" class="w-full rounded-md px-4 py-3 font-semibold text-white" style="background: var(--brand)" data-loading-text="Revisando…">

@@ -291,6 +291,7 @@ class PublicDonationController extends Controller
             'organization' => $settings->legal_name ?? config()->string('app.name'),
             'logoUrl' => $settings->logo_path !== null ? Storage::disk('public')->url($settings->logo_path) : null,
             'privacyUrl' => $settings->privacy_notice_url,
+            'privacyVersion' => $settings->privacy_notice_version,
             'colors' => [
                 'primary' => self::hexColor(config('donations.public.colors.primary'), '#162562'),
                 'secondary' => self::hexColor(config('donations.public.colors.secondary'), '#FF9D2F'),

@@ -92,6 +92,24 @@ it('muestra la página pública con identidad, privacidad, consentimiento sin pr
         ->and(in_array('web', Route::getRoutes()->getByName('donate.store')?->gatherMiddleware() ?? [], true))->toBeTrue();
 });
 
+it('antes de enviar datos muestra el resumen de privacidad vigente: fiscal a Contabilidad, pago sin tarjeta completa, transaccional vs. informativo', function (): void {
+    $html = (string) get('/donar')->assertOk()->getContent();
+    $privacy = substr($html, (int) strpos($html, 'data-privacy-summary'));
+    $privacy = substr($privacy, 0, (int) strpos($privacy, 'Continuar al resumen'));
+
+    expect($privacy)->toContain('agradecimiento y el recibo')
+        ->toContain('personal autorizado de Contabilidad')->toContain('fuera de esta plataforma')
+        ->toContain('no guardamos el número completo de tu tarjeta ni su código de seguridad (CVV)')
+        ->toContain('solo si los aceptas')->toContain('darte de baja')
+        ->toContain('(versión 2026-09)')
+        ->and((int) strpos($html, 'data-privacy-summary'))->toBeLessThan((int) strpos($html, 'name="privacy_accepted"'))
+        ->and((int) strpos($html, 'name="privacy_accepted"'))->toBeLessThan((int) strpos($html, 'Continuar al resumen'));
+
+    foreach (['Facturapi', 'PAC', 'CSD', 'timbr', 'cumple sus obligaciones fiscales'] as $retired) {
+        expect(str_contains($html, $retired))->toBeFalse("La página pública no debe mencionar «{$retired}».");
+    }
+});
+
 it('sin aviso de privacidad configurado no se puede donar', function (): void {
     OrganizationSetting::current()->forceFill(['privacy_notice_url' => null, 'privacy_notice_version' => null])->save();
 
