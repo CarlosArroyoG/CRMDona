@@ -294,7 +294,7 @@ class PublicDonationController extends Controller
             'privacyVersion' => $settings->privacy_notice_version,
             'colors' => [
                 'primary' => self::hexColor(config('donations.public.colors.primary'), '#162562'),
-                'secondary' => self::hexColor(config('donations.public.colors.secondary'), '#FF9D2F'),
+                'secondary' => self::hexColor(config('donations.public.colors.secondary'), '#F2C94C'),
             ],
         ];
     }

@@ -22,10 +22,11 @@ return [
         // Intentos por minuto por IP en los envíos.
         'rate_limit_per_minute' => (int) env('DONATIONS_RATE_LIMIT', 10),
 
-        // Colores de la identidad (configurables).
+        // Colores de la identidad (configurables). El primario es el azul marino
+        // institucional; el secundario es el acento (úsese con moderación).
         'colors' => [
             'primary' => env('BRAND_PRIMARY_COLOR', '#162562'),
-            'secondary' => env('BRAND_SECONDARY_COLOR', '#FF9D2F'),
+            'secondary' => env('BRAND_SECONDARY_COLOR', '#F2C94C'),
         ],
     ],
 ];
