@@ -10,4 +10,6 @@ use Filament\Resources\Pages\ListRecords;
 class ListSubscriptions extends ListRecords
 {
     protected static string $resource = SubscriptionResource::class;
+
+    protected ?string $subheading = 'Donantes con aportación mensual en línea: consulta su estado y sus cobros.';
 }

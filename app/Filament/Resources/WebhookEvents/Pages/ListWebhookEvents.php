@@ -10,4 +10,6 @@ use Filament\Resources\Pages\ListRecords;
 class ListWebhookEvents extends ListRecords
 {
     protected static string $resource = WebhookEventResource::class;
+
+    protected ?string $subheading = 'Herramienta de diagnóstico para soporte: avisos técnicos que envían los proveedores de pago.';
 }

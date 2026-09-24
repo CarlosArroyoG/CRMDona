@@ -12,6 +12,8 @@ class ListMessageTemplates extends ListRecords
 {
     protected static string $resource = MessageTemplateResource::class;
 
+    protected ?string $subheading = 'Textos de los correos automáticos que reciben los donantes.';
+
     public function mount(): void
     {
         MessageTemplate::ensureDefaults();

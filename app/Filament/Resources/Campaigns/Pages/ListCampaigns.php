@@ -12,6 +12,8 @@ class ListCampaigns extends ListRecords
 {
     protected static string $resource = CampaignResource::class;
 
+    protected ?string $subheading = 'Iniciativas de recaudación con meta y fechas a las que se asignan donativos.';
+
     protected function getHeaderActions(): array
     {
         return [

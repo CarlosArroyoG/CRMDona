@@ -54,6 +54,8 @@ class MailSettings extends Page
 
     protected static ?string $slug = 'correo-saliente';
 
+    protected ?string $subheading = 'Cuenta de correo desde la que el CRM envía recibos, agradecimientos y avisos.';
+
     /** @var array<string, mixed>|null */
     public ?array $data = [];
 

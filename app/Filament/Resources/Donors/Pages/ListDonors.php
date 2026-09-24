@@ -12,6 +12,8 @@ class ListDonors extends ListRecords
 {
     protected static string $resource = DonorResource::class;
 
+    protected ?string $subheading = 'Administra la información y el historial de las personas y organizaciones donantes.';
+
     protected function getHeaderActions(): array
     {
         return [

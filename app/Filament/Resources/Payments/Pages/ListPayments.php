@@ -10,4 +10,6 @@ use Filament\Resources\Pages\ListRecords;
 class ListPayments extends ListRecords
 {
     protected static string $resource = PaymentResource::class;
+
+    protected ?string $subheading = 'Cobros hechos desde la página de donación. Cada pago exitoso crea su donativo automáticamente.';
 }

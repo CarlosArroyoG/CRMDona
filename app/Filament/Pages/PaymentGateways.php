@@ -44,6 +44,8 @@ class PaymentGateways extends Page
 
     protected static ?string $slug = 'pasarelas';
 
+    protected ?string $subheading = 'Estado de los servicios de cobro en línea. Las llaves se configuran en el servidor, nunca aquí.';
+
     public static function canAccess(): bool
     {
         return self::actorCan(Permission::ViewPaymentSettings);

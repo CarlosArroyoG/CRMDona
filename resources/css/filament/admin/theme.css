@@ -4,22 +4,299 @@
 @source '../../../../resources/views/filament/**/*';
 
 /*
- * Identidad institucional del panel (sobria): la marca vive en el
- * encabezado superior; el resto del panel conserva el blanco de Filament
- * para no perder legibilidad en tablas.
+ * Identidad institucional del panel. Azul y blanco dominan; el amarillo es
+ * solo acento (línea del encabezado, insignias). Profundidad con fondos azul
+ * muy suave, bordes finos y sombras ligeras: nada de gradientes llamativos.
  */
+:root {
+    --db-navy: #162562;
+    --db-navy-soft: #e8eef8;
+    --db-canvas: #f4f6fb;
+    --db-accent: #f2c94c;
+    --db-border: rgb(22 37 98 / 0.09);
+    --db-shadow: 0 1px 2px rgb(22 37 98 / 0.05), 0 2px 8px -2px rgb(22 37 98 / 0.08);
+    --db-muted: #5b6480;
+}
+
+.dark {
+    --db-navy-soft: rgb(255 255 255 / 0.06);
+    --db-canvas: var(--gray-950);
+    --db-border: rgb(255 255 255 / 0.1);
+    --db-shadow: none;
+    --db-muted: var(--gray-400);
+}
+
+/* Lienzo: azul muy suave para que tablas y secciones blancas destaquen. */
+.fi-body {
+    background: var(--db-canvas);
+}
+
+/* Encabezado superior institucional. */
 .fi-topbar {
-    background: #162562;
-    border-bottom: 3px solid #f2c94c;
+    background: var(--db-navy);
+    border-bottom: 3px solid var(--db-accent);
 }
 
 .fi-topbar a,
+.fi-topbar .fi-logo,
 .fi-topbar .fi-icon-btn {
     color: #ffffff;
 }
 
+/* Barra lateral: etiquetas de grupo como encabezados y elemento activo claro. */
+.fi-sidebar-nav {
+    row-gap: 1.25rem;
+}
+
+.fi-sidebar-group-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--db-muted);
+}
+
+.fi-sidebar-item-btn {
+    border-radius: 0.5rem;
+}
+
 .fi-sidebar-item.fi-active .fi-sidebar-item-btn {
-    background: #e8eef8;
-    border-inline-start: 3px solid #162562;
+    background: var(--db-navy-soft);
+    box-shadow: inset 3px 0 0 var(--db-navy);
     font-weight: 600;
+}
+
+.dark .fi-sidebar-item.fi-active .fi-sidebar-item-btn {
+    box-shadow: inset 3px 0 0 var(--db-accent);
+}
+
+/* Encabezado de página: título con peso y descripción legible. */
+.fi-header-heading {
+    color: var(--db-navy);
+    letter-spacing: -0.01em;
+}
+
+.dark .fi-header-heading {
+    color: #ffffff;
+}
+
+.fi-header-subheading {
+    max-width: 48rem;
+    color: var(--db-muted);
+}
+
+/* Botones: el primario con presencia; los secundarios siguen discretos. */
+.fi-btn.fi-color-primary:not(.fi-outlined) {
+    box-shadow: 0 1px 2px rgb(22 37 98 / 0.25);
+    font-weight: 600;
+}
+
+/* Tablas y secciones: borde fino azulado y sombra ligera. */
+.fi-ta-ctn,
+.fi-section:not(.fi-section-not-contained):not(.fi-aside),
+.fi-wi-stats-overview-stat {
+    box-shadow: var(--db-shadow);
+    --tw-ring-color: var(--db-border);
+}
+
+.fi-ta-header-cell {
+    background: color-mix(in srgb, var(--db-navy-soft) 55%, transparent);
+}
+
+.fi-wi-stats-overview-stat {
+    border-top: 3px solid var(--db-navy);
+}
+
+.dark .fi-wi-stats-overview-stat {
+    border-top-color: var(--db-accent);
+}
+
+/* Estados vacíos: icono con fondo institucional. */
+.fi-ta-empty-state .fi-ta-empty-state-icon-bg {
+    background: var(--db-navy-soft);
+
+    & .fi-icon {
+        color: var(--db-navy);
+    }
+}
+
+.dark .fi-ta-empty-state .fi-ta-empty-state-icon-bg .fi-icon {
+    color: var(--gray-300);
+}
+
+/* ---- Escritorio ---- */
+.db-daily-work {
+    display: grid;
+    gap: 1.5rem;
+}
+
+@media (min-width: 1024px) {
+    .db-daily-work {
+        grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    }
+}
+
+.db-panel {
+    border-radius: 0.75rem;
+    background: #ffffff;
+    padding: 1.5rem;
+    box-shadow: var(--db-shadow);
+    border: 1px solid var(--db-border);
+}
+
+.dark .db-panel {
+    background: var(--gray-900);
+}
+
+.db-panel--brand {
+    background: var(--db-navy-soft);
+    border-inline-start: 4px solid var(--db-navy);
+}
+
+.dark .db-panel--brand {
+    border-inline-start-color: var(--db-accent);
+}
+
+.db-panel__title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+}
+
+.db-eyebrow {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--db-muted);
+}
+
+.db-daily-work__greeting {
+    margin-top: 0.25rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--db-navy);
+}
+
+.dark .db-daily-work__greeting {
+    color: #ffffff;
+}
+
+.db-muted {
+    color: var(--db-muted);
+}
+
+.db-daily-work__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+}
+
+.db-pending {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.db-pending__item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    border-radius: 0.5rem;
+    padding: 0.625rem 0.75rem;
+    border: 1px solid var(--db-border);
+    transition: background-color 75ms;
+
+    &:hover,
+    &:focus-visible {
+        background: var(--db-navy-soft);
+    }
+}
+
+.db-pending__label {
+    display: block;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.db-pending__hint {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--db-muted);
+}
+
+.db-pending__count {
+    min-width: 2.5rem;
+    border-radius: 9999px;
+    padding: 0.125rem 0.625rem;
+    text-align: center;
+    font-weight: 700;
+    background: var(--db-navy);
+    color: #ffffff;
+}
+
+.db-pending__count--zero {
+    background: var(--db-navy-soft);
+    color: var(--db-muted);
+}
+
+/* Listas simples dentro de widgets (cumpleaños). */
+.db-list-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.5rem 0.75rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--db-border);
+
+    &:last-child {
+        border-bottom: 0;
+    }
+}
+
+.db-list-row__main {
+    font-weight: 500;
+}
+
+.db-list-row__meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--db-muted);
+}
+
+.db-chip {
+    border-radius: 9999px;
+    padding: 0 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: var(--db-navy-soft);
+    color: var(--db-navy);
+}
+
+.dark .db-chip {
+    color: var(--gray-200);
+}
+
+.db-chip--accent {
+    background: var(--db-accent);
+    color: var(--db-navy);
+}
+
+.db-empty {
+    display: grid;
+    justify-items: center;
+    gap: 0.5rem;
+    padding: 1.5rem 0;
+    text-align: center;
+    color: var(--db-muted);
+}
+
+.db-empty__icon {
+    width: 2rem;
+    height: 2rem;
+    color: var(--db-navy);
+    opacity: 0.6;
 }

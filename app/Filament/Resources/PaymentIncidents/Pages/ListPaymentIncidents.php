@@ -10,4 +10,6 @@ use Filament\Resources\Pages\ListRecords;
 class ListPaymentIncidents extends ListRecords
 {
     protected static string $resource = PaymentIncidentResource::class;
+
+    protected ?string $subheading = 'Situaciones de pagos en línea que requieren revisión; cada una indica qué hacer.';
 }

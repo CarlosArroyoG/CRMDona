@@ -10,4 +10,6 @@ use Filament\Resources\Pages\ListRecords;
 class ListPaymentDisputes extends ListRecords
 {
     protected static string $resource = PaymentDisputeResource::class;
+
+    protected ?string $subheading = 'Aclaraciones y contracargos que el banco del donante abrió sobre un pago en línea.';
 }

@@ -12,6 +12,8 @@ class ListPrograms extends ListRecords
 {
     protected static string $resource = ProgramResource::class;
 
+    protected ?string $subheading = 'Áreas de trabajo de la Fundación a las que se destinan los donativos.';
+
     protected function getHeaderActions(): array
     {
         return [

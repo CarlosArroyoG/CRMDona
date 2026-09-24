@@ -10,4 +10,6 @@ use Filament\Resources\Pages\ListRecords;
 class ListAuditLogs extends ListRecords
 {
     protected static string $resource = AuditLogResource::class;
+
+    protected ?string $subheading = 'Registro de quién cambió qué y cuándo dentro del CRM.';
 }

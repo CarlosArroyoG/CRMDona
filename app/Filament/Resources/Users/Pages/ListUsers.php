@@ -12,6 +12,8 @@ class ListUsers extends ListRecords
 {
     protected static string $resource = UserResource::class;
 
+    protected ?string $subheading = 'Personas con acceso al CRM y el rol que determina lo que pueden hacer.';
+
     protected function getHeaderActions(): array
     {
         return [

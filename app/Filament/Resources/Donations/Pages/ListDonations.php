@@ -12,6 +12,8 @@ class ListDonations extends ListRecords
 {
     protected static string $resource = DonationResource::class;
 
+    protected ?string $subheading = 'Consulta, registra y da seguimiento a los donativos recibidos por la Fundación.';
+
     protected function getHeaderActions(): array
     {
         return [

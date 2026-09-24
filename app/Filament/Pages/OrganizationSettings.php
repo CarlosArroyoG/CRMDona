@@ -50,6 +50,8 @@ class OrganizationSettings extends Page
 
     protected static ?string $slug = 'organizacion';
 
+    protected ?string $subheading = 'Datos de la Fundación que aparecen en recibos, correos y la página de donación.';
+
     /** @var array<string, mixed>|null */
     public ?array $data = [];
 

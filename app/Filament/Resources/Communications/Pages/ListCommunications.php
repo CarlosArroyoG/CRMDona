@@ -10,4 +10,6 @@ use Filament\Resources\Pages\ListRecords;
 class ListCommunications extends ListRecords
 {
     protected static string $resource = CommunicationResource::class;
+
+    protected ?string $subheading = 'Correos enviados a donantes (recibos, agradecimientos y felicitaciones) y su resultado.';
 }
