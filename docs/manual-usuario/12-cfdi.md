@@ -1,58 +1,94 @@
-# CFDI (factura electrónica de donativos)
+# CFDI y Contabilidad
 
-Menú **Donativos → CFDI**.
+**El CRM no emite CFDI.** La contadora emite todos los CFDI (individuales y globales) fuera del
+sistema, y también los cancela o sustituye fuera. El CRM avisa a Contabilidad de cada donativo y
+permite guardar después el CFDI como antecedente.
 
-La Fundación debe emitir CFDI por **todos** los donativos que recibe, dentro de las 24 horas. No depende de que el donante lo pida.
+## Qué pasa al confirmar un donativo
 
-> Mientras el sistema esté conectado al ambiente de prueba de Facturapi, los CFDI no tienen validez fiscal.
+Pasa igual con los donativos a mano, los pagos en línea y cada mensualidad:
 
-## Cómo queda cubierto cada donativo
+1. Se genera el **recibo simple**. No es un CFDI.
+2. El donante recibe el **agradecimiento** con su recibo. Nunca espera un CFDI.
+3. Contabilidad recibe un **aviso** por correo con:
+   - folio del recibo, número de donativo, donante, fecha, importe y destino;
+   - la forma de pago;
+   - **CFDI solicitado: SÍ o NO**.
 
-En el detalle de un donativo confirmado sin CFDI aparece **Cobertura fiscal**:
+Si el donante **solicitó CFDI**, el aviso incluye los datos fiscales que ya están en su ficha:
 
-- **CFDI individual:** el donante tiene datos fiscales. El CFDI se emite solo al confirmar el donativo.
-- **Público en general (factura global):** el donante no tiene datos fiscales. La factura global todavía no está habilitada; está pendiente de definir con el contador.
-- **Bloqueado:** el sistema indica el motivo. Por ejemplo:
-  - donativo en especie;
-  - depósito bancario;
-  - tarjeta de prepago;
-  - pago con reembolso o contracargo;
-  - datos por corregir.
+- RFC;
+- nombre o razón social;
+- régimen fiscal;
+- código postal;
+- uso del CFDI.
 
-## Emitir a mano
+Si no los tiene, el aviso lo indica.
 
-Abre un donativo **Confirmado** y pulsa **Emitir CFDI** (Administrador y Contador). Si falta algo, el sistema lo dice y no emite.
+Si **no solicitó CFDI**, el aviso lo dice. El CRM no decide si va a una factura global: eso lo decide
+Contabilidad.
 
-El CFDI pasa por **En cola → Timbrando → Timbrado**. Cada donativo tiene un solo CFDI vigente. En los donativos mensuales, cada mes cobrado tiene su propio CFDI.
+Si falla el envío del aviso, el donativo sigue confirmado y el agradecimiento sale igual.
 
-## Si algo falla
+## Quién recibe los avisos
 
-- **Error temporal:** el PAC no respondió. El sistema reintenta solo; también puedes pulsar **Reintentar timbrado**. Antes de reenviarlo, el sistema verifica en el PAC si ya se había timbrado, así que nunca se duplica.
-- **Rechazado por datos:** corrige el dato que indica el mensaje y pulsa **Reintentar timbrado**. Si el CFDI ya no procede, pulsa **Descartar** (solo si nunca se timbró).
+El Administrador lo activa en **Usuarios → Editar → "Recibe avisos a Contabilidad"**. Solo se puede
+activar para un Administrador o un Contador, porque los avisos llevan datos fiscales.
 
-## Descargar
+Si nadie los tiene activados, los Administradores reciben una alerta. Después, los avisos pendientes se
+reenvían desde **Control contable**.
 
-Los botones **XML** y **PDF** están disponibles para Administrador, Coordinador y Contador.
+## Control contable
 
-## Corregir un CFDI timbrado (Administrador y Contador)
+Está en **Reportes → Control contable**. Hay una fila por donativo confirmado, con:
 
-- **Sustituir CFDI (motivo 01):** úsalo cuando el donativo sí existe pero el CFDI tiene errores (monto, descripción, datos del donante).
-  1. Corrige primero los datos.
-  2. El sistema emite un CFDI nuevo relacionado con el anterior.
-  3. Después cancela el anterior.
-- **Cancelar CFDI:**
-  - **02:** el CFDI no debió emitirse o el RFC es totalmente erróneo. Después emite el correcto.
-  - **03:** el donativo no se recibió.
+- el recibo;
+- si el donante solicitó CFDI;
+- el estado del aviso;
+- el procesamiento contable (pendiente o procesado);
+- el CFDI externo adjunto, con su UUID y fechas.
 
-Qué pasa después:
-- Algunos CFDI requieren que el receptor acepte la cancelación (hasta 3 días hábiles). Mientras tanto aparecen como **Cancelación en proceso**.
-- Si el receptor rechaza la cancelación, el CFDI sigue vigente. En una sustitución, ambos quedan vigentes y puedes volver a pulsar **Sustituir CFDI** para reintentar la cancelación.
-- Cancelar un CFDI no cancela el donativo ni el pago.
+Filtra por:
 
-## Qué ve cada rol
+- CFDI solicitado o no solicitado;
+- CFDI externo adjunto;
+- procesamiento pendiente o procesado;
+- estado del aviso, fechas o donante.
 
-| | Administrador | Contador | Coordinador | Solo lectura |
-|---|---|---|---|---|
-| Ver CFDI y descargar XML/PDF | Sí | Sí | Sí | No |
-| Emitir, reintentar, descartar, sustituir y cancelar | Sí | Sí | No | No |
-| Detalle técnico (PAC, errores, llave) | Sí | Sí | No | No |
+El Administrador y el Contador pueden hacer estas acciones:
+
+- **Marcar procesado**, con una nota opcional. También en lote.
+- **Reabrir**, con un motivo.
+- **Reenviar aviso**, si falló o no se envió.
+
+El Coordinador puede consultar y exportar. Solo lectura no tiene acceso.
+
+## Adjuntar el CFDI externo a un donativo
+
+1. Abre el donativo confirmado.
+2. En **CFDI externo / antecedentes fiscales**, pulsa **Adjuntar CFDI externo**. Lo pueden hacer el
+   Administrador y el Contador.
+3. Sube el **XML**, que es obligatorio. Puedes agregar el **PDF** y una nota interna.
+
+El sistema lee del XML el UUID, las fechas y el total, y guarda los archivos en privado. Rechaza el
+archivo en estos casos:
+
+- no es un CFDI timbrado;
+- trae contenido peligroso;
+- pesa demasiado;
+- su RFC emisor no es el de la Fundación;
+- ya está adjunto a ese donativo.
+
+- **Reemplazar:** el CFDI anterior queda como "Retirado" y se conserva.
+- **Retirar:** pide un motivo; el registro y los archivos se conservan.
+
+Ninguna de estas acciones cancela nada ante el SAT.
+
+Adjuntar el CFDI no marca el donativo como procesado: márcalo en Control contable cuando corresponda.
+
+El CRM **no valida** la vigencia del CFDI ante el SAT. Solo lo guarda como evidencia.
+
+## CFDI anteriores
+
+Los CFDI que el sistema llegó a timbrar antes de este cambio aparecen como "Registro anterior del CRM"
+en la misma sección del donativo.

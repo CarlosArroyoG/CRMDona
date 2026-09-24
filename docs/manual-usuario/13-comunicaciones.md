@@ -5,9 +5,8 @@ Menú **Comunicaciones**.
 ## Correos automáticos
 
 - **Agradecimiento:**
-  - Se envía unos minutos después de confirmar un donativo, incluidos los donativos en línea y cada mensualidad.
-  - Lleva adjunto el **recibo simple** y, si ya está timbrado, el **CFDI**.
-  - Si el CFDI todavía no está listo, llega después en otro correo. El agradecimiento no se repite.
+  - Se envía al confirmar un donativo, incluidos los donativos en línea y cada mensualidad.
+  - Lleva adjunto el **recibo simple**. Nunca espera ni adjunta un CFDI: los CFDI los emite Contabilidad fuera del CRM (ver [CFDI y Contabilidad](12-cfdi.md)).
 - **Cumpleaños:**
   - Todos los días a las 9:00 (hora del centro de México).
   - Solo a donantes que aceptan recibir comunicaciones, que tienen correo y que no están archivados.
@@ -17,8 +16,8 @@ Se activan o desactivan en **Administración → Organización → Correos autom
 ## Recibo simple
 
 - Es un **acuse de agradecimiento**, con folio interno (por ejemplo, `R-000123`).
-- **No es una factura ni un comprobante fiscal.** El comprobante fiscal es el CFDI.
-- Se descarga desde el donativo con el botón **Recibo simple** (Administrador, Coordinador y Contador).
+- **No es una factura ni un comprobante fiscal.** El comprobante fiscal es el CFDI, que emite Contabilidad por separado.
+- Se descarga o reimprime desde el donativo con **Descargar recibo** o en la sección **Recibo de donación** (Administrador, Coordinador y Contador). Reimprimirlo no genera un folio nuevo.
 
 ## Plantillas (Administrador y Coordinador)
 
@@ -43,7 +42,8 @@ Qué hace el sistema por su cuenta:
 | No enviado | El donante no tiene correo o no acepta comunicaciones |
 | Rebotado | Aún no disponible: depende del proveedor de correo |
 
-- **Reenviar:** manda de nuevo un agradecimiento o un CFDI al correo actual del donante, por ejemplo después de corregirlo.
+- **Reenviar:** manda de nuevo un agradecimiento, con el mismo recibo, al correo actual del donante; por ejemplo, después de corregirlo.
+- Los "Envío de CFDI (histórico)" son de antes de que el CRM dejara de emitir CFDI: no se reenvían.
 - **Enviar agradecimiento:** desde el donativo, si nunca se envió.
 
 ## Baja

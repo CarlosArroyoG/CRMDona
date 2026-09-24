@@ -31,15 +31,19 @@ PaymentIncident 1 ─── * PaymentIncidentNote (solo inserción)
 
 AuditLog * ─── 1 (cualquier modelo auditado)  auditable_type + auditable_id; source = procedencia
 
-Futuro (tablas propias que apuntarán a donations; no existen aún):
-  donation_receipts.donation_id · cfdis.donation_id
+Donation 1 ─── 0..1 DonationReceipt   (recibo simple, folio propio)
+Donation 1 ─── 0..1 AccountingNotice  (aviso a Contabilidad y procesamiento contable; ADR-012)
+Donation 1 ─── * ExternalCfdi         (CFDI emitido fuera del CRM, antecedente; retirar ≠ borrar)
+Donation 1 ─── * Communication        (agradecimientos y reenvíos)
+
+Histórico de solo lectura (ADR-012): cfdis, global_cfdis, donation_global_cfdi, fiscal_incidents
 ```
 
 ## Tablas
 
 | Tabla | Propósito | Reglas en base de datos |
 |---|---|---|
-| `users` | Personal del CRM | `role` (4 valores), `deactivated_at`, `password_change_required_at` (ADR-010), `receives_payment_alerts` |
+| `users` | Personal del CRM | `role` (4 valores), `deactivated_at`, `password_change_required_at` (ADR-010), `receives_payment_alerts`, `receives_accounting_notices` (ADR-012) |
 | `organization_settings` | Datos de la organización | `CHECK id = 1`; aviso de privacidad (URL y versión juntas); límites en línea > 0 y mínimo ≤ máximo |
 | `programs` | Destinos permanentes | `slug` único; `name` único sin distinguir mayúsculas |
 | `campaigns` | Esfuerzos de procuración | `slug` único; fin ≥ inicio; meta > 0; FK `program_id` restrict; trigger `campaigns_program_locked` |
@@ -55,6 +59,8 @@ Futuro (tablas propias que apuntarán a donations; no existen aún):
 | `webhook_events` | Bandeja de notificaciones | `(provider, external_event_id)` único; `payload` solo con la lista permitida |
 | `payment_incidents` | Incidencias (RF-01) | `dedupe_key` única (hecho concreto); al menos una referencia; evidencia de revisión y resolución |
 | `payment_incident_notes` | Notas de seguimiento | trigger `payment_incident_notes_append_only` |
+| `external_cfdis` | CFDI externos adjuntos (ADR-012) | `source` upload/crm_legacy; upload ⇔ `uploaded_by_id`; legado con una sola referencia; retiro con motivo; UUID vigente único por donativo (índice parcial) |
+| `accounting_notices` | Aviso a Contabilidad (ADR-012) | `donation_id` único; estado válido; `sent` ⇔ `sent_at`; `skipped` con motivo; procesado ⇔ quién |
 | `audit_logs` | Bitácora | trigger `audit_logs_append_only`; `source` (user, webhook, job, synchronization, console; nulo antes de la Fase 2) |
 | `exports`, `notifications` | Exportaciones de Filament y avisos | `notifications.data` en `jsonb` |
 

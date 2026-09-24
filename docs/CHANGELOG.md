@@ -2,7 +2,60 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
-## [Fiscal — cobertura CFDI] — 2026-09-23 (lista para Facturapi Test)
+## [CFDI externo y flujo contable] — 2026-09-23 (ADR-012)
+
+### Cambiado
+- **El CRM ya no emite, timbra, cancela ni sustituye CFDI** ni llama a ningún PAC. La contadora emite todos los CFDI fuera del sistema.
+- Al confirmar cada donativo (manual, en línea o mensualidad), `RunConfirmedDonationSteps` corre tres pasos independientes e idempotentes:
+  - recibo simple;
+  - agradecimiento con el recibo, que sale de inmediato y nunca espera un CFDI;
+  - aviso a Contabilidad.
+- El "Reporte CFDI" se convirtió en **Control contable** (`/admin/control-contable`).
+- Permisos:
+  - se retiraron `cfdi.issue`, `cfdi.cancel` y `cfdi.view_technical`;
+  - `cfdi.manage` (A y Co) adjunta, reemplaza y retira CFDI externos;
+  - `accounting.process` (A y Co) recibe avisos y marca el procesamiento contable.
+- La página pública guarda "Quiero mi comprobante fiscal" en el pago o la suscripción, y cada mensualidad lo hereda. Ya no promete que el CRM enviará el CFDI.
+
+### Agregado
+- **Aviso a Contabilidad** por correo, uno por donativo:
+  - folio del recibo, donante, fecha, importe, destino y forma de pago;
+  - **CFDI solicitado: SÍ/NO**;
+  - si es SÍ, los datos fiscales ya capturados.
+  - Solo lo reciben Administradores y Contadores con la preferencia "Recibe avisos a Contabilidad".
+  - Es reintentable sin duplicados y queda en la bitácora.
+  - Si no hay destinatarios configurados, se envía una alerta a los Administradores.
+- **Control contable**:
+  - filtros por CFDI solicitado o no, CFDI externo adjunto, procesamiento pendiente o procesado, estado del aviso, fechas y donante;
+  - acciones marcar procesado (también en lote), reabrir con motivo y reenviar aviso;
+  - exportación sin datos fiscales.
+- **CFDI externo como antecedente del donativo**:
+  - XML obligatorio y PDF opcional;
+  - UUID, fechas y total leídos del XML con un lector seguro (rechaza DOCTYPE y ENTITY, sin red);
+  - validación del MIME real, del tamaño y del RFC emisor;
+  - disco privado con nombre generado y descarga autorizada con `no-store`;
+  - reemplazar y retirar con motivo y bitácora.
+- Pantalla del donativo con las secciones "Recibo de donación", "Contabilidad" y "CFDI externo / antecedentes fiscales".
+- Migraciones reversibles:
+  - `external_cfdis`, que copia los CFDI ya timbrados por el CRM como antecedentes `crm_legacy`;
+  - `accounting_notices` y `users.receives_accounting_notices`;
+  - `payments` y `subscriptions.tax_receipt_requested`.
+
+### Retirado
+- Del código:
+  - Facturapi (`FacturapiCfdiProvider`), `FakeCfdiProvider` y `config/cfdi.php`;
+  - las variables `CFDI_*` y `FACTURAPI_KEY`;
+  - los Jobs de timbrado, cancelación y conciliación, la factura global y su cierre programado;
+  - la cobertura y ruta fiscal, las incidencias fiscales, la pantalla CFDI y sus acciones;
+  - el envío de CFDI por correo y la espera del agradecimiento (`COMMUNICATIONS_THANK_YOU_DELAY`).
+- En la base de datos se conservan como historial `cfdis`, `global_cfdis`, `donation_global_cfdi`, `fiscal_incidents` y las columnas fiscales.
+
+### Pendiente
+- Activar en producción a la contadora como destinataria de los avisos (#40).
+- Redactar el aviso de privacidad (#41).
+- Decidir qué hacer con los donativos confirmados antes del aviso (#42).
+
+## [Fiscal — cobertura CFDI] — 2026-09-23 (sustituido por ADR-012; nunca pasó a Facturapi Test)
 
 ### Agregado
 - Factura global configurable (`daily`, `weekly`, `monthly`; default operativo `daily`) con cierre idempotente, folio por operación y asociaciones Donation↔global.
@@ -27,7 +80,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 - El test de rollback/reapply ahora retrocede las 16 migraciones reales de la ventana Fase 2 a Fase 7.
 
 ### Pendiente [S]
-- Stripe, Mercado Pago, Facturapi Test, SMTP, rebotes, S3, dominio HTTPS, Coolify y credenciales productivas.
+- Stripe, Mercado Pago, SMTP, rebotes, S3, dominio HTTPS, Coolify y credenciales productivas. (Facturapi Test quedó retirado por ADR-012.)
 
 ## [Fase 6 — Página pública de donativos] — 2026-09-23 (cerrada; Stripe y Mercado Pago sin sandbox)
 

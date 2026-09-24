@@ -106,7 +106,7 @@ deba conservarse va en un volumen:
 
 | Volumen | Ruta en el contenedor | Recurso | Para qué |
 |---|---|---|---|
-| `crm-storage` | `/var/www/html/storage/app` | `app`, `worker` y `scheduler` (el mismo volumen) | Logotipo (`public/`), exportaciones temporales (`private/filament_exports`) y, desde la Fase 3, los XML/PDF de los CFDI |
+| `crm-storage` | `/var/www/html/storage/app` | `app`, `worker` y `scheduler` (el mismo volumen) | Logotipo (`public/`), exportaciones temporales (`private/filament_exports`) recibos simples y los XML/PDF de CFDI externos adjuntos (antecedentes) |
 
 En Coolify: *Persistent Storage → Add volume*. `worker` genera las exportaciones, `app` las entrega
 y `scheduler` las purga a los 7 días: los tres deben ver el mismo volumen. El enlace
@@ -180,5 +180,5 @@ tendrá datos reales.
 
 - `postgres`: en Coolify → *Backups*, respaldo diario programado con retención de al menos 30
   días, enviado a un almacenamiento S3 externo al servidor.
-- Volumen `crm-storage`: respaldo periódico al mismo destino (a partir de la Fase 3, CFDI).
+- Volumen `crm-storage`: respaldo periódico al mismo destino (recibos y CFDI externos adjuntos).
 - Probar una restauración completa al menos una vez antes de salir a producción.

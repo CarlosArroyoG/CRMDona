@@ -25,17 +25,16 @@ Al pie de la tabla aparecen los **totales del filtro**: número de pagos, import
 
 **Exportar** descarga lo mismo que ves filtrado (Administrador, Coordinador y Contador).
 
-## Reporte CFDI
+## Control contable
 
-**Reportes → Reporte CFDI** (Administrador, Coordinador y Contador). Hay una fila por donativo confirmado, con:
+**Reportes → Control contable** (Administrador, Coordinador y Contador) sustituye al antiguo Reporte CFDI. Tiene una fila por donativo confirmado, con:
 
-- el CFDI vigente (estado, UUID y fecha de timbrado);
-- la **ruta fiscal**:
-  - **CFDI individual:** ya emitido, o listo para emitirse;
-  - **Público en general:** el donante no tiene datos fiscales; la factura global todavía no está disponible;
-  - **Bloqueado:** muestra el motivo (por ejemplo, un depósito bancario o un donativo en especie);
-- cuántos CFDI se cancelaron.
+- recibo, donante, fecha, importe y destino;
+- si el donante solicitó CFDI;
+- si el aviso a Contabilidad salió;
+- si Contabilidad ya lo procesó;
+- el CFDI externo adjunto, con su UUID, fecha de emisión y fecha en que se adjuntó.
 
-Puedes filtrar por fechas, estado del CFDI, público en general, cancelaciones y donante, y exportar a Excel o CSV.
+Se puede filtrar y exportar a Excel o CSV. La exportación no incluye datos fiscales del donante.
 
-El Coordinador ve que un CFDI fue "Rechazado por datos", pero el mensaje técnico del PAC solo lo ven el Administrador y el Contador.
+El detalle está en [CFDI y Contabilidad](12-cfdi.md).

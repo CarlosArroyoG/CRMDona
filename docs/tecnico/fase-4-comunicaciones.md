@@ -1,5 +1,7 @@
 # Fase 4 — Comunicaciones con donantes
 
+> **Actualización 2026-09-23 (ADR-012):** ya no existe el correo de CFDI ni la espera del agradecimiento. El agradecimiento sale de inmediato, solo con el recibo simple. `CommunicationKind::Cfdi` queda histórico: no se encola, no se reenvía y no tiene plantilla. Al confirmarse un donativo también sale el aviso a Contabilidad (`docs/tecnico/cfdi-externo.md`). Lo que abajo se dice sobre CFDI es historial.
+
 Correos con el sistema de Mail de Laravel, sin paquetes nuevos. El proveedor real (SMTP u otro mailer nativo) se configura solo con las variables `MAIL_*`. En pruebas: `Mail::fake()` y disco simulado.
 
 ## 1. Qué se envía

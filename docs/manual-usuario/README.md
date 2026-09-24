@@ -15,7 +15,7 @@ Guía para el personal que usa el panel del CRM. No requiere conocimientos técn
 9. [Pagos en línea, reembolsos y disputas](09-pagos-en-linea.md)
 10. [Donativos mensuales](10-donativos-mensuales.md)
 11. [Incidencias de pagos](11-incidencias.md)
-12. [CFDI](12-cfdi.md)
+12. [CFDI y Contabilidad](12-cfdi.md)
 13. [Comunicaciones con donantes y recibo simple](13-comunicaciones.md)
 14. [Tablero y reportes](14-tablero-y-reportes.md)
 15. [Página pública de donativos](15-pagina-publica.md)
@@ -47,12 +47,13 @@ Guía para el personal que usa el panel del CRM. No requiere conocimientos técn
 | Atender incidencias | Todas | Solo operativas | Todas | No |
 | Recibir alertas de pagos | Siempre | Si se activa | Si se activa | Nunca |
 | Bandeja de webhooks y pasarelas de pago | Sí | No | No | No |
-| Ver y descargar CFDI | Sí | Sí | Sí | No |
-| Emitir, reintentar, sustituir y cancelar CFDI; ver su detalle técnico | Sí | No | Sí | No |
+| Ver y descargar CFDI externos (antecedentes) | Sí | Sí | Sí | No |
+| Adjuntar, reemplazar y retirar CFDI externos | Sí | No | Sí | No |
+| Recibir avisos a Contabilidad (si se activa) y marcar el procesamiento contable | Sí | No | Sí | No |
 | Descargar recibo simple, ver historial de envíos y reenviar | Sí | Sí | Sí | No |
 | Editar plantillas de correo | Sí | Sí | No | No |
 | Ver el tablero | Sí | Sí | Sí | Sí |
-| Reporte CFDI (ver y exportar) | Sí | Sí | Sí | No |
+| Control contable (ver y exportar) | Sí | Sí | Sí | No |
 
 Si un botón no aparece, es porque tu rol no tiene esa acción.
 
@@ -60,9 +61,9 @@ Si un botón no aparece, es porque tu rol no tiene esa acción.
 
 | Grupo | Pantallas |
 |---|---|
-| Donativos | Donativos, Donantes, CFDI |
+| Donativos | Donativos, Donantes |
 | Comunicaciones | Historial de envíos, Plantillas |
-| Reportes | Reporte CFDI (el reporte de pagos está en Pagos en línea) |
+| Reportes | Control contable (el reporte de pagos está en Pagos en línea) |
 | Pagos en línea | Pagos en línea, Donativos mensuales, Incidencias, Reembolsos, Disputas y contracargos, Bandeja de webhooks |
 | Destinos | Programas, Campañas |
 | Administración | Usuarios, Organización, Bitácora, Pasarelas de pago |

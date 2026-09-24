@@ -1,4 +1,9 @@
-# Fase 3 — CFDI de donativos (reglas, diseño y Facturapi)
+# Fase 3 — CFDI de donativos (reglas, diseño y Facturapi) — HISTÓRICO
+
+> **Documento sustituido (2026-09-23, ADR-012).** El CRM ya no emite, timbra, cancela ni sustituye
+> CFDI, y Facturapi quedó retirado y sin uso. La contadora emite los CFDI fuera del CRM. La fuente de
+> verdad es `docs/tecnico/cfdi-externo.md`. Este documento se conserva solo como historial de lo que
+> se diseñó; nada de lo que describe está activo.
 
 Marcas:
 - **[V]** verificado en documentación oficial vigente;

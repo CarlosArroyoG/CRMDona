@@ -1,5 +1,7 @@
 # Fase 5 — Tablero y reportes
 
+> **Actualización 2026-09-23 (ADR-012):** el "Reporte CFDI" (§3) se sustituyó por **Control contable** (`App\Reports\AccountingControl`, `/admin/control-contable`). Ya no hay ruta fiscal, cancelaciones ni mensaje técnico del PAC. Detalle en `docs/tecnico/cfdi-externo.md` §4. La §3 es historial.
+
 Todo se deriva de estados reales del dominio. `Donation`, `Payment` y `Cfdi` siguen siendo entidades distintas.
 
 Reglas generales:
