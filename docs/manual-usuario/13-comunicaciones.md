@@ -21,7 +21,7 @@ Se activan o desactivan en **Administración → Organización → Correos autom
 
 ## Plantillas (Administrador y Coordinador)
 
-1. **Comunicaciones → Plantillas** → **Editar**.
+1. **Comunicaciones → Plantillas de correo** → **Editar**.
 2. Escribe el asunto y el texto. Separa párrafos con una línea en blanco.
 3. Usa solo las variables que aparecen bajo el texto, por ejemplo `{{ nombre }}` o `{{ importe }}`.
 4. Pulsa **Vista previa** para ver cómo queda con datos de ejemplo.

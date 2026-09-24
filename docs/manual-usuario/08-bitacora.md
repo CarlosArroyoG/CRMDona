@@ -4,7 +4,7 @@
 
 **Quién:** solo el **Administrador**. Es de solo consulta: nadie puede modificarla ni borrarla.
 
-**Ruta:** menú **Administración → Bitácora**.
+**Ruta:** menú **Administración → Bitácora de cambios**.
 
 ## Lista
 

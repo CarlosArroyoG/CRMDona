@@ -1,6 +1,6 @@
 # Incidencias de pagos
 
-Menú **Pagos en línea → Incidencias**. El número rojo junto al menú indica cuántas siguen sin resolver.
+Menú **Donativos → Incidencias de pago**. El número rojo junto al menú indica cuántas siguen sin resolver.
 
 Una incidencia es un problema de pagos que **alguien debe revisar**. El CRM es la fuente de verdad: la campana y el correo solo avisan.
 

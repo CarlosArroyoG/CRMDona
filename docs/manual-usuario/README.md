@@ -48,7 +48,7 @@ Guía para el personal que usa el panel del CRM. No requiere conocimientos técn
 | Ver disputas y reembolsos | Sí | No | Sí | No |
 | Atender incidencias | Todas | Solo operativas | Todas | No |
 | Recibir alertas de pagos | Siempre | Si se activa | Si se activa | Nunca |
-| Bandeja de webhooks y pasarelas de pago | Sí | No | No | No |
+| Notificaciones de proveedores (soporte técnico) y pasarelas de pago | Sí | No | No | No |
 | Ver y descargar CFDI externos (antecedentes) | Sí | Sí | Sí | No |
 | Adjuntar, reemplazar y retirar CFDI externos | Sí | No | Sí | No |
 | Recibir avisos a Contabilidad (si se activa) y marcar el procesamiento contable | Sí | No | Sí | No |
@@ -64,11 +64,14 @@ Si un botón no aparece, es porque tu rol no tiene esa acción.
 
 | Grupo | Pantallas |
 |---|---|
-| Donativos | Donativos, Donantes |
-| Comunicaciones | Historial de envíos, Plantillas |
-| Reportes | Control contable (el reporte de pagos está en Pagos en línea) |
-| Pagos en línea | Pagos en línea, Donativos mensuales, Incidencias, Reembolsos, Disputas y contracargos, Bandeja de webhooks |
-| Destinos | Programas, Campañas |
-| Administración | Usuarios, Organización, Correo saliente, Bitácora, Pasarelas de pago |
+| (sin grupo) | Escritorio: pendientes, accesos rápidos e indicadores del mes |
+| Donativos | Donativos, Donantes, Donativos mensuales, Pagos en línea (con el reporte de pagos), Incidencias de pago |
+| Recaudación | Campañas, Programas |
+| Comunicaciones | Historial de envíos, Plantillas de correo |
+| Contabilidad | Control contable, Reembolsos, Contracargos |
+| Administración | Usuarios, Organización, Correo saliente, Pasarelas de pago, Bitácora de cambios |
+| Soporte técnico | Notificaciones de proveedores (diagnóstico; grupo plegado, solo Administrador) |
+
+Cada persona ve solo los grupos y pantallas que su rol permite.
 
 La campana de la esquina superior muestra avisos, por ejemplo cuando una exportación está lista o cuando hay una incidencia de pagos.

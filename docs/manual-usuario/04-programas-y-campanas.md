@@ -8,7 +8,7 @@
 **Quién la usa:** todos consultan y exportan. Crear y editar: Administrador y Coordinador.
 Eliminar: solo Administrador.
 
-**Ruta:** menú **Destinos → Programas** y **Destinos → Campañas**.
+**Ruta:** menú **Recaudación → Programas** y **Recaudación → Campañas**.
 
 ## Programas
 

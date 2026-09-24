@@ -1,6 +1,6 @@
 # Pagos en línea
 
-Menú **Pagos en línea → Pagos en línea**.
+Menú **Donativos → Pagos en línea**.
 
 Aquí aparecen los donativos que las personas hacen con tarjeta en línea, por **Stripe** o por **Mercado Pago**. Nadie los captura a mano: el sistema los registra con lo que informa el proveedor de pago.
 
@@ -47,7 +47,7 @@ Los reembolsos hechos directamente en el panel del proveedor también aparecen a
 
 ## Disputas y contracargos (Administrador y Contador)
 
-Menú **Pagos en línea → Disputas y contracargos**.
+Menú **Contabilidad → Contracargos**.
 
 Un contracargo ocurre cuando el titular de la tarjeta desconoce el cobro ante su banco. Cuando llega uno:
 - se abre una **incidencia crítica** y se avisa en la campana;

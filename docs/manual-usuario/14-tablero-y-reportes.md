@@ -27,7 +27,7 @@ Al pie de la tabla aparecen los **totales del filtro**: número de pagos, import
 
 ## Control contable
 
-**Reportes → Control contable** (Administrador, Coordinador y Contador) sustituye al antiguo Reporte CFDI. Tiene una fila por donativo confirmado, con:
+**Contabilidad → Control contable** (Administrador, Coordinador y Contador) sustituye al antiguo Reporte CFDI. Tiene una fila por donativo confirmado, con:
 
 - recibo, donante, fecha, importe y destino;
 - si el donante solicitó CFDI;

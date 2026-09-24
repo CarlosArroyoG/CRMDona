@@ -40,7 +40,7 @@ reenvían desde **Control contable**.
 
 ## Control contable
 
-Está en **Reportes → Control contable**. Hay una fila por donativo confirmado, con:
+Está en **Contabilidad → Control contable**. Hay una fila por donativo confirmado, con:
 
 - el recibo;
 - si el donante solicitó CFDI;

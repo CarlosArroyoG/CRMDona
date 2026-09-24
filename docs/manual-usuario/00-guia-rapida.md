@@ -205,8 +205,8 @@ una disputa…
 | **Organización** | Datos fiscales, logotipo (PNG o JPG), aviso de privacidad, límites de donativos y correos automáticos |
 | **Correo saliente** | Datos del servidor de correo (SMTP) y botón para enviar un correo de prueba |
 | **Pasarelas de pago** | Revisar si Stripe y Mercado Pago están activos, y en qué modo (prueba o real) |
-| **Bandeja de webhooks** | Avisos técnicos que mandan los proveedores de pago |
-| **Bitácora** | Quién cambió qué y cuándo. Los datos personales y fiscales aparecen sin su valor |
+| **Soporte técnico → Notificaciones de proveedores** | Diagnóstico: avisos técnicos que mandan los proveedores de pago. Grupo plegado al final del menú |
+| **Bitácora de cambios** | Quién cambió qué y cuándo. Los datos personales y fiscales aparecen sin su valor |
 
 → Capítulos [6](06-usuarios.md), [7](07-organizacion.md), [8](08-bitacora.md) y
 [16](16-correo-saliente.md)

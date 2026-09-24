@@ -1,6 +1,6 @@
 # Donativos mensuales
 
-Menú **Pagos en línea → Donativos mensuales**.
+Menú **Donativos → Donativos mensuales**.
 
 Un donativo mensual es el compromiso del donante de donar cada mes con su tarjeta. **Cada mes es un pago distinto**, con su propio donativo cuando se cobra. Si un mes no se cobra, ese mes no genera donativo.
 

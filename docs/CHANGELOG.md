@@ -2,6 +2,19 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+## [Pasada UX del panel] — 2026-09-24
+
+### Cambiado
+- Navegación por tareas: Donativos (Donativos, Donantes, Donativos mensuales, Pagos en línea, Incidencias de pago), Recaudación (Campañas, Programas), Comunicaciones, Contabilidad (Control contable, Reembolsos, Contracargos), Administración y Soporte técnico. Desaparecen los grupos "Pagos en línea", "Destinos" y "Reportes".
+- "Bandeja de webhooks" pasa a **Soporte técnico → Notificaciones de proveedores**: grupo plegado al final y visible solo para el Administrador. No cambian rutas, permisos ni Policies.
+- Etiquetas: "Disputas" → "Contracargos", "Incidencias" → "Incidencias de pago", "Plantillas" → "Plantillas de correo", "Bitácora" → "Bitácora de cambios". Títulos en español con mayúscula solo inicial.
+- Tema: lienzo azul muy suave, grupos del menú como encabezados, elemento activo marcado, títulos en azul institucional, botón primario con más presencia, tablas y tarjetas con borde y sombra sutiles, y estados vacíos con icono institucional. Nombre de la marca en blanco sobre el encabezado azul.
+- Subtítulos breves en las pantallas principales y de configuración.
+
+### Agregado
+- Escritorio propio (`App\Filament\Pages\Dashboard`) con el widget "Trabajo del día" (`DailyWork`). Muestra accesos rápidos y conteos de pendientes (donativos por confirmar, pendientes de Contabilidad e incidencias abiertas) con los filtros existentes. Cada elemento respeta la autorización de su Resource. Sustituye al widget de cuenta de Filament.
+- `tests/Feature/Filament/NavigationTest.php`: agrupación y visibilidad por rol del menú y del Escritorio.
+
 ## [MFA obligatorio] — 2026-09-24
 
 ### Seguridad
