@@ -64,7 +64,7 @@ mismos valores** en los tres. Nunca se escriben en git. La referencia es `.env.e
 | `SESSION_SECURE_COOKIE` | `true` (la cookie de sesión solo viaja por HTTPS) |
 | `AUTH_TEMPORARY_PASSWORD_TTL_HOURS` | `72` (vigencia de una contraseña temporal, ADR-010) |
 | `TRUSTED_PROXIES` | `10.0.0.0/8,172.16.0.0/12,192.168.0.0/16` (redes internas de Docker donde vive el proxy de Coolify) |
-| `MAIL_*` | Se definen en la fase de comunicaciones |
+| `MAIL_*` | Respaldo: se usan mientras el Administrador no habilite **Correo saliente** en el panel (`docs/tecnico/correo-saliente.md`). Con el SMTP del panel no hacen falta credenciales SMTP en Coolify |
 
 **Generar `APP_KEY`** (una sola vez, en cualquier equipo con Docker):
 
@@ -72,7 +72,7 @@ mismos valores** en los tres. Nunca se escriben en git. La referencia es `.env.e
 docker run --rm crm-donataria:prod php artisan key:generate --show
 ```
 
-Si `APP_KEY` cambia, se pierden las sesiones y todo lo cifrado con la clave anterior. Para
+Si `APP_KEY` cambia, se pierden las sesiones y todo lo cifrado con la clave anterior (incluida la contraseña SMTP de **Correo saliente**, que habría que volver a capturar). Para
 rotarla sin perder datos se usa `APP_PREVIOUS_KEYS`.
 
 ## 3. HTTPS y dominio — PENDIENTE EXTERNO

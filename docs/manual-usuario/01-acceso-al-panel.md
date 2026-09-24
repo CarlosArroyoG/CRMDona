@@ -17,6 +17,14 @@ Cualquier persona con usuario **activo** y uno de los cuatro roles: Administrado
 procuración de fondos, Contador o Solo lectura. Lo que cada rol puede hacer está en el
 [índice del manual](README.md).
 
+## Olvidé mi contraseña
+
+1. En la pantalla de entrada pulsa **¿Olvidaste tu contraseña?**.
+2. Escribe tu correo y pulsa el botón para enviar el enlace.
+3. Abre el correo y sigue el enlace para elegir una contraseña nueva (mínimo 12 caracteres, con letras y números).
+
+Si no llega, revisa el spam o pide al Administrador que restablezca tu contraseña desde **Usuarios**. El correo sale por el servidor configurado en **Correo saliente**.
+
 ## Cambiar tu contraseña
 
 1. Haz clic en tu nombre o iniciales (esquina superior derecha) → **Cambiar contraseña**.

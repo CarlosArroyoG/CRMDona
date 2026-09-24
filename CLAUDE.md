@@ -25,7 +25,7 @@ El documento de requisitos completo lo entregó el usuario al iniciar el proyect
   - El CRM no decide la factura global ni clasifica donativos. No inventar reglas fiscales.
   - Historial conservado en la base: `cfdis`, `global_cfdis`, `fiscal_incidents`, columnas `fiscal_*` e `in_kind_*`. No borrarlos.
 - **Fase 4 — Comunicaciones: implementada con `Mail::fake()`** (2026-09-23): recibo simple, agradecimiento, cumpleaños, plantillas, historial y baja. El envío de CFDI quedó como tipo histórico (`CommunicationKind::Cfdi`).
-  - **Falta el servidor de correo real** (#32) y los rebotes (#33).
+  - **Correo saliente administrable** (2026-09-23): SMTP estándar configurado por el Administrador en el panel (`docs/tecnico/correo-saliente.md`). Falta el proveedor real en producción (#32) y los rebotes (#33).
   - Fuente de verdad: `docs/tecnico/fase-4-comunicaciones.md`.
   - Sin paquetes nuevos: el PDF del recibo usa `App\Support\SimplePdf`, y las plantillas usan `TemplateRenderer` (nunca Blade).
 - **Fase 5 — Tablero y reportes: implementada** (2026-09-23), sin migraciones.
@@ -128,6 +128,13 @@ Roles oficiales, según el prompt maestro original, que es la fuente de verdad:
 - Aviso a Contabilidad: uno por donativo (`accounting_notices`). Destinatarios: `accounting.process` (A, Co) + `users.receives_accounting_notices`. Los datos fiscales van solo en ese correo, nunca en la tabla, la bitácora, el recibo ni el correo al donante.
 - CFDI externo: `AttachExternalCfdi` / `RemoveExternalCfdi` (`cfdi.manage`). XML leído con `CfdiXmlReader` (rechaza DOCTYPE y ENTITY, `LIBXML_NONET`). Disco privado con nombre generado; descarga autorizada (`external-cfdi.files`). Retirar ≠ borrar.
 - Adjuntar un CFDI no marca el donativo como procesado; lo marca Contabilidad (`SetAccountingProcessed`).
+
+## Reglas de correo saliente
+
+- Solo `App\Mail\Outgoing\OutgoingMailConfig` decide el mailer: SMTP del panel (`mail_settings`, mailer `crm`) o `MAIL_*` como respaldo. Ningún Mailable ni Notification conoce credenciales.
+- La contraseña SMTP es `encrypted`, oculta y nunca se registra (solo el contexto "reemplazada" o "eliminada"). Vacía en el formulario = conservar.
+- El worker vuelve a comprobar `mail_settings.version` antes de cada Job; guardar sube la versión. Nada de lógica SMTP dentro de los Mailables.
+- En las pruebas, `SmtpTransportFactory` se sustituye por `Tests\Support\RecordingSmtpFactory`: nunca se usa la red.
 
 ## Convenciones
 

@@ -2,6 +2,30 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+## [Correo saliente SMTP administrable] — 2026-09-23
+
+### Agregado
+- **Administración → Correo saliente** (solo Administrador):
+  - SMTP estándar de cualquier proveedor: servidor, puerto, seguridad (STARTTLS, SSL/TLS o ninguna), usuario, contraseña, remitente, Reply-To y tiempo de espera;
+  - estado Configurado/Habilitado y última prueba aceptada;
+  - guía informativa de SPF, DKIM y DMARC.
+- Contraseña SMTP cifrada con Laravel (`encrypted`):
+  - nunca vuelve al navegador ni entra en la bitácora;
+  - vacía = conservar, con texto = reemplazar, casilla para eliminarla.
+- **Resolución central** (`OutgoingMailConfig`): el SMTP del panel tiene prioridad y `MAIL_*` queda como respaldo.
+  - Web, worker y scheduler usan la configuración vigente.
+  - El worker la vuelve a comprobar antes de cada Job, así que no hace falta redeploy.
+- **Correo de prueba**:
+  - usa la configuración guardada, sin datos de donantes;
+  - límite de 5 cada 10 minutos;
+  - errores SMTP traducidos a un mensaje administrativo (conexión, tiempo, autenticación, TLS, remitente, destinatario), sin credenciales;
+  - queda en la bitácora.
+- **Recuperación de contraseña por correo** (Filament). Al restablecerla se anula la contraseña temporal pendiente.
+- Permiso `mail.manage` (Administrador), evento de bitácora `mail_test` y migración reversible `mail_settings`.
+
+### Cambiado
+- Los errores de envío guardados en comunicaciones y avisos contables quitan el usuario y la contraseña SMTP.
+
 ## [CFDI externo y flujo contable] — 2026-09-23 (ADR-012)
 
 ### Cambiado

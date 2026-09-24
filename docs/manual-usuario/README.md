@@ -19,6 +19,7 @@ Guía para el personal que usa el panel del CRM. No requiere conocimientos técn
 13. [Comunicaciones con donantes y recibo simple](13-comunicaciones.md)
 14. [Tablero y reportes](14-tablero-y-reportes.md)
 15. [Página pública de donativos](15-pagina-publica.md)
+16. [Correo saliente](16-correo-saliente.md) — solo Administrador
 
 ## Qué puede hacer cada rol
 
@@ -54,6 +55,7 @@ Guía para el personal que usa el panel del CRM. No requiere conocimientos técn
 | Editar plantillas de correo | Sí | Sí | No | No |
 | Ver el tablero | Sí | Sí | Sí | Sí |
 | Control contable (ver y exportar) | Sí | Sí | Sí | No |
+| Configurar el correo saliente y enviar correos de prueba | Sí | No | No | No |
 
 Si un botón no aparece, es porque tu rol no tiene esa acción.
 
@@ -66,6 +68,6 @@ Si un botón no aparece, es porque tu rol no tiene esa acción.
 | Reportes | Control contable (el reporte de pagos está en Pagos en línea) |
 | Pagos en línea | Pagos en línea, Donativos mensuales, Incidencias, Reembolsos, Disputas y contracargos, Bandeja de webhooks |
 | Destinos | Programas, Campañas |
-| Administración | Usuarios, Organización, Bitácora, Pasarelas de pago |
+| Administración | Usuarios, Organización, Correo saliente, Bitácora, Pasarelas de pago |
 
 La campana de la esquina superior muestra avisos, por ejemplo cuando una exportación está lista o cuando hay una incidencia de pagos.
