@@ -51,6 +51,9 @@
         <env name="NIGHTWATCH_ENABLED" value="false" force="true"/>
         <server name="NIGHTWATCH_ENABLED" value="false" force="true"/>
         <!-- Pagos: solo la pasarela simulada. Las pruebas nunca llaman a Stripe ni a Mercado Pago. -->
+        <!-- La página pública usa el primer proveedor habilitado (en pruebas, solo el simulado), sin importar el .env local. -->
+        <env name="DONATIONS_PUBLIC_PROVIDER" value="" force="true"/>
+        <server name="DONATIONS_PUBLIC_PROVIDER" value="" force="true"/>
         <env name="PAYMENTS_FAKE_ENABLED" value="true" force="true"/>
         <server name="PAYMENTS_FAKE_ENABLED" value="true" force="true"/>
         <env name="PAYMENTS_FAKE_STORE" value="array" force="true"/>
