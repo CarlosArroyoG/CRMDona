@@ -1,11 +1,17 @@
 # Despliegue en Coolify
 
 > **Estado: PENDIENTE EXTERNO.** Esta guía no se ha probado en un servidor real: todavía no
-> existen el servidor Coolify ni los dominios. Lo verificado hasta ahora es que la imagen `prod`
+> existen el servidor Coolify ni el dominio. Lo verificado hasta ahora es que la imagen `prod`
 > se construye y responde en local. Cada paso marcado **PENDIENTE EXTERNO** debe confirmarse
 > la primera vez que se despliegue.
 
 ## Arquitectura
+
+Una sola aplicación Laravel y un solo dominio: bajo el mismo host conviven `/` (comportamiento
+existente), `/donar` (página pública de donativos), `/admin` (panel Filament) y `/up`
+(healthcheck). No hay subdominios ni apps separadas para el panel y la página pública; ambas
+son rutas de la misma aplicación. En esta guía, `<dominio>` es un marcador de posición: el
+hostname definitivo se decide y se captura directamente en Coolify durante el despliegue.
 
 Una sola imagen (`Dockerfile`, etapa `prod`) sirve para los tres recursos de la aplicación;
 solo cambia el comando. PostgreSQL y Redis son bases de datos administradas por Coolify.
@@ -50,7 +56,7 @@ mismos valores** en los tres. Nunca se escriben en git. La referencia es `.env.e
 | `APP_ENV` | `production` |
 | `APP_DEBUG` | `false` (**nunca** `true` en producción) |
 | `APP_KEY` | Se genera una sola vez (ver abajo) y se guarda como secreto en Coolify |
-| `APP_URL` | `https://crm.fdonbosco.org` (dominio propuesto) |
+| `APP_URL` | `https://<dominio>` (un solo dominio para `/`, `/donar`, `/admin` y `/up`) |
 | `APP_LOCALE` / `APP_FALLBACK_LOCALE` | `es` / `en` |
 | `APP_REGIONAL_LOCALE` / `APP_CURRENCY` | `es_MX` / `MXN` |
 | `APP_TIMEZONE` | `America/Mexico_City` |
@@ -77,8 +83,10 @@ rotarla sin perder datos se usa `APP_PREVIOUS_KEYS`.
 
 ## 3. HTTPS y dominio — PENDIENTE EXTERNO
 
-1. En el DNS de `fdonbosco.org`, crear un registro `A` de `crm` hacia la IP del servidor Coolify.
-2. En el recurso `app`, en *Domains*, poner `https://crm.fdonbosco.org`. Coolify pide el
+1. En el DNS del dominio elegido, crear el registro que corresponda hacia la IP del servidor
+   Coolify (un solo host: no hacen falta subdominios separados para el panel y la página
+   pública, ambos viven en la misma app).
+2. En el recurso `app`, en *Domains*, poner `https://<dominio>`. Coolify pide el
    certificado de Let's Encrypt automáticamente.
 3. Comprobar que `http://` redirige a `https://`.
 
@@ -155,8 +163,9 @@ personal con su rol.
 
 | Prueba | Resultado esperado |
 |---|---|
-| `https://crm.fdonbosco.org/up` | 200 |
-| `https://crm.fdonbosco.org/admin` sin sesión | Redirige a `/admin/login` |
+| `https://<dominio>/up` | 200 |
+| `https://<dominio>/admin` sin sesión | Redirige a `/admin/login` |
+| `https://<dominio>/donar` | Carga el formulario público de donativos |
 | Inicio de sesión del administrador | Entra al panel |
 | Registros de `worker` | `Processing jobs from the [default] queue` sin errores |
 | Registros de `scheduler` | Sin errores |

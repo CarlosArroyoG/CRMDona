@@ -3,7 +3,7 @@
 | # | Pendiente | Tipo | Fase objetivo | Notas |
 |---|---|---|---|---|
 | 1 | Revisar en GitHub → Actions el workflow **CI** (jobs "Pint, Larastan y Pest" y "Construir imagen de producción") en los commits de la Fase 2 (incluye el build de producción con `stripe/stripe-php`) | PENDIENTE EXTERNO (lo revisa el responsable) | Después del push | El push requiere autorización explícita |
-| 2 | Definir el servidor Coolify y los dominios definitivos (`crm.fdonbosco.org` y `donar.fdonbosco.org` son propuestas) | PENDIENTE EXTERNO | Antes del primer despliegue | Ver `docs/tecnico/despliegue-coolify.md` |
+| 2 | Definir el servidor Coolify y el dominio definitivo (una sola app y un solo dominio para `/admin`, `/donar` y `/up`; `<dominio>` es un marcador de posición) | PENDIENTE EXTERNO | Antes del primer despliegue | Ver `docs/tecnico/despliegue-coolify.md` |
 | 3 | Primer despliegue real: recursos, variables, HTTPS, volumen `crm-storage` (compartido por app, worker y scheduler), `unaccent`, `app:create-admin`, verificación y prueba de rollback | PENDIENTE EXTERNO | Antes del primer despliegue | Depende de #2 |
 | 4 | Respaldos automáticos de PostgreSQL y del volumen `crm-storage` (S3 externo) y una prueba de restauración | PENDIENTE EXTERNO | Antes de la Fase 2 (recomendado) | Ver `despliegue-coolify.md` §9 |
 | 5 | Plazo de conservación de donativos y bitácora | PENDIENTE DE VALIDACIÓN LEGAL/FISCAL | Antes de producción | No hay borrado por antigüedad; nada codificado (ADR-008) |

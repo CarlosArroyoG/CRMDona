@@ -2,7 +2,7 @@
 
 ## Dirección
 
-- Producción: `https://crm.fdonbosco.org/admin` (dominio propuesto; aún no está publicado).
+- Producción: `https://<dominio>/admin` (mismo dominio que `/donar` y `/up`; aún no está publicado).
 - Pruebas en la computadora de desarrollo: `http://localhost:8000/admin`.
 
 ## Iniciar sesión
