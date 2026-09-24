@@ -6,4 +6,22 @@
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+
+    /*
+     * Identidad institucional de Fundación Don Bosco (paleta aprobada). Único
+     * lugar donde viven estos hexadecimales; Blade y CSS solo usan las clases
+     * generadas (bg-db-navy, text-db-text-muted, border-db-border, etc.).
+     * El primario/acento configurables por la organización viven aparte, en
+     * las variables `--brand` / `--brand-accent` (ver layouts/public.blade.php).
+     */
+    --color-db-navy: #162562;
+    --color-db-blue: #28457d;
+    --color-db-soft-blue: #e8eef8;
+    --color-db-bg-blue: #f4f7fc;
+    --color-db-yellow: #f2c94c;
+    --color-db-soft-yellow: #fff7d6;
+    --color-db-text: #263238;
+    --color-db-text-muted: #667085;
+    --color-db-border: #e2e8f0;
+    --color-db-surface: #ffffff;
 }

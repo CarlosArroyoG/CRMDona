@@ -68,7 +68,7 @@ El documento de requisitos completo lo entregó el usuario al iniciar el proyect
 ## Datos de la organización
 
 - Nombre corto: Fundación Don Bosco — sitio: https://www.fdonbosco.org/
-- Colores: primario `#162562` (azul marino), secundario `#FF9D2F` (naranja). Configurables.
+- Colores: primario `#162562` (azul marino), acento `#F2C94C` (amarillo, uso moderado). Configurables (`BRAND_PRIMARY_COLOR`/`BRAND_SECONDARY_COLOR`). Tokens de diseño centralizados en `resources/css/app.css` (`--color-db-*`).
 - Logo: https://www.fdonbosco.org/theme/img/logo.png (configurable).
 - Dominios propuestos: `crm.fdonbosco.org` (panel) y `donar.fdonbosco.org` (página pública). Servidor Coolify: por definir.
 - Administrador inicial: `licarroyogarfias@gmail.com`. **La contraseña nunca se escribe en código, seeders, `.env.example` ni git**; se captura con comando interactivo.
