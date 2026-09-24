@@ -8,8 +8,8 @@ use App\Actions\Organization\UpdateOrganizationSettings;
 use App\Enums\Permission;
 use App\Enums\TaxRegime;
 use App\Filament\Concerns\ReportsActionErrors;
+use App\Filament\Concerns\ResolvesActor;
 use App\Models\OrganizationSetting;
-use App\Models\User;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
@@ -36,6 +36,7 @@ use Filament\Support\Icons\Heroicon;
 class OrganizationSettings extends Page
 {
     use ReportsActionErrors;
+    use ResolvesActor;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBuildingOffice2;
 
@@ -54,12 +55,12 @@ class OrganizationSettings extends Page
 
     public static function canAccess(): bool
     {
-        return self::actor()?->hasPermission(Permission::ViewOrganizationSettings) ?? false;
+        return self::actorCan(Permission::ViewOrganizationSettings);
     }
 
     public static function canEdit(): bool
     {
-        return self::actor()?->hasPermission(Permission::UpdateOrganizationSettings) ?? false;
+        return self::actorCan(Permission::UpdateOrganizationSettings);
     }
 
     public function mount(): void
@@ -156,12 +157,5 @@ class OrganizationSettings extends Page
         self::withFormErrors(fn () => app(UpdateOrganizationSettings::class)->handle($this->form->getState()));
 
         Notification::make()->success()->title('Configuración guardada')->send();
-    }
-
-    private static function actor(): ?User
-    {
-        $user = auth()->user();
-
-        return $user instanceof User ? $user : null;
     }
 }

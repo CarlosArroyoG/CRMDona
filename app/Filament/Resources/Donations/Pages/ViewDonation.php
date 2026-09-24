@@ -9,6 +9,7 @@ use App\Actions\Communications\QueueDonationThankYou;
 use App\Enums\DonationStatus;
 use App\Enums\Permission;
 use App\Filament\Concerns\ReportsActionErrors;
+use App\Filament\Concerns\ResolvesActor;
 use App\Filament\Resources\Donations\DonationResource;
 use App\Models\Communication;
 use App\Models\Donation;
@@ -21,6 +22,7 @@ use Filament\Support\Icons\Heroicon;
 class ViewDonation extends ViewRecord
 {
     use ReportsActionErrors;
+    use ResolvesActor;
 
     protected static string $resource = DonationResource::class;
 
@@ -46,9 +48,7 @@ class ViewDonation extends ViewRecord
             ->icon(Heroicon::OutlinedDocumentArrowDown)
             ->color('gray')
             ->visible(function (Donation $record): bool {
-                $user = auth()->user();
-
-                return $user instanceof User && $user->hasPermission(Permission::ViewDonationReceipts)
+                return self::actorCan(Permission::ViewDonationReceipts)
                     && $record->status === DonationStatus::Confirmed;
             })
             ->action(function (Donation $record) {
@@ -69,9 +69,7 @@ class ViewDonation extends ViewRecord
             ->requiresConfirmation()
             ->modalDescription('Se envía al correo del donante con el recibo simple adjunto.')
             ->visible(function (Donation $record): bool {
-                $user = auth()->user();
-
-                return $user instanceof User && $user->hasPermission(Permission::ResendCommunications)
+                return self::actorCan(Permission::ResendCommunications)
                     && $record->status === DonationStatus::Confirmed
                     && ! Communication::query()->where('dedupe_key', "thank_you:donation:{$record->id}")->exists();
             })

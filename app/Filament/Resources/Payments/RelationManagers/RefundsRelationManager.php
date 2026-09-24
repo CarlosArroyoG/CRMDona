@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Payments\RelationManagers;
 
 use App\Enums\Permission;
-use App\Models\User;
+use App\Filament\Concerns\ResolvesActor;
 use App\Support\Money;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables\Columns\TextColumn;
@@ -18,15 +18,15 @@ use Illuminate\Database\Eloquent\Model;
  */
 class RefundsRelationManager extends RelationManager
 {
+    use ResolvesActor;
+
     protected static string $relationship = 'refunds';
 
     protected static ?string $title = 'Reembolsos';
 
     public static function canViewForRecord(Model $ownerRecord, string $pageClass): bool
     {
-        $user = auth()->user();
-
-        return $user instanceof User && $user->hasPermission(Permission::RequestRefunds);
+        return self::actorCan(Permission::RequestRefunds);
     }
 
     public function isReadOnly(): bool
@@ -48,7 +48,7 @@ class RefundsRelationManager extends RelationManager
                 TextColumn::make('processed_at')->label('Resultado el')->dateTime('d/m/Y H:i')->placeholder('—'),
                 TextColumn::make('failure_reason')->label('Motivo del fallo')->placeholder('—')->limit(60)->wrap(),
                 TextColumn::make('external_id')->label('Id. en el proveedor')->placeholder('Sin respuesta aún')
-                    ->visible(fn (): bool => ($user = auth()->user()) instanceof User && $user->hasPermission(Permission::ViewPaymentTechnicalDetails)),
+                    ->visible(fn (): bool => self::actorCan(Permission::ViewPaymentTechnicalDetails)),
             ])
             ->defaultSort('requested_at', 'desc')
             ->emptyStateHeading('Este pago no tiene reembolsos');

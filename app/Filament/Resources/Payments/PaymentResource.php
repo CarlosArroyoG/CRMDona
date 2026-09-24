@@ -14,6 +14,7 @@ use App\Enums\Permission;
 use App\Enums\RefundReason;
 use App\Enums\RefundState;
 use App\Filament\Concerns\ReportsActionErrors;
+use App\Filament\Concerns\ResolvesActor;
 use App\Filament\Exports\PaymentExporter;
 use App\Filament\Exports\PaymentTechnicalExporter;
 use App\Filament\Resources\Donations\DonationResource;
@@ -68,6 +69,7 @@ use Illuminate\Support\Str;
 class PaymentResource extends Resource
 {
     use ReportsActionErrors;
+    use ResolvesActor;
 
     protected static ?string $model = Payment::class;
 
@@ -108,7 +110,7 @@ class PaymentResource extends Resource
                         ? DonationResource::getUrl('view', ['record' => $record->donation]) : null),
                 TextEntry::make('last_failure')->label('Motivo del último rechazo')->placeholder('—')
                     ->state(fn (Payment $record): ?string => self::lastFailure($record)?->getLabel())
-                    ->visible(fn (): bool => self::actor()?->hasPermission(Permission::ViewIncidents) ?? false),
+                    ->visible(fn (): bool => self::actorCan(Permission::ViewIncidents)),
             ]),
             Section::make('Información técnica')
                 ->description('Solo Administrador y Contador. Sin datos de tarjeta ni secretos.')
@@ -167,7 +169,7 @@ class PaymentResource extends Resource
                         ? PaymentReport::whereSituation($query, (string) $data['value'])
                         : $query),
                 SelectFilter::make('failure_category')->label('Motivo de rechazo')->options(FailureCategory::class)
-                    ->visible(fn (): bool => self::actor()?->hasPermission(Permission::ViewIncidents) ?? false)
+                    ->visible(fn (): bool => self::actorCan(Permission::ViewIncidents))
                     ->query(fn (Builder $query, array $data): Builder => filled($data['value'] ?? null)
                         ? $query->whereHas('attempts', fn (Builder $attempts) => $attempts->where('failure_category', $data['value']))
                         : $query),
@@ -176,7 +178,7 @@ class PaymentResource extends Resource
                         ? Payment::whereRefundState($query, RefundState::from((string) $data['value']))
                         : $query),
                 TernaryFilter::make('has_incident')->label('Con incidencia')
-                    ->visible(fn (): bool => self::actor()?->hasPermission(Permission::ViewIncidents) ?? false)
+                    ->visible(fn (): bool => self::actorCan(Permission::ViewIncidents))
                     ->queries(
                         true: fn (Builder $query): Builder => $query->whereHas('incidents'),
                         false: fn (Builder $query): Builder => $query->whereDoesntHave('incidents'),
@@ -265,7 +267,7 @@ class PaymentResource extends Resource
 
     public static function canViewTechnical(): bool
     {
-        return self::actor()?->hasPermission(Permission::ViewPaymentTechnicalDetails) ?? false;
+        return self::actorCan(Permission::ViewPaymentTechnicalDetails);
     }
 
     public static function getRelations(): array
@@ -294,12 +296,5 @@ class PaymentResource extends Resource
     private static function moneyOrNull(mixed $value): ?string
     {
         return is_string($value) && Money::isValid($value) ? Money::normalize($value) : null;
-    }
-
-    private static function actor(): ?User
-    {
-        $user = auth()->user();
-
-        return $user instanceof User ? $user : null;
     }
 }

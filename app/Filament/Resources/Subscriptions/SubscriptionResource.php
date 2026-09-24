@@ -11,6 +11,7 @@ use App\Enums\PaymentProvider;
 use App\Enums\Permission;
 use App\Enums\SubscriptionStatus;
 use App\Filament\Concerns\ReportsActionErrors;
+use App\Filament\Concerns\ResolvesActor;
 use App\Filament\Resources\Donors\DonorResource;
 use App\Filament\Resources\Subscriptions\Pages\ListSubscriptions;
 use App\Filament\Resources\Subscriptions\Pages\ViewSubscription;
@@ -45,6 +46,7 @@ use Illuminate\Validation\ValidationException;
 class SubscriptionResource extends Resource
 {
     use ReportsActionErrors;
+    use ResolvesActor;
 
     protected static ?string $model = Subscription::class;
 
@@ -84,7 +86,7 @@ class SubscriptionResource extends Resource
                 TextEntry::make('cancellation_reason')->label('Motivo de cancelación')->placeholder('—'),
             ]),
             Section::make('Información técnica')->columns(3)
-                ->visible(fn (): bool => self::actor()?->hasPermission(Permission::ViewPaymentTechnicalDetails) ?? false)
+                ->visible(fn (): bool => self::actorCan(Permission::ViewPaymentTechnicalDetails))
                 ->schema([
                     TextEntry::make('external_id')->label('Identificador en el proveedor')->placeholder('Aún sin asignar')->copyable(),
                     TextEntry::make('provider_status')->label('Estado en el proveedor')->placeholder('—'),
@@ -192,12 +194,5 @@ class SubscriptionResource extends Resource
 
                 Notification::make()->success()->title($success)->send();
             });
-    }
-
-    private static function actor(): ?User
-    {
-        $user = auth()->user();
-
-        return $user instanceof User ? $user : null;
     }
 }

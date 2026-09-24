@@ -9,9 +9,9 @@ use App\Actions\Mail\UpdateMailSettings;
 use App\Enums\MailEncryption;
 use App\Enums\Permission;
 use App\Filament\Concerns\ReportsActionErrors;
+use App\Filament\Concerns\ResolvesActor;
 use App\Mail\Outgoing\OutgoingMailConfig;
 use App\Models\MailSetting;
-use App\Models\User;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
@@ -40,6 +40,7 @@ use Illuminate\Validation\ValidationException;
 class MailSettings extends Page
 {
     use ReportsActionErrors;
+    use ResolvesActor;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedEnvelope;
 
@@ -58,7 +59,7 @@ class MailSettings extends Page
 
     public static function canAccess(): bool
     {
-        return self::actor()?->hasPermission(Permission::ManageMailSettings) ?? false;
+        return self::actorCan(Permission::ManageMailSettings);
     }
 
     public function mount(): void
@@ -205,12 +206,5 @@ class MailSettings extends Page
             'password' => null,
             'remove_password' => false,
         ]);
-    }
-
-    private static function actor(): ?User
-    {
-        $user = auth()->user();
-
-        return $user instanceof User ? $user : null;
     }
 }

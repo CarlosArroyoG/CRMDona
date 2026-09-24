@@ -13,6 +13,7 @@ use App\Enums\IncidentType;
 use App\Enums\PaymentProvider;
 use App\Enums\Permission;
 use App\Filament\Concerns\ReportsActionErrors;
+use App\Filament\Concerns\ResolvesActor;
 use App\Filament\Resources\PaymentIncidents\Pages\ListPaymentIncidents;
 use App\Filament\Resources\PaymentIncidents\Pages\ViewPaymentIncident;
 use App\Filament\Resources\PaymentIncidents\RelationManagers\NotesRelationManager;
@@ -46,6 +47,7 @@ use Illuminate\Support\Facades\Gate;
 class PaymentIncidentResource extends Resource
 {
     use ReportsActionErrors;
+    use ResolvesActor;
 
     protected static ?string $model = PaymentIncident::class;
 
@@ -227,12 +229,5 @@ class PaymentIncidentResource extends Resource
             'index' => ListPaymentIncidents::route('/'),
             'view' => ViewPaymentIncident::route('/{record}'),
         ];
-    }
-
-    private static function actor(): ?User
-    {
-        $user = auth()->user();
-
-        return $user instanceof User ? $user : null;
     }
 }

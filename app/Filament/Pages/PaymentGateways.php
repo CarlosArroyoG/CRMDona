@@ -7,7 +7,7 @@ namespace App\Filament\Pages;
 use App\Actions\Payments\ValidateOnlineDonationAmount;
 use App\Enums\PaymentProvider;
 use App\Enums\Permission;
-use App\Models\User;
+use App\Filament\Concerns\ResolvesActor;
 use App\Payments\Contracts\PausesSubscriptions;
 use App\Payments\Contracts\ProcessesOneTimePayments;
 use App\Payments\Contracts\ProcessesRecurringPayments;
@@ -30,6 +30,8 @@ use Filament\Support\Icons\Heroicon;
  */
 class PaymentGateways extends Page
 {
+    use ResolvesActor;
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBuildingLibrary;
 
     protected static ?string $navigationLabel = 'Pasarelas de pago';
@@ -44,9 +46,7 @@ class PaymentGateways extends Page
 
     public static function canAccess(): bool
     {
-        $user = auth()->user();
-
-        return $user instanceof User && $user->hasPermission(Permission::ViewPaymentSettings);
+        return self::actorCan(Permission::ViewPaymentSettings);
     }
 
     public function content(Schema $schema): Schema

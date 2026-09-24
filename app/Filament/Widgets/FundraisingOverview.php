@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Widgets;
 
 use App\Enums\Permission;
-use App\Models\User;
+use App\Filament\Concerns\ResolvesActor;
 use App\Reports\DashboardMetrics;
 use App\Support\Money;
 use Carbon\CarbonImmutable;
@@ -18,13 +18,15 @@ use Filament\Widgets\StatsOverviewWidget\Stat;
  */
 class FundraisingOverview extends StatsOverviewWidget
 {
+    use ResolvesActor;
+
     protected static ?int $sort = 1;
 
     protected ?string $heading = 'Resumen del mes';
 
     public static function canView(): bool
     {
-        return self::actor()?->hasPermission(Permission::ViewDonations) ?? false;
+        return self::actorCan(Permission::ViewDonations);
     }
 
     /**
@@ -72,12 +74,5 @@ class FundraisingOverview extends StatsOverviewWidget
         }
 
         return $stats;
-    }
-
-    private static function actor(): ?User
-    {
-        $user = auth()->user();
-
-        return $user instanceof User ? $user : null;
     }
 }

@@ -9,12 +9,12 @@ use App\Actions\Accounting\SetAccountingProcessed;
 use App\Enums\AccountingNoticeStatus;
 use App\Enums\Permission;
 use App\Filament\Concerns\ReportsActionErrors;
+use App\Filament\Concerns\ResolvesActor;
 use App\Filament\Exports\AccountingControlExporter;
 use App\Filament\Resources\AccountingControl\Pages\ListAccountingControl;
 use App\Filament\Resources\Donations\DonationResource;
 use App\Models\Donation;
 use App\Models\Donor;
-use App\Models\User;
 use App\Reports\AccountingControl;
 use App\Support\Money;
 use App\Support\Search;
@@ -48,6 +48,7 @@ use Illuminate\Validation\ValidationException;
 class AccountingControlResource extends Resource
 {
     use ReportsActionErrors;
+    use ResolvesActor;
 
     protected static ?string $model = Donation::class;
 
@@ -67,7 +68,7 @@ class AccountingControlResource extends Resource
 
     public static function canViewAny(): bool
     {
-        return self::actor()?->hasPermission(Permission::ViewCfdis) ?? false;
+        return self::actorCan(Permission::ViewCfdis);
     }
 
     public static function canView(Model $record): bool
@@ -251,13 +252,6 @@ class AccountingControlResource extends Resource
 
     private static function canProcess(): bool
     {
-        return self::actor()?->hasPermission(Permission::ProcessAccounting) ?? false;
-    }
-
-    private static function actor(): ?User
-    {
-        $user = auth()->user();
-
-        return $user instanceof User ? $user : null;
+        return self::actorCan(Permission::ProcessAccounting);
     }
 }

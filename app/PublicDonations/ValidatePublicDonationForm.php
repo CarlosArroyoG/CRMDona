@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\PublicDonations;
 
 use App\Actions\Concerns\NormalizesInput;
+use App\Actions\Donors\DonorIdentityRules;
 use App\Actions\Donors\SaveDonorTaxProfile;
 use App\Actions\Payments\ValidateOnlineDonationAmount;
 use App\Enums\DonorType;
@@ -60,20 +61,15 @@ class ValidatePublicDonationForm
             'amount' => ['required', Rule::in([...$this->page->suggestedAmounts(), self::OTHER_AMOUNT])],
             'custom_amount' => ['required_if:amount,'.self::OTHER_AMOUNT, 'nullable', new MoneyAmount],
             'donor_type' => ['required', Rule::enum(DonorType::class)],
-            'first_name' => [Rule::requiredIf($type === DonorType::Individual), 'nullable', 'string', 'max:100'],
-            'last_name' => [Rule::requiredIf($type === DonorType::Individual), 'nullable', 'string', 'max:100'],
-            'second_last_name' => ['nullable', 'string', 'max:100'],
-            'legal_name' => [Rule::requiredIf($type === DonorType::Organization), 'nullable', 'string', 'max:255'],
-            'contact_name' => ['nullable', 'string', 'max:150'],
+            ...DonorIdentityRules::for($type),
             'email' => ['required', 'string', 'email:rfc', 'max:255'],
-            'phone' => ['nullable', 'string', 'regex:/^[0-9 +()\-]{7,30}$/'],
             'wants_tax_receipt' => ['boolean'],
             'privacy_accepted' => ['accepted'],
             'accepts_communications' => ['boolean'],
         ], [
             'privacy_accepted.accepted' => 'Para donar debes aceptar el aviso de privacidad.',
             'custom_amount.required_if' => 'Escribe el importe que quieres donar.',
-            'phone.regex' => 'El teléfono solo puede tener números, espacios, +, paréntesis y guiones.',
+            'phone.regex' => DonorIdentityRules::PHONE_MESSAGE,
         ], [
             'frequency' => 'frecuencia', 'amount' => 'importe', 'custom_amount' => 'importe', 'donor_type' => 'tipo de donante',
             'first_name' => 'nombre', 'last_name' => 'apellido paterno', 'second_last_name' => 'apellido materno',

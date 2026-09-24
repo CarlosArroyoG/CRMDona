@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Payments\RelationManagers;
 
 use App\Enums\Permission;
+use App\Filament\Concerns\ResolvesActor;
 use App\Models\PaymentAttempt;
-use App\Models\User;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -18,15 +18,15 @@ use Illuminate\Database\Eloquent\Model;
  */
 class AttemptsRelationManager extends RelationManager
 {
+    use ResolvesActor;
+
     protected static string $relationship = 'attempts';
 
     protected static ?string $title = 'Intentos de cobro';
 
     public static function canViewForRecord(Model $ownerRecord, string $pageClass): bool
     {
-        $user = auth()->user();
-
-        return $user instanceof User && $user->hasPermission(Permission::ViewPaymentTechnicalDetails);
+        return self::actorCan(Permission::ViewPaymentTechnicalDetails);
     }
 
     public function isReadOnly(): bool

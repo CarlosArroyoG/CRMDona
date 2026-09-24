@@ -14,6 +14,7 @@ use App\Enums\ManualPaymentMethod;
 use App\Enums\Permission;
 use App\Enums\ProgramStatus;
 use App\Filament\Concerns\ReportsActionErrors;
+use App\Filament\Concerns\ResolvesActor;
 use App\Filament\Exports\DonationExporter;
 use App\Filament\Resources\Donations\Pages\CreateDonation;
 use App\Filament\Resources\Donations\Pages\EditDonation;
@@ -58,6 +59,7 @@ use Illuminate\Support\Facades\Gate;
 class DonationResource extends Resource
 {
     use ReportsActionErrors;
+    use ResolvesActor;
 
     protected static ?string $model = Donation::class;
 
@@ -169,7 +171,7 @@ class DonationResource extends Resource
             Section::make('Recibo de donación')
                 ->description('Recibo simple del CRM con folio propio. No es un comprobante fiscal (CFDI).')
                 ->columns(3)
-                ->visible(fn (Donation $record): bool => $record->status === DonationStatus::Confirmed && self::userCan(Permission::ViewDonationReceipts))
+                ->visible(fn (Donation $record): bool => $record->status === DonationStatus::Confirmed && self::actorCan(Permission::ViewDonationReceipts))
                 ->schema([
                     TextEntry::make('receipt.folio')->label('Folio')->placeholder('Se genera al descargarlo o al enviar el agradecimiento')
                         ->url(fn (Donation $record): ?string => $record->receipt !== null ? route('receipts.file', ['receipt' => $record->receipt]) : null),
@@ -178,7 +180,7 @@ class DonationResource extends Resource
             Section::make('Contabilidad')
                 ->description('El CRM no emite CFDI: Contabilidad recibe el aviso de cada donativo confirmado y decide fuera del sistema su tratamiento fiscal.')
                 ->columns(3)
-                ->visible(fn (Donation $record): bool => $record->status === DonationStatus::Confirmed && self::userCan(Permission::ProcessAccounting))
+                ->visible(fn (Donation $record): bool => $record->status === DonationStatus::Confirmed && self::actorCan(Permission::ProcessAccounting))
                 ->schema([
                     TextEntry::make('accountingNotice.status')->label('Aviso a Contabilidad')->badge()->placeholder('Sin aviso'),
                     TextEntry::make('accountingNotice.sent_at')->label('Avisado el')->dateTime('d/m/Y H:i')->placeholder('—'),
@@ -330,13 +332,6 @@ class DonationResource extends Resource
         $kind = $get('kind');
 
         return $kind instanceof DonationKind ? $kind : DonationKind::tryFrom((string) $kind);
-    }
-
-    private static function userCan(Permission $permission): bool
-    {
-        $user = auth()->user();
-
-        return $user instanceof User && $user->hasPermission($permission);
     }
 
     private static function donorLabel(mixed $value): ?string

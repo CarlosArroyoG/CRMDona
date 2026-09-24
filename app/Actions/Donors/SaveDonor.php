@@ -97,14 +97,9 @@ class SaveDonor
 
         return Validator::make($input, [
             'type' => ['required', new Enum(DonorType::class)],
-            'first_name' => [Rule::requiredIf($type === DonorType::Individual), 'nullable', 'string', 'max:100'],
-            'last_name' => [Rule::requiredIf($type === DonorType::Individual), 'nullable', 'string', 'max:100'],
-            'second_last_name' => ['nullable', 'string', 'max:100'],
+            ...DonorIdentityRules::for($type),
             'birth_date' => ['nullable', 'date', 'before:today'],
-            'legal_name' => [Rule::requiredIf($type === DonorType::Organization), 'nullable', 'string', 'max:255'],
-            'contact_name' => ['nullable', 'string', 'max:150'],
             'email' => ['nullable', 'string', 'email:rfc', 'max:255'],
-            'phone' => ['nullable', 'string', 'regex:/^[0-9 +()\-]{7,30}$/'],
             'notes' => ['nullable', 'string', 'max:5000'],
             'privacy_notice_accepted' => ['boolean'],
             'accepts_communications' => ['boolean'],
@@ -112,7 +107,7 @@ class SaveDonor
             'tag_ids.*' => ['integer', Rule::exists(Tag::class, 'id')],
             'has_tax_profile' => ['boolean'],
         ], [
-            'phone.regex' => 'El teléfono solo puede tener números, espacios, +, paréntesis y guiones (7 a 30 caracteres).',
+            'phone.regex' => DonorIdentityRules::PHONE_MESSAGE,
         ], [
             'type' => 'tipo de persona',
             'first_name' => 'nombre',

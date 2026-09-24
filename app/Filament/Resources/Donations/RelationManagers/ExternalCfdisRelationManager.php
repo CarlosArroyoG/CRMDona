@@ -9,9 +9,9 @@ use App\Actions\ExternalCfdi\RemoveExternalCfdi;
 use App\Enums\DonationStatus;
 use App\Enums\Permission;
 use App\Filament\Concerns\ReportsActionErrors;
+use App\Filament\Concerns\ResolvesActor;
 use App\Models\Donation;
 use App\Models\ExternalCfdi;
-use App\Models\User;
 use App\Support\Money;
 use Filament\Actions\Action;
 use Filament\Forms\Components\FileUpload;
@@ -35,6 +35,7 @@ use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 class ExternalCfdisRelationManager extends RelationManager
 {
     use ReportsActionErrors;
+    use ResolvesActor;
 
     protected static string $relationship = 'externalCfdis';
 
@@ -42,7 +43,7 @@ class ExternalCfdisRelationManager extends RelationManager
 
     public static function canViewForRecord(Model $ownerRecord, string $pageClass): bool
     {
-        return self::actor()?->hasPermission(Permission::ViewCfdis) ?? false;
+        return self::actorCan(Permission::ViewCfdis);
     }
 
     public function isReadOnly(): bool
@@ -96,7 +97,7 @@ class ExternalCfdisRelationManager extends RelationManager
                 /** @var Donation $donation */
                 $donation = $this->getOwnerRecord();
 
-                return (self::actor()?->hasPermission(Permission::ManageExternalCfdis) ?? false) && $donation->status === DonationStatus::Confirmed;
+                return self::actorCan(Permission::ManageExternalCfdis) && $donation->status === DonationStatus::Confirmed;
             })
             ->schema($this->fileFields())
             ->action(function (array $data): void {
@@ -193,12 +194,5 @@ class ExternalCfdisRelationManager extends RelationManager
         $contents = $state->get();
 
         return is_string($contents) && $contents !== '' ? $contents : null;
-    }
-
-    private static function actor(): ?User
-    {
-        $user = auth()->user();
-
-        return $user instanceof User ? $user : null;
     }
 }
