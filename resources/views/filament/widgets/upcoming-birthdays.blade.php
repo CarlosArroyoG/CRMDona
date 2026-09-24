@@ -7,7 +7,10 @@
                     <span @class(['db-chip', 'db-chip--accent' => $birthday['days'] === 0])>
                         {{ $birthday['days'] === 0 ? 'Hoy' : ($birthday['days'] === 1 ? 'Mañana' : $birthday['date']) }}
                     </span>
-                    {{ $birthday['greeted'] ? 'Recibirá felicitación' : 'Sin felicitación automática' }}
+                    {{ $birthday['greeted'] ? 'Recibirá felicitación por correo' : 'Sin felicitación automática' }}
+                    @if ($birthday['whatsapp'])
+                        {{ ($this->prepareWhatsAppAction)(['donor' => $birthday['id']])->link()->size('sm') }}
+                    @endif
                 </span>
             </div>
         @empty
@@ -17,4 +20,6 @@
             </div>
         @endforelse
     </x-filament::section>
+
+    <x-filament-actions::modals />
 </x-filament-widgets::widget>
