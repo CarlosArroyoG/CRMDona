@@ -6,6 +6,7 @@ namespace App\Providers\Filament;
 
 use App\Filament\Pages\Auth\ChangePassword;
 use App\Http\Middleware\EnsurePasswordIsCurrent;
+use App\Models\OrganizationSetting;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -20,6 +21,7 @@ use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 class AdminPanelProvider extends PanelProvider
@@ -37,8 +39,30 @@ class AdminPanelProvider extends PanelProvider
             ->databaseNotifications()
             ->navigationGroups(['Donativos', 'Pagos en línea', 'Destinos', 'Administración'])
             ->brandName(fn (): string => (string) config('app.name'))
+            // Logo configurado por la organización; sin él, Filament muestra el nombre de la marca.
+            ->brandLogo(fn (): ?string => OrganizationSetting::current()->logo_path !== null
+                ? Storage::disk('public')->url(OrganizationSetting::current()->logo_path)
+                : null)
+            ->brandLogoHeight('2.5rem')
+            ->viteTheme('resources/css/filament/admin/theme.css')
             ->colors([
-                'primary' => Color::hex('#162562'),
+                // Paleta explícita: Color::hex() normaliza la luminosidad y aclara el
+                // azul marino institucional. Aquí el matiz 600 es el hex exacto (#162562).
+                'primary' => [
+                    50 => '#f3f4f7',
+                    100 => '#e8e9ef',
+                    200 => '#c5c8d8',
+                    300 => '#a2a8c0',
+                    400 => '#5c6691',
+                    500 => '#39467a',
+                    600 => '#162562',
+                    700 => '#131f53',
+                    800 => '#0f1a45',
+                    900 => '#0c1436',
+                    950 => '#090f27',
+                ],
+                // Acento institucional (uso moderado: insignias, resaltados).
+                'warning' => Color::hex('#F2C94C'),
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')

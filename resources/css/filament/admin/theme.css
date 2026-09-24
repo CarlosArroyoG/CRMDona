@@ -1,0 +1,25 @@
+@import '../../../../vendor/filament/filament/resources/css/theme.css';
+
+@source '../../../../app/Filament/**/*';
+@source '../../../../resources/views/filament/**/*';
+
+/*
+ * Identidad institucional del panel (sobria): la marca vive en el
+ * encabezado superior; el resto del panel conserva el blanco de Filament
+ * para no perder legibilidad en tablas.
+ */
+.fi-topbar {
+    background: #162562;
+    border-bottom: 3px solid #f2c94c;
+}
+
+.fi-topbar a,
+.fi-topbar .fi-icon-btn {
+    color: #ffffff;
+}
+
+.fi-sidebar-item.fi-active .fi-sidebar-item-btn {
+    background: #e8eef8;
+    border-inline-start: 3px solid #162562;
+    font-weight: 600;
+}
