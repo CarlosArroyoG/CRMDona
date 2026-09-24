@@ -68,6 +68,10 @@ class UserResource extends Resource
                 Toggle::make('receives_payment_alerts')->label('Recibe alertas de pagos con problemas')
                     ->helperText('Aplica a Coordinador (solo incidencias operativas) y Contador. Los Administradores siempre las reciben; Solo lectura nunca.'),
             ]),
+            Section::make('Avisos a Contabilidad')->visibleOn('edit')->schema([
+                Toggle::make('receives_accounting_notices')->label('Recibe avisos a Contabilidad')
+                    ->helperText('Un correo por cada donativo confirmado, con los datos fiscales del donante si solicitó CFDI. Solo Administrador o Contador.'),
+            ]),
             Section::make('Contraseña inicial')
                 ->description('Mínimo '.CreateUser::PASSWORD_MIN_LENGTH.' caracteres, con letras y números. Entrégala a la persona por un medio seguro; podrá cambiarla en "Cambiar contraseña".')
                 ->visibleOn('create')

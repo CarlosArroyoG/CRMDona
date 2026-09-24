@@ -14,9 +14,9 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Reenvía un agradecimiento o un CFDI (por ejemplo, tras corregir el correo
+ * Reenvía un agradecimiento (por ejemplo, tras corregir el correo
  * del donante). Crea un registro nuevo con quien lo pidió; el original no se
- * modifica. Las felicitaciones no se reenvían.
+ * modifica. Las felicitaciones y los envíos históricos de CFDI no se reenvían.
  */
 class ResendCommunication
 {
@@ -33,7 +33,7 @@ class ResendCommunication
         }
 
         if (! self::canResend($original)) {
-            throw ValidationException::withMessages(['communication' => 'Solo se reenvían agradecimientos o CFDI que ya terminaron (enviados, fallidos, rebotados o no enviados).']);
+            throw ValidationException::withMessages(['communication' => 'Solo se reenvían agradecimientos que ya terminaron (enviados, fallidos, rebotados o no enviados).']);
         }
 
         return $this->queue->handle(
@@ -41,14 +41,13 @@ class ResendCommunication
             $original->donor,
             "{$original->kind->value}:resend:{$original->id}:".Str::uuid(),
             donation: $original->donation,
-            cfdi: $original->cfdi,
             requestedById: $actor->id,
         );
     }
 
     public static function canResend(Communication $communication): bool
     {
-        return $communication->kind !== CommunicationKind::Birthday
+        return $communication->kind === CommunicationKind::ThankYou
             && in_array($communication->status, [CommunicationStatus::Sent, CommunicationStatus::Failed, CommunicationStatus::Bounced, CommunicationStatus::Skipped], true);
     }
 }

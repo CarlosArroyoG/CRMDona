@@ -7,9 +7,9 @@ namespace App\Enums;
 use Filament\Support\Contracts\HasLabel;
 
 /**
- * Tipo de fondeo de la tarjeta según el proveedor de pagos. Define la forma de
- * pago del CFDI: [V] catálogo c_FormaPago del SAT, 04 "Tarjeta de crédito" y
- * 28 "Tarjeta de débito". Prepago y desconocido quedan bloqueados [F].
+ * Tipo de fondeo de la tarjeta según el proveedor de pagos. Se informa a
+ * Contabilidad en el aviso de cada donativo en línea; el CRM no lo traduce a
+ * claves del SAT (los CFDI se emiten fuera, docs/tecnico/cfdi-externo.md).
  */
 enum CardFunding: string implements HasLabel
 {
@@ -17,15 +17,6 @@ enum CardFunding: string implements HasLabel
     case Debit = 'debit';
     case Prepaid = 'prepaid';
     case Unknown = 'unknown';
-
-    public function cfdiPaymentForm(): ?string
-    {
-        return match ($this) {
-            self::Credit => '04',
-            self::Debit => '28',
-            self::Prepaid, self::Unknown => null,
-        };
-    }
 
     public function getLabel(): string
     {

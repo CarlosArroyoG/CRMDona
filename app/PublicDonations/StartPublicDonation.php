@@ -53,6 +53,7 @@ class StartPublicDonation
             'idempotency_key' => $payload['idempotency_key'],
             'card_token' => $cardToken,
             'payment_method_id' => $paymentMethodId,
+            'tax_receipt_requested' => ($payload['tax'] ?? null) !== null,
         ];
 
         if ($payload['frequency'] === ValidatePublicDonationForm::MONTHLY) {

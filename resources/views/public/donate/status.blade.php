@@ -23,7 +23,7 @@
                 <p class="mt-3">
                     Confirmamos tu donativo de <strong>{{ $amount }} MXN</strong>{{ $monthly ? ' mensual' : '' }}{{ $campaign ? ' para '.$campaign->name : '' }}.
                 </p>
-                <p class="mt-2">Te enviaremos por correo tu agradecimiento con el recibo{{ $payload['tax'] !== null ? ' y, cuando esté listo, tu comprobante fiscal' : '' }}.</p>
+                <p class="mt-2">Te enviaremos por correo tu agradecimiento con el recibo.{{ $payload['tax'] !== null ? ' Tu solicitud de comprobante fiscal (CFDI) pasa a nuestra área de contabilidad, que lo emite por separado.' : '' }}</p>
                 @if ($monthly)
                     <p class="mt-2 text-sm text-slate-600">Tu donativo se cobrará cada mes. Si quieres cancelarlo, escríbenos.</p>
                 @endif

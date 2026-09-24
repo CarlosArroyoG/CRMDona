@@ -112,7 +112,7 @@ class DonorResource extends Resource
                         ->helperText('Correos informativos y de campañas. Se registra la fecha del cambio.'),
                 ]),
             Section::make('Datos fiscales')
-                ->description('Solo si el donante pidió recibo deducible de impuestos. Se valida la estructura; las reglas fiscales se confirmarán con el contador antes de emitir CFDI.')
+                ->description('Solo si el donante pidió CFDI. Se valida la estructura y se envía a Contabilidad en el aviso de cada donativo; el CRM no emite CFDI.')
                 ->visible(fn (): bool => Gate::allows('viewTaxProfile', Donor::class))
                 ->columns(2)
                 ->schema([

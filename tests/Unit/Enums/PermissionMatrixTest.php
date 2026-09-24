@@ -46,11 +46,10 @@ const APPROVED_MATRIX = [
     'payments.receive_alerts' => ['A', 'C', 'Co'],
     'webhooks.view' => ['A'],
     'payment_settings.view' => ['A'],
-    // Fase 3 (aprobada por el usuario el 2026-09-23).
+    // CFDI externos (cambio de alcance: el CRM no emite CFDI).
     'cfdi.view' => ['A', 'C', 'Co'],
-    'cfdi.view_technical' => ['A', 'Co'],
-    'cfdi.issue' => ['A', 'Co'],
-    'cfdi.cancel' => ['A', 'Co'],
+    'cfdi.manage' => ['A', 'Co'],
+    'accounting.process' => ['A', 'Co'],
     // Fase 4 — comunicaciones.
     'receipts.view' => ['A', 'C', 'Co'],
     'communications.view' => ['A', 'C', 'Co'],

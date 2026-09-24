@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Actions\Donors\SaveDonor;
 use App\Enums\AuditEvent;
 use App\Enums\Role;
+use App\Models\AccountingNotice;
 use App\Models\AuditLog;
 use App\Models\Campaign;
 use App\Models\Cfdi;
@@ -12,6 +13,7 @@ use App\Models\Donation;
 use App\Models\DonationReceipt;
 use App\Models\Donor;
 use App\Models\DonorTaxProfile;
+use App\Models\ExternalCfdi;
 use App\Models\MessageTemplate;
 use App\Models\OrganizationSetting;
 use App\Models\Payment;
@@ -132,7 +134,8 @@ it('tiene etiqueta en español para cada tipo y campo auditado', function (): vo
         'donation' => Donation::class, 'organization_setting' => OrganizationSetting::class,
         'payment' => Payment::class, 'payment_attempt' => PaymentAttempt::class, 'subscription' => Subscription::class,
         'refund' => Refund::class, 'payment_dispute' => PaymentDispute::class, 'payment_incident' => PaymentIncident::class,
-        'payment_incident_note' => PaymentIncidentNote::class, 'cfdi' => Cfdi::class,
+        'payment_incident_note' => PaymentIncidentNote::class, 'cfdi' => Cfdi::class, 'external_cfdi' => ExternalCfdi::class,
+        'accounting_notice' => AccountingNotice::class,
         'donation_receipt' => DonationReceipt::class, 'message_template' => MessageTemplate::class,
     ];
 

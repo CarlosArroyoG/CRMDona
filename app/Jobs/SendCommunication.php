@@ -4,11 +4,8 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
-use App\Actions\Communications\QueueCfdiDelivery;
 use App\Actions\Communications\QueueCommunication;
 use App\Communications\MessageComposer;
-use App\Enums\CfdiStatus;
-use App\Enums\CommunicationKind;
 use App\Enums\CommunicationStatus;
 use App\Mail\DonorMessage;
 use App\Models\Communication;
@@ -46,7 +43,7 @@ class SendCommunication implements ShouldQueue
         $this->backoff = $backoff;
     }
 
-    public function handle(MessageComposer $composer, QueueCfdiDelivery $cfdiDelivery): void
+    public function handle(MessageComposer $composer): void
     {
         $claimed = DB::table('communications')->where('id', $this->communicationId)
             ->where(fn ($query) => $query->whereIn('status', [CommunicationStatus::Queued->value, CommunicationStatus::Failed->value])
@@ -58,10 +55,12 @@ class SendCommunication implements ShouldQueue
             return;
         }
 
-        $communication = Communication::query()->with(['donor', 'donation.donor', 'cfdi.donation'])->findOrFail($this->communicationId);
+        $communication = Communication::query()->with(['donor', 'donation.donor'])->findOrFail($this->communicationId);
         $donor = $communication->donor;
 
-        $skip = QueueCommunication::skipReason($communication->kind, $donor);
+        $skip = $communication->kind->isHistorical()
+            ? 'El CRM ya no envía CFDI; contabilidad los emite y entrega fuera del sistema.'
+            : QueueCommunication::skipReason($communication->kind, $donor);
         if ($skip !== null) {
             $communication->forceFill(['status' => CommunicationStatus::Skipped, 'skip_reason' => $skip])->save();
 
@@ -87,16 +86,7 @@ class SendCommunication implements ShouldQueue
             'recipient' => Communication::maskEmail($donor->email),
             'attachments' => $message->attachmentNames(),
             'used_fallback_template' => $message->usedFallback,
-            'cfdi_id' => $communication->cfdi_id ?? $message->cfdiId,
             'last_error' => null,
         ])->save();
-
-        // El CFDI pudo timbrarse mientras salía el agradecimiento sin él.
-        if ($communication->kind === CommunicationKind::ThankYou && $message->cfdiId === null) {
-            $cfdi = $communication->donation?->activeCfdi();
-            if ($cfdi !== null && $cfdi->status === CfdiStatus::Stamped) {
-                $cfdiDelivery->handle($cfdi);
-            }
-        }
     }
 }

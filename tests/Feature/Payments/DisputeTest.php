@@ -36,7 +36,7 @@ it('una disputa nueva se registra, abre una incidencia crítica y alerta una sol
     expect($incident->type)->toBe(IncidentType::DisputeOpened)
         ->and($incident->severity)->toBe(IncidentSeverity::Critical)
         ->and($incident->dispute_id)->toBe($dispute->id)
-        ->and(DatabaseNotification::query()->where('notifiable_id', $admin->id)->count())->toBe(1);
+        ->and(DatabaseNotification::query()->where('notifiable_id', $admin->id)->where('data->viewData->payment_incident_id', $incident->id)->count())->toBe(1);
 });
 
 it('no modifica el pago ni el donativo', function (): void {

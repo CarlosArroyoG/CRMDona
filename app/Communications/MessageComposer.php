@@ -4,14 +4,8 @@ declare(strict_types=1);
 
 namespace App\Communications;
 
-use App\Actions\Cfdi\ResolveDonationFiscalRoute;
 use App\Actions\Communications\IssueDonationReceipt;
-use App\Cfdi\CfdiProviderRegistry;
-use App\Enums\CfdiStatus;
 use App\Enums\CommunicationKind;
-use App\Enums\CommunicationStatus;
-use App\Enums\FiscalRoute;
-use App\Models\Cfdi;
 use App\Models\Communication;
 use App\Models\Donation;
 use App\Models\Donor;
@@ -30,20 +24,23 @@ use RuntimeException;
  */
 final class MessageComposer
 {
-    public function __construct(
-        private readonly IssueDonationReceipt $receipts,
-        private readonly ResolveDonationFiscalRoute $route,
-        private readonly CfdiProviderRegistry $registry,
-    ) {}
+    public function __construct(private readonly IssueDonationReceipt $receipts) {}
 
+    /**
+     * El agradecimiento lleva solo el recibo simple: nunca espera ni adjunta un
+     * CFDI (el CRM no los emite; docs/tecnico/cfdi-externo.md).
+     */
     public function compose(Communication $communication): ComposedMessage
     {
         $donor = $communication->donor;
         $kind = $communication->kind;
         $notices = [];
         $attachments = [];
-        $cfdi = null;
         $variables = $this->commonVariables($donor);
+
+        if ($kind->isHistorical()) {
+            throw new RuntimeException('El envío de CFDI ya no existe en el CRM.');
+        }
 
         if ($kind === CommunicationKind::ThankYou) {
             $donation = $communication->donation ?? throw new RuntimeException('El agradecimiento no tiene donativo.');
@@ -51,30 +48,6 @@ final class MessageComposer
             $variables += $this->donationVariables($donation) + ['folio_recibo' => (string) $receipt->folio];
             $attachments[] = $this->file(config()->string('communications.disk'), (string) $receipt->pdf_path, "Recibo-{$receipt->folio}.pdf", 'application/pdf');
             $notices[] = IssueDonationReceipt::DISCLAIMER;
-
-            $cfdi = $this->stampedCfdi($donation);
-            if ($cfdi !== null && $this->deliveredSeparately($cfdi, $communication)) {
-                $cfdi = null;
-                $notices[] = 'El comprobante fiscal (CFDI) de este donativo se envió en un correo aparte.';
-            } elseif ($cfdi !== null) {
-                $attachments = [...$attachments, ...$this->cfdiFiles($cfdi)];
-                $notices[] = 'Adjuntamos también el comprobante fiscal (CFDI) de este donativo.';
-            } elseif ($this->registry->isConfigured() && $this->route->handle($donation)->route === FiscalRoute::Individual) {
-                $notices[] = 'Tu comprobante fiscal (CFDI) te llegará en un correo aparte en cuanto esté listo.';
-            }
-        }
-
-        if ($kind === CommunicationKind::Cfdi) {
-            $cfdi = $communication->cfdi ?? throw new RuntimeException('El envío de CFDI no tiene CFDI.');
-            if (! $cfdi->status->isStamped()) {
-                throw new RuntimeException('El CFDI no está timbrado.');
-            }
-            $donation = $cfdi->donation;
-            if ($donation === null) {
-                throw new RuntimeException('La factura global no se entrega como CFDI individual a un donante.');
-            }
-            $variables += $this->donationVariables($donation) + ['folio_fiscal' => strtoupper((string) $cfdi->uuid)];
-            $attachments = $this->cfdiFiles($cfdi);
         }
 
         $unsubscribe = null;
@@ -93,7 +66,6 @@ final class MessageComposer
             usedFallback: $fallback,
             signature: OrganizationSetting::current()->email_signature,
             unsubscribeUrl: $unsubscribe,
-            cfdiId: $cfdi?->id,
         );
     }
 
@@ -107,7 +79,7 @@ final class MessageComposer
         $sample = [
             'nombre' => 'María', 'organizacion' => OrganizationSetting::current()->legal_name ?? config()->string('app.name'),
             'importe' => '$1,500.00 MXN', 'fecha_donativo' => now()->format('d/m/Y'), 'destino' => 'el fondo general',
-            'folio_recibo' => 'R-000123', 'folio_fiscal' => 'A1B2C3D4-0000-4000-8000-000000000001',
+            'folio_recibo' => 'R-000123',
         ];
         $variables = array_intersect_key($sample, $kind->variables());
 
@@ -158,35 +130,6 @@ final class MessageComposer
             'fecha_donativo' => $donation->received_on->format('d/m/Y'),
             'destino' => $donation->destinationLabel(),
         ];
-    }
-
-    private function stampedCfdi(Donation $donation): ?Cfdi
-    {
-        $cfdi = $donation->activeCfdi();
-
-        return $cfdi !== null && $cfdi->status === CfdiStatus::Stamped ? $cfdi : null;
-    }
-
-    private function deliveredSeparately(Cfdi $cfdi, Communication $current): bool
-    {
-        return Communication::query()->where('cfdi_id', $cfdi->id)->whereKeyNot($current->id)
-            ->whereIn('status', [CommunicationStatus::Queued->value, CommunicationStatus::Sending->value, CommunicationStatus::Sent->value])
-            ->exists();
-    }
-
-    /**
-     * @return list<array{disk: string, path: string, name: string, mime: string}>
-     */
-    private function cfdiFiles(Cfdi $cfdi): array
-    {
-        $disk = config()->string('cfdi.disk');
-        $name = 'CFDI-'.strtoupper((string) $cfdi->uuid);
-        $files = [$this->file($disk, (string) $cfdi->xml_path, "{$name}.xml", 'application/xml')];
-        if ($cfdi->pdf_path !== null) {
-            $files[] = $this->file($disk, $cfdi->pdf_path, "{$name}.pdf", 'application/pdf');
-        }
-
-        return $files;
     }
 
     /**

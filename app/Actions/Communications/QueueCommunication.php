@@ -7,7 +7,6 @@ namespace App\Actions\Communications;
 use App\Enums\CommunicationKind;
 use App\Enums\CommunicationStatus;
 use App\Jobs\SendCommunication;
-use App\Models\Cfdi;
 use App\Models\Communication;
 use App\Models\Donation;
 use App\Models\Donor;
@@ -16,7 +15,7 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Registra un correo una sola vez por `dedupe_key` y lo encola. Un reintento
- * del mismo hecho (confirmación, timbrado, scheduler repetido) devuelve el
+ * del mismo hecho (confirmación, scheduler repetido) devuelve el
  * registro existente sin volver a enviar. Si el donante no tiene correo o no
  * dio consentimiento (cuando aplica), queda "No enviado" con el motivo.
  */
@@ -27,9 +26,7 @@ class QueueCommunication
         Donor $donor,
         string $dedupeKey,
         ?Donation $donation = null,
-        ?Cfdi $cfdi = null,
         ?int $requestedById = null,
-        int $delaySeconds = 0,
     ): Communication {
         $existing = Communication::query()->where('dedupe_key', $dedupeKey)->first();
         if ($existing !== null) {
@@ -43,7 +40,6 @@ class QueueCommunication
                 'kind' => $kind,
                 'donor_id' => $donor->id,
                 'donation_id' => $donation?->id,
-                'cfdi_id' => $cfdi?->id,
                 'dedupe_key' => $dedupeKey,
                 'status' => $skip === null ? CommunicationStatus::Queued : CommunicationStatus::Skipped,
                 'skip_reason' => $skip,
@@ -55,7 +51,7 @@ class QueueCommunication
         }
 
         if ($skip === null) {
-            SendCommunication::dispatch($communication->id)->delay($delaySeconds)->afterCommit();
+            SendCommunication::dispatch($communication->id)->afterCommit();
         }
 
         return $communication;

@@ -53,11 +53,12 @@ enum Permission: string
     case ViewWebhooks = 'webhooks.view';
     case ViewPaymentSettings = 'payment_settings.view';
 
-    // Fase 3 — CFDI (docs/tecnico/fase-3-cfdi.md; aprobados 2026-09-23).
+    // CFDI externos (docs/tecnico/cfdi-externo.md): el CRM no emite CFDI; solo conserva
+    // los que contabilidad emite fuera, como antecedentes del donativo.
     case ViewCfdis = 'cfdi.view';
-    case ViewCfdiTechnicalDetails = 'cfdi.view_technical';
-    case IssueCfdis = 'cfdi.issue';
-    case CancelCfdis = 'cfdi.cancel';
+    case ManageExternalCfdis = 'cfdi.manage';
+    // Aviso a Contabilidad y cola contable: recibir avisos con datos fiscales y marcar el procesamiento.
+    case ProcessAccounting = 'accounting.process';
 
     // Fase 4 — comunicaciones (docs/tecnico/fase-4-comunicaciones.md).
     case ViewDonationReceipts = 'receipts.view';
@@ -84,7 +85,7 @@ enum Permission: string
             self::ViewCfdis, self::ViewDonationReceipts, self::ViewCommunications, self::ResendCommunications => $staff,
             self::ConfirmDonations, self::ViewOrganizationSettings, self::ViewPaymentTechnicalDetails,
             self::RequestRefunds, self::ViewDisputes, self::HandleTechnicalIncidents,
-            self::IssueCfdis, self::CancelCfdis, self::ViewCfdiTechnicalDetails => $finance,
+            self::ManageExternalCfdis, self::ProcessAccounting => $finance,
             self::DeleteDonors, self::DeletePrograms, self::DeleteCampaigns,
             self::UpdateOrganizationSettings, self::ViewAuditLog, self::ManageUsers,
             self::ViewWebhooks, self::ViewPaymentSettings => [Role::Administrator],

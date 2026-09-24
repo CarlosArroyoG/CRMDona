@@ -21,12 +21,12 @@ class MessageTemplatePolicy
 
     public function view(User $user, MessageTemplate $template): bool
     {
-        return $user->hasPermission(Permission::ManageMessageTemplates);
+        return ! $template->kind->isHistorical() && $user->hasPermission(Permission::ManageMessageTemplates);
     }
 
     public function update(User $user, MessageTemplate $template): bool
     {
-        return $user->hasPermission(Permission::ManageMessageTemplates);
+        return ! $template->kind->isHistorical() && $user->hasPermission(Permission::ManageMessageTemplates);
     }
 
     public function create(User $user): bool

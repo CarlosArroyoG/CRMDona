@@ -63,6 +63,7 @@ class StartMonthlyDonation
             'interval' => SubscriptionInterval::Monthly,
             'status' => SubscriptionStatus::Pending,
             'retry_owner' => $gateway->retryOwner(),
+            'tax_receipt_requested' => $data['tax_receipt_requested'],
         ]);
 
         if (! $subscription->wasRecentlyCreated && ($subscription->donor_id !== $data['donor']->id

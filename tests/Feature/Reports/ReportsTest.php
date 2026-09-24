@@ -2,26 +2,25 @@
 
 declare(strict_types=1);
 
-use App\Actions\Cfdi\BuildDonationCfdiDraft;
-use App\Actions\Cfdi\RequestCfdiCancellation;
-use App\Actions\Cfdi\RequestDonationCfdi;
+use App\Actions\Accounting\RetryAccountingNotice;
+use App\Actions\Accounting\SetAccountingProcessed;
+use App\Actions\Donations\ConfirmDonation;
+use App\Actions\ExternalCfdi\AttachExternalCfdi;
 use App\Actions\Incidents\OpenPaymentIncident;
-use App\Cfdi\CfdiProviderRegistry;
-use App\Cfdi\Providers\FakeCfdiProvider;
-use App\Enums\CfdiStatus;
+use App\Enums\AccountingNoticeStatus;
 use App\Enums\DonationStatus;
-use App\Enums\FiscalRoute;
 use App\Enums\IncidentType;
 use App\Enums\ManualPaymentMethod;
 use App\Enums\PaymentKind;
 use App\Enums\PaymentStatus;
 use App\Enums\Role;
 use App\Enums\SubscriptionStatus;
-use App\Enums\TaxRegime;
-use App\Filament\Resources\CfdiReports\Pages\ListCfdiReport;
+use App\Filament\Resources\AccountingControl\Pages\ListAccountingControl;
 use App\Filament\Resources\Payments\Pages\ListPayments;
 use App\Filament\Widgets\FundraisingOverview;
 use App\Filament\Widgets\UpcomingBirthdays;
+use App\Models\AccountingNotice;
+use App\Models\AuditLog;
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Donor;
@@ -31,15 +30,16 @@ use App\Models\Payment;
 use App\Models\PaymentAttempt;
 use App\Models\Refund;
 use App\Models\Subscription;
-use App\Reports\CfdiReport;
+use App\Reports\AccountingControl;
 use App\Reports\DashboardMetrics;
 use App\Reports\PaymentReport;
 use Carbon\CarbonImmutable;
 use Filament\Actions\Testing\TestAction;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
 
 use function Pest\Laravel\actingAs;
@@ -286,94 +286,94 @@ it('el reporte de pagos evita consultas por fila (N+1)', function (): void {
     expect(count(DB::getQueryLog()))->toBeLessThanOrEqual($few + 2);
 });
 
-it('reporte CFDI: estado, UUID, ruta individual / público en general / bloqueado, cancelaciones y fechas', function (): void {
-    OrganizationSetting::current()->forceFill([
-        'legal_name' => 'FUNDACION DE PRUEBA', 'rfc' => 'FPR010101AAA', 'tax_regime' => TaxRegime::NonProfitLegalEntities,
-        'tax_postal_code' => '62000', 'authorization_number' => '600-04-02-2026-0001', 'authorization_date' => '2026-01-15',
-    ])->save();
-    $admin = userWithRole(Role::Administrator);
-    actingAs($admin);
-    $withTax = fn (array $extra = []) => confirmedDonation('1500.00', '2026-09-05', ['donor_id' => Donor::factory()->withTaxProfile()->create()->id, 'manual_payment_method' => ManualPaymentMethod::Cash, ...$extra]);
+it('control contable: recibo, CFDI solicitado, aviso, CFDI externo y procesamiento, con filtros y exportación sin datos fiscales', function (): void {
+    OrganizationSetting::current()->forceFill(['legal_name' => 'FUNDACION DE PRUEBA', 'rfc' => 'FPR010101AAA'])->save();
+    $accountant = userWithRole(Role::Accountant);
+    actingAs($accountant);
+    $confirm = fn (array $extra = []): Donation => app(ConfirmDonation::class)->handle(Donation::factory()->create([
+        'donor_id' => Donor::factory()->withTaxProfile()->create()->id, 'manual_payment_method' => ManualPaymentMethod::Cash,
+        'amount' => '1500.00', 'received_on' => '2026-09-05', ...$extra,
+    ]), $accountant);
 
-    $stamped = $withTax();
-    $cfdi = app(RequestDonationCfdi::class)->handle($stamped, $admin)->refresh();
-    $cancelledOne = $withTax();
-    $toCancel = app(RequestDonationCfdi::class)->handle($cancelledOne, $admin)->refresh();
-    app(RequestCfdiCancellation::class)->handle($toCancel, '02', 'RFC equivocado', $admin);
-    $public = confirmedDonation('200.00', '2026-09-06', ['manual_payment_method' => ManualPaymentMethod::Cash]);
-    $blocked = $withTax(['manual_payment_method' => ManualPaymentMethod::BankDeposit]);
-    $old = $withTax(['received_on' => '2026-01-10']);
+    $requested = $confirm(['tax_receipt_requested' => true]);
+    $notRequested = $confirm();
+    $withCfdi = $confirm(['tax_receipt_requested' => true]);
+    $uuid = '11111111-2222-4333-8444-555555555555';
+    app(AttachExternalCfdi::class)->handle($withCfdi, externalCfdiXml($uuid), null, null, $accountant);
+    $processed = $confirm();
+    app(SetAccountingProcessed::class)->handle($processed, true, 'Incluido en la factura global de septiembre.', $accountant);
+    $old = $confirm(['received_on' => '2026-01-10']);
+    $pending = Donation::factory()->create(['manual_payment_method' => ManualPaymentMethod::Cash]);
 
-    $report = app(CfdiReport::class);
-    $load = fn (Donation $donation) => CfdiReport::query()->findOrFail($donation->id);
-    expect(CfdiReport::activeCfdi($load($stamped))?->uuid)->toBe($cfdi->uuid)
-        ->and($report->coverage($load($stamped))->route)->toBe(FiscalRoute::Individual)
-        ->and($report->coverage($load($public))->route)->toBe(FiscalRoute::PublicGeneral)
-        ->and($report->coverage($load($blocked))->route)->toBe(FiscalRoute::Blocked)
-        ->and(CfdiReport::cancelledCount($load($cancelledOne)))->toBe(1)
-        ->and(CfdiReport::activeCfdi($load($cancelledOne)))->toBeNull();
+    Livewire::test(ListAccountingControl::class)
+        ->assertCanSeeTableRecords([$requested, $notRequested, $withCfdi, $processed])
+        ->assertCanNotSeeTableRecords([$pending])
+        ->assertSee($uuid)->assertSee((string) $requested->receipt?->folio);
+    Livewire::test(ListAccountingControl::class)->filterTable('tax_receipt_requested', true)
+        ->assertCanSeeTableRecords([$requested, $withCfdi])->assertCanNotSeeTableRecords([$notRequested, $processed]);
+    Livewire::test(ListAccountingControl::class)->filterTable('tax_receipt_requested', false)
+        ->assertCanSeeTableRecords([$notRequested, $processed])->assertCanNotSeeTableRecords([$requested, $withCfdi]);
+    Livewire::test(ListAccountingControl::class)->filterTable('external_cfdi', true)
+        ->assertCanSeeTableRecords([$withCfdi])->assertCanNotSeeTableRecords([$requested, $notRequested]);
+    Livewire::test(ListAccountingControl::class)->filterTable('processing', AccountingControl::PENDING)
+        ->assertCanSeeTableRecords([$requested, $notRequested, $withCfdi])->assertCanNotSeeTableRecords([$processed]);
+    Livewire::test(ListAccountingControl::class)->filterTable('processing', AccountingControl::PROCESSED)
+        ->assertCanSeeTableRecords([$processed])->assertCanNotSeeTableRecords([$requested]);
+    Livewire::test(ListAccountingControl::class)->filterTable('received_on', ['from' => '2026-09-01', 'until' => '2026-09-30'])
+        ->assertCanSeeTableRecords([$requested])->assertCanNotSeeTableRecords([$old]);
 
-    Livewire::test(ListCfdiReport::class)
-        ->assertCanSeeTableRecords([$stamped, $public, $blocked, $cancelledOne])
-        ->assertSee((string) $cfdi->uuid)->assertSee('depósito bancario');
-    Livewire::test(ListCfdiReport::class)->filterTable('cfdi_status', CfdiStatus::Stamped->value)
-        ->assertCanSeeTableRecords([$stamped])->assertCanNotSeeTableRecords([$public, $blocked, $cancelledOne]);
-    Livewire::test(ListCfdiReport::class)->filterTable('cfdi_status', CfdiReport::NO_CFDI)
-        ->assertCanSeeTableRecords([$public, $blocked, $cancelledOne])->assertCanNotSeeTableRecords([$stamped]);
-    Livewire::test(ListCfdiReport::class)->filterTable('public_general', true)
-        ->assertCanSeeTableRecords([$public])->assertCanNotSeeTableRecords([$stamped, $blocked]);
-    Livewire::test(ListCfdiReport::class)->filterTable('cancellations', true)
-        ->assertCanSeeTableRecords([$cancelledOne])->assertCanNotSeeTableRecords([$stamped]);
-    Livewire::test(ListCfdiReport::class)->filterTable('received_on', ['from' => '2026-09-01', 'until' => '2026-09-30'])
-        ->assertCanSeeTableRecords([$stamped])->assertCanNotSeeTableRecords([$old]);
-
-    Livewire::test(ListCfdiReport::class)->filterTable('cfdi_status', CfdiStatus::Stamped->value)->callAction(TestAction::make('export')->table());
-    $csv = exportedCsv(Export::query()->where('user_id', $admin->id)->sole());
-    expect($csv)->toContain((string) $cfdi->uuid)->toContain('CFDI individual')
-        ->and(str_contains($csv, (string) $stamped->donor->taxProfile?->rfc))->toBeFalse();
+    Livewire::test(ListAccountingControl::class)->filterTable('external_cfdi', true)->callAction(TestAction::make('export')->table());
+    $csv = exportedCsv(Export::query()->where('user_id', $accountant->id)->sole());
+    expect($csv)->toContain($uuid)->toContain((string) $withCfdi->receipt?->folio)
+        ->and(str_contains($csv, (string) $withCfdi->donor->taxProfile?->rfc))->toBeFalse();
 });
 
-it('el filtro de público en general coincide con la regla de emisión', function (): void {
-    $none = confirmedDonation('100.00', '2026-09-05');
-    $generic = confirmedDonation('100.00', '2026-09-05', ['donor_id' => Donor::factory()->withTaxProfile()->create()->id]);
-    $generic->donor->taxProfile?->forceFill(['rfc' => 'XAXX010101000'])->save();
-    $withRfc = confirmedDonation('100.00', '2026-09-05', ['donor_id' => Donor::factory()->withTaxProfile()->create()->id]);
+it('control contable: marcar procesado (también en lote), reabrir con motivo y reenviar el aviso, con bitácora', function (): void {
+    $accountant = userWithRole(Role::Accountant);
+    actingAs($accountant);
+    $donation = app(ConfirmDonation::class)->handle(Donation::factory()->create(['manual_payment_method' => ManualPaymentMethod::Cash]), $accountant);
+    $others = Donation::factory()->count(2)->create(['manual_payment_method' => ManualPaymentMethod::Cash])
+        ->map(fn (Donation $other): Donation => app(ConfirmDonation::class)->handle($other, $accountant));
 
-    $sql = CfdiReport::wherePublicGeneral(Donation::query(), true)->pluck('id')->sort()->values()->all();
-    $rule = collect([$none, $generic, $withRfc])->filter(fn (Donation $donation): bool => app(BuildDonationCfdiDraft::class)->isPublicGeneral($donation->fresh() ?? $donation))
-        ->pluck('id')->sort()->values()->all();
+    Livewire::test(ListAccountingControl::class)
+        ->callAction(TestAction::make('markProcessed')->table($donation), ['note' => 'CFDI emitido fuera del CRM.']);
+    $notice = $donation->accountingNotice()->sole();
+    expect($notice->processed_at)->not->toBeNull()->and($notice->processed_by_id)->toBe($accountant->id)
+        ->and($notice->processing_note)->toBe('CFDI emitido fuera del CRM.')
+        ->and(AuditLog::query()->where('auditable_type', 'accounting_notice')->where('auditable_id', $notice->id)->where('event', 'updated')->exists())->toBeTrue();
 
-    expect($sql)->toBe($rule)->toBe([$none->id, $generic->id]);
+    Livewire::test(ListAccountingControl::class)->callAction(TestAction::make('reopen')->table($donation), ['note' => 'Se procesó el donativo equivocado.']);
+    expect($notice->refresh()->processed_at)->toBeNull()->and($notice->processed_by_id)->toBeNull();
+    expect(fn () => app(SetAccountingProcessed::class)->handle($donation, false, 'Otra vez', $accountant))->toThrow(ValidationException::class);
+
+    Livewire::test(ListAccountingControl::class)->callTableBulkAction('bulkMarkProcessed', $others->all());
+    expect(AccountingNotice::query()->whereIn('donation_id', $others->pluck('id'))->whereNotNull('processed_at')->count())->toBe(2);
+
+    // Sin destinatarios configurados el aviso quedó "No enviado"; al configurarlos se reenvía.
+    expect($notice->status)->toBe(AccountingNoticeStatus::Skipped);
+    $accountant->forceFill(['receives_accounting_notices' => true])->save();
+    Livewire::test(ListAccountingControl::class)->callAction(TestAction::make('retryNotice')->table($donation));
+    expect($notice->refresh()->status)->toBe(AccountingNoticeStatus::Sent)->and($notice->delivered_to)->toBe([$accountant->id]);
+    Livewire::test(ListAccountingControl::class)->assertActionHidden(TestAction::make('retryNotice')->table($donation->refresh()));
 });
 
-it('permisos: Solo lectura no ve el reporte CFDI ni exporta pagos; el Coordinador no ve el error técnico', function (): void {
+it('permisos del control contable: Solo lectura no entra; el Coordinador consulta sin marcar ni reenviar', function (): void {
+    $donation = app(ConfirmDonation::class)->handle(Donation::factory()->create(['manual_payment_method' => ManualPaymentMethod::Cash]), userWithRole(Role::Accountant));
+
     actingAs(userWithRole(Role::ReadOnly));
-    get('/admin/reporte-cfdi')->assertForbidden();
+    get('/admin/control-contable')->assertForbidden();
     Livewire::test(ListPayments::class)->assertActionHidden(TestAction::make('export')->table())
         ->assertTableFilterHidden('failure_category')->assertTableFilterHidden('has_incident');
+    expect(fn () => app(SetAccountingProcessed::class)->handle($donation, true, null, userWithRole(Role::ReadOnly)))->toThrow(AuthorizationException::class);
 
     actingAs(userWithRole(Role::FundraisingCoordinator));
-    get('/admin/reporte-cfdi')->assertOk();
-    Livewire::test(ListCfdiReport::class)->assertActionVisible(TestAction::make('export')->table());
+    get('/admin/control-contable')->assertOk();
+    Livewire::test(ListAccountingControl::class)->assertActionVisible(TestAction::make('export')->table())
+        ->assertActionHidden(TestAction::make('markProcessed')->table($donation))
+        ->assertActionHidden(TestAction::make('retryNotice')->table($donation));
+    expect(fn () => app(RetryAccountingNotice::class)->handle($donation, userWithRole(Role::FundraisingCoordinator)))->toThrow(AuthorizationException::class);
 
     actingAs(userWithRole(Role::Accountant));
-    get('/admin/reporte-cfdi')->assertOk();
-});
-
-it('el Coordinador ve "Rechazado por datos" sin el mensaje técnico del PAC', function (): void {
-    OrganizationSetting::current()->forceFill([
-        'legal_name' => 'FUNDACION DE PRUEBA', 'rfc' => 'FPR010101AAA', 'tax_regime' => TaxRegime::NonProfitLegalEntities,
-        'tax_postal_code' => '62000', 'authorization_number' => '600-04-02-2026-0001', 'authorization_date' => '2026-01-15',
-    ])->save();
-    $donation = confirmedDonation('100.00', '2026-09-05', ['donor_id' => Donor::factory()->withTaxProfile()->create()->id, 'manual_payment_method' => ManualPaymentMethod::Cash]);
-    /** @var FakeCfdiProvider $pac */
-    $pac = app(CfdiProviderRegistry::class)->current();
-    $pac->willStamp(FakeCfdiProvider::STAMP_REJECTED);
-    app(RequestDonationCfdi::class)->handle($donation, userWithRole(Role::Administrator));
-
-    actingAs(userWithRole(Role::FundraisingCoordinator));
-    Livewire::test(ListCfdiReport::class)->assertSee('detalle para Administrador y Contador')->assertDontSee('RFC del receptor no válido');
-    actingAs(userWithRole(Role::Accountant));
-    Livewire::test(ListCfdiReport::class)->assertSee('RFC del receptor no válido');
-    expect(Storage::disk('local'))->not->toBeNull();
+    get('/admin/control-contable')->assertOk();
+    get('/admin/reporte-cfdi')->assertNotFound();
 });

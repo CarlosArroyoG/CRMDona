@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Donations;
 
-use App\Actions\Cfdi\ResolveDonationFiscalRoute;
 use App\Actions\Donations\CancelDonation;
 use App\Actions\Donations\ConfirmDonation;
 use App\Enums\CampaignStatus;
@@ -16,11 +15,11 @@ use App\Enums\Permission;
 use App\Enums\ProgramStatus;
 use App\Filament\Concerns\ReportsActionErrors;
 use App\Filament\Exports\DonationExporter;
-use App\Filament\Resources\Cfdis\CfdiResource;
 use App\Filament\Resources\Donations\Pages\CreateDonation;
 use App\Filament\Resources\Donations\Pages\EditDonation;
 use App\Filament\Resources\Donations\Pages\ListDonations;
 use App\Filament\Resources\Donations\Pages\ViewDonation;
+use App\Filament\Resources\Donations\RelationManagers\ExternalCfdisRelationManager;
 use App\Filament\Resources\Donors\DonorResource;
 use App\Filament\Resources\Payments\PaymentResource;
 use App\Models\Campaign;
@@ -31,7 +30,6 @@ use App\Models\User;
 use App\Support\Money;
 use App\Support\Search;
 use BackedEnum;
-use Carbon\Carbon;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Actions\ExportAction;
@@ -100,15 +98,10 @@ class DonationResource extends Resource
                     Textarea::make('in_kind_description')->label('Descripción de lo donado')->rows(3)->maxLength(2000)
                         ->required($inKind)->visible($inKind)->columnSpanFull()
                         ->helperText('Descripción detallada del bien y su estado.'),
-                    TextInput::make('in_kind_quantity')->label('Cantidad')->numeric()->required($inKind)->visible($inKind),
-                    TextInput::make('in_kind_unit_code')->label('Unidad SAT')->maxLength(10)->required($inKind)->visible($inKind),
-                    TextInput::make('in_kind_product_service_code')->label('Clave producto/servicio SAT')->maxLength(10)->required($inKind)->visible($inKind),
-                    TextInput::make('in_kind_unit_value')->label('Valor unitario (MXN)')->numeric()->prefix('$')->required($inKind)->visible($inKind),
-                    TextInput::make('in_kind_total_value')->label('Valor total fiscal (MXN)')->numeric()->prefix('$')->required($inKind)->visible($inKind),
                     TextInput::make('reference')->label('Referencia')->maxLength(100)
                         ->helperText('Folio de transferencia, número de cheque o de recibo físico.'),
-                    Toggle::make('tax_receipt_requested')->label('Solicitó recibo deducible (CFDI)')
-                        ->helperText('Solo informativo: la Fundación emite CFDI por todo donativo confirmado (con los datos fiscales del donante o, sin ellos, como público en general).'),
+                    Toggle::make('tax_receipt_requested')->label('El donante solicitó CFDI')
+                        ->helperText('Contabilidad recibe este dato en el aviso del donativo y emite el CFDI fuera del CRM. Si lo solicitó, captura sus datos fiscales en la ficha del donante.'),
                 ]),
             Section::make('Destino')->columns(2)->schema([
                 Radio::make('destination')->label('¿A qué se destina?')->required()->live()->dehydrated(false)
@@ -156,33 +149,9 @@ class DonationResource extends Resource
                 TextEntry::make('effective_program')->label('Programa')
                     ->state(fn (Donation $record): ?string => $record->effectiveProgram()?->name)->placeholder('Fondo general'),
                 TextEntry::make('reference')->label('Referencia')->placeholder('—'),
-                TextEntry::make('cfdi')->label('CFDI')->placeholder('Sin CFDI')
-                    ->state(fn (Donation $record): ?string => $record->activeCfdi()?->status->getLabel())
-                    ->url(fn (Donation $record): ?string => ($cfdi = $record->activeCfdi()) !== null && Gate::allows('view', $cfdi)
-                        ? CfdiResource::getUrl('view', ['record' => $cfdi]) : null),
-                TextEntry::make('global_cfdi')->label('Factura global')->placeholder('Sin factura global')
-                    ->state(fn (Donation $record): ?string => ($global = $record->globalCfdis()->latest('global_cfdis.id')->first()) !== null
-                        ? "#{$global->id} · {$global->periodicity} · ".Carbon::parse($global->period_start)->format('d/m/Y').'–'.Carbon::parse($global->period_end)->format('d/m/Y')
-                        : null)
-                    ->url(fn (Donation $record): ?string => ($global = $record->globalCfdis()->latest('global_cfdis.id')->first()) !== null
-                        ? CfdiResource::getUrl('view', ['record' => $global->cfdi]) : null),
-                TextEntry::make('fiscal_route')->label('Cobertura fiscal')->columnSpanFull()
-                    ->visible(fn (Donation $record): bool => $record->status === DonationStatus::Confirmed && $record->activeCfdi() === null
-                        && auth()->user() instanceof User && auth()->user()->hasPermission(Permission::ViewCfdis))
-                    ->state(function (Donation $record): string {
-                        $coverage = app(ResolveDonationFiscalRoute::class)->handle($record);
-
-                        return $coverage->route->getLabel().($coverage->reasons !== [] ? ': '.implode(' ', $coverage->reasons) : ' — lista para emitir.');
-                    }),
-                IconEntry::make('tax_receipt_requested')->label('Solicitó recibo deducible')->boolean(),
+                IconEntry::make('tax_receipt_requested')->label('CFDI solicitado')->boolean(),
                 TextEntry::make('in_kind_description')->label('Descripción de lo donado')->columnSpanFull()
                     ->visible(fn (Donation $record): bool => $record->kind === DonationKind::InKind),
-                TextEntry::make('in_kind_quantity')->label('Cantidad / unidad SAT')
-                    ->state(fn (Donation $record): ?string => $record->kind === DonationKind::InKind ? "{$record->in_kind_quantity} · {$record->in_kind_unit_code}" : null)
-                    ->visible(fn (Donation $record): bool => $record->kind === DonationKind::InKind),
-                TextEntry::make('in_kind_product_service_code')->label('Clave producto/servicio SAT')
-                    ->visible(fn (Donation $record): bool => $record->kind === DonationKind::InKind),
-                TextEntry::make('fiscal_late_at')->label('Emisión tardía detectada')->dateTime('d/m/Y H:i')->placeholder('No'),
                 TextEntry::make('notes')->label('Notas internas')->placeholder('Sin notas')->columnSpanFull(),
             ]),
             Section::make('Trazabilidad')->columns(3)->schema([
@@ -197,6 +166,28 @@ class DonationResource extends Resource
                 TextEntry::make('cancellation_reason')->label('Motivo de cancelación')->columnSpanFull()
                     ->visible(fn (Donation $record): bool => $record->cancellation_reason !== null),
             ]),
+            Section::make('Recibo de donación')
+                ->description('Recibo simple del CRM con folio propio. No es un comprobante fiscal (CFDI).')
+                ->columns(3)
+                ->visible(fn (Donation $record): bool => $record->status === DonationStatus::Confirmed && self::userCan(Permission::ViewDonationReceipts))
+                ->schema([
+                    TextEntry::make('receipt.folio')->label('Folio')->placeholder('Se genera al descargarlo o al enviar el agradecimiento')
+                        ->url(fn (Donation $record): ?string => $record->receipt !== null ? route('receipts.file', ['receipt' => $record->receipt]) : null),
+                    TextEntry::make('receipt.issued_at')->label('Generado el')->dateTime('d/m/Y H:i')->placeholder('—'),
+                ]),
+            Section::make('Contabilidad')
+                ->description('El CRM no emite CFDI: Contabilidad recibe el aviso de cada donativo confirmado y decide fuera del sistema su tratamiento fiscal.')
+                ->columns(3)
+                ->visible(fn (Donation $record): bool => $record->status === DonationStatus::Confirmed && self::userCan(Permission::ProcessAccounting))
+                ->schema([
+                    TextEntry::make('accountingNotice.status')->label('Aviso a Contabilidad')->badge()->placeholder('Sin aviso'),
+                    TextEntry::make('accountingNotice.sent_at')->label('Avisado el')->dateTime('d/m/Y H:i')->placeholder('—'),
+                    TextEntry::make('accounting_processed')->label('Procesamiento contable')
+                        ->state(fn (Donation $record): string => $record->accountingNotice?->processed_at !== null
+                            ? 'Procesado el '.$record->accountingNotice->processed_at->timezone(config()->string('app.timezone'))->format('d/m/Y H:i').' por '.($record->accountingNotice->processedBy->name ?? '—')
+                            : 'Pendiente'),
+                    TextEntry::make('accountingNotice.processing_note')->label('Nota contable')->placeholder('Sin nota')->columnSpanFull(),
+                ]),
         ]);
     }
 
@@ -262,7 +253,7 @@ class DonationResource extends Resource
                         self::moneyOrNull($data['min'] ?? null) !== null ? 'Mínimo '.Money::format(self::moneyOrNull($data['min'])) : null,
                         self::moneyOrNull($data['max'] ?? null) !== null ? 'Máximo '.Money::format(self::moneyOrNull($data['max'])) : null,
                     ]))),
-                TernaryFilter::make('tax_receipt_requested')->label('Solicitó recibo deducible'),
+                TernaryFilter::make('tax_receipt_requested')->label('CFDI solicitado'),
             ])
             ->headerActions([
                 ExportAction::make()->label('Exportar')->exporter(DonationExporter::class)
@@ -319,6 +310,11 @@ class DonationResource extends Resource
             });
     }
 
+    public static function getRelations(): array
+    {
+        return [ExternalCfdisRelationManager::class];
+    }
+
     public static function getPages(): array
     {
         return [
@@ -334,6 +330,13 @@ class DonationResource extends Resource
         $kind = $get('kind');
 
         return $kind instanceof DonationKind ? $kind : DonationKind::tryFrom((string) $kind);
+    }
+
+    private static function userCan(Permission $permission): bool
+    {
+        $user = auth()->user();
+
+        return $user instanceof User && $user->hasPermission($permission);
     }
 
     private static function donorLabel(mixed $value): ?string

@@ -126,7 +126,7 @@ class OrganizationSettings extends Page
                     ->columns(2)
                     ->schema([
                         Toggle::make('thank_you_emails_enabled')->label('Agradecimiento al confirmar un donativo')
-                            ->helperText('Incluye el recibo simple y, si ya está timbrado, el CFDI.'),
+                            ->helperText('Incluye el recibo simple. Nunca espera ni adjunta un CFDI: Contabilidad los emite fuera del CRM.'),
                         Toggle::make('birthday_emails_enabled')->label('Felicitación de cumpleaños (09:00)')
                             ->helperText('Solo a donantes que aceptan comunicaciones y no están archivados.'),
                     ]),

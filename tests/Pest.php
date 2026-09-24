@@ -145,3 +145,20 @@ function exportedCsv(Export $export): string
 
     return $files->map(fn (string $file): string => (string) $disk->get($file))->implode('');
 }
+
+/**
+ * XML mínimo de un CFDI 4.0 timbrado (ficticio) para probar los CFDI
+ * externos. El CRM no lo valida ante el SAT: solo lee sus datos.
+ */
+function externalCfdiXml(?string $uuid = null, string $issuerRfc = 'FPR010101AAA', string $total = '1500.00', string $date = '2026-09-20T10:15:00'): string
+{
+    $uuid ??= strtoupper((string) Str::uuid());
+
+    return '<?xml version="1.0" encoding="UTF-8"?>'
+        .'<cfdi:Comprobante xmlns:cfdi="http://www.sat.gob.mx/cfd/4" xmlns:tfd="http://www.sat.gob.mx/TimbreFiscalDigital"'
+        .' Version="4.0" Fecha="'.$date.'" Total="'.$total.'" Moneda="MXN" TipoDeComprobante="I">'
+        .'<cfdi:Emisor Rfc="'.$issuerRfc.'" Nombre="FUNDACION DE PRUEBA" RegimenFiscal="603"/>'
+        .'<cfdi:Receptor Rfc="XAXX010101000" Nombre="PUBLICO EN GENERAL"/>'
+        .'<cfdi:Complemento><tfd:TimbreFiscalDigital Version="1.1" UUID="'.$uuid.'" FechaTimbrado="'.$date.'"/></cfdi:Complemento>'
+        .'</cfdi:Comprobante>';
+}

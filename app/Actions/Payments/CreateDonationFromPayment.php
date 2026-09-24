@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions\Payments;
 
-use App\Actions\Cfdi\IssueCfdiAutomatically;
-use App\Actions\Communications\QueueDonationThankYou;
+use App\Actions\Donations\RunConfirmedDonationSteps;
 use App\Enums\DonationKind;
 use App\Enums\DonationOrigin;
 use App\Enums\DonationStatus;
@@ -50,12 +49,11 @@ class CreateDonationFromPayment
                 'received_on' => $payment->succeeded_at->copy()->setTimezone(config()->string('app.timezone'))->toDateString(),
                 'status' => DonationStatus::Confirmed,
                 'confirmed_at' => $payment->succeeded_at,
-                'tax_receipt_requested' => false,
+                'tax_receipt_requested' => $payment->tax_receipt_requested,
             ])->save();
 
-            // Cada mensualidad cobrada es su propio donativo y, si procede, su propio CFDI.
-            DB::afterCommit(fn () => rescue(fn () => app(QueueDonationThankYou::class)->handle($donation)));
-            DB::afterCommit(fn () => app(IssueCfdiAutomatically::class)->handle($donation));
+            // Cada mensualidad es su propio donativo: su recibo, su agradecimiento y su aviso contable.
+            DB::afterCommit(fn () => app(RunConfirmedDonationSteps::class)->handle($donation));
 
             return $donation;
         });

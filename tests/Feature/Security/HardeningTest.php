@@ -2,11 +2,10 @@
 
 declare(strict_types=1);
 
-use App\Actions\Cfdi\RequestDonationCfdi;
+use App\Actions\Donations\ConfirmDonation;
+use App\Actions\ExternalCfdi\AttachExternalCfdi;
 use App\Actions\Incidents\OpenPaymentIncident;
 use App\Actions\Incidents\ResolveIncident;
-use App\Cfdi\CfdiProviderRegistry;
-use App\Cfdi\Providers\FakeCfdiProvider;
 use App\Enums\IncidentStatus;
 use App\Enums\IncidentType;
 use App\Enums\ManualPaymentMethod;
@@ -106,13 +105,13 @@ it('el login limita los intentos (5 por minuto)', function (): void {
 it('Solo lectura no abre fichas protegidas por URL directa ni ejecuta acciones ocultas', function (): void {
     $donation = Donation::factory()->confirmed()->create(['donor_id' => Donor::factory()->withTaxProfile()->create()->id, 'manual_payment_method' => ManualPaymentMethod::Cash]);
     OrganizationSetting::current()->forceFill(['legal_name' => 'F', 'rfc' => 'FPR010101AAA', 'tax_regime' => TaxRegime::NonProfitLegalEntities, 'tax_postal_code' => '62000', 'authorization_number' => '1', 'authorization_date' => '2026-01-15'])->save();
-    $cfdi = app(RequestDonationCfdi::class)->handle($donation, userWithRole(Role::Administrator))->refresh();
+    $cfdi = app(AttachExternalCfdi::class)->handle($donation, externalCfdiXml(), '%PDF-1.4 prueba', null, userWithRole(Role::Accountant));
     $incident = app(OpenPaymentIncident::class)->handle(IncidentType::cases()[0], 'test:1', payment: Payment::factory()->create());
     actingAs(userWithRole(Role::ReadOnly));
 
     foreach ([
-        "/admin/cfdis/{$cfdi->id}", "/admin/payment-incidents/{$incident->id}", '/admin/communications', '/admin/audit-logs',
-        '/admin/refunds', '/admin/webhook-events', '/admin/reporte-cfdi', route('cfdi.files', [$cfdi, 'xml']),
+        "/admin/payment-incidents/{$incident->id}", '/admin/communications', '/admin/audit-logs', '/admin/refunds', '/admin/webhook-events',
+        '/admin/control-contable', route('external-cfdi.files', [$cfdi, 'xml']), route('external-cfdi.files', [$cfdi, 'pdf']),
     ] as $url) {
         get($url)->assertForbidden();
     }
@@ -179,21 +178,16 @@ it('RF-01: la incidencia llega a la campana y por correo a los responsables conf
     expect($incident->refresh()->status)->toBe(IncidentStatus::Resolved);
 });
 
-it('CFDI rechazado: aviso de intervención (campana y correo) a quien emite CFDI, una vez', function (): void {
-    OrganizationSetting::current()->forceFill(['legal_name' => 'F', 'rfc' => 'FPR010101AAA', 'tax_regime' => TaxRegime::NonProfitLegalEntities, 'tax_postal_code' => '62000', 'authorization_number' => '1', 'authorization_date' => '2026-01-15'])->save();
+it('aviso a Contabilidad sin destinatarios configurados: queda "No enviado" y avisa a los Administradores una vez al día', function (): void {
     $admin = userWithRole(Role::Administrator);
     $accountant = userWithRole(Role::Accountant);
-    $coordinator = userWithRole(Role::FundraisingCoordinator);
-    /** @var FakeCfdiProvider $pac */
-    $pac = app(CfdiProviderRegistry::class)->current();
-    $pac->willStamp(FakeCfdiProvider::STAMP_REJECTED);
 
-    $donation = Donation::factory()->confirmed()->create(['donor_id' => Donor::factory()->withTaxProfile()->create()->id, 'manual_payment_method' => ManualPaymentMethod::Cash]);
-    app(RequestDonationCfdi::class)->handle($donation, $admin);
+    foreach (range(1, 2) as $i) {
+        app(ConfirmDonation::class)->handle(Donation::factory()->create(['manual_payment_method' => ManualPaymentMethod::Cash]), $accountant);
+    }
 
-    expect($admin->notifications()->count())->toBe(1)->and($accountant->notifications()->count())->toBe(1)
-        ->and($coordinator->notifications()->count())->toBe(0)
-        ->and(Mail::sent(DonorMessage::class)->filter(fn (DonorMessage $mail): bool => str_contains($mail->message->subject, 'CFDI rechazado'))->count())->toBe(2);
+    expect($admin->notifications()->count())->toBe(1)->and($accountant->notifications()->count())->toBe(0)
+        ->and(Mail::sent(DonorMessage::class)->filter(fn (DonorMessage $mail): bool => str_contains($mail->message->subject, 'Nadie recibe los avisos a Contabilidad'))->count())->toBe(1);
 });
 
 it('un Job que agota sus intentos deja log crítico sin payload y avisa a los Administradores, uno por hora', function (): void {

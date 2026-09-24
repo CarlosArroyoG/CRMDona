@@ -23,7 +23,6 @@ final readonly class ComposedMessage
         public bool $usedFallback,
         public ?string $signature,
         public ?string $unsubscribeUrl,
-        public ?int $cfdiId = null,
     ) {}
 
     /**

@@ -2,14 +2,11 @@
 
 declare(strict_types=1);
 
-use App\Actions\Cfdi\ResolveDonationFiscalRoute;
 use App\Enums\AuditSource;
 use App\Enums\CampaignStatus;
-use App\Enums\CfdiStatus;
 use App\Enums\DonationOrigin;
 use App\Enums\DonationStatus;
 use App\Enums\DonorOrigin;
-use App\Enums\FiscalRoute;
 use App\Enums\PaymentStatus;
 use App\Enums\ProgramStatus;
 use App\Enums\Role;
@@ -19,7 +16,6 @@ use App\Filament\Resources\Campaigns\CampaignResource;
 use App\Mail\DonorMessage;
 use App\Models\AuditLog;
 use App\Models\Campaign;
-use App\Models\Cfdi;
 use App\Models\Donation;
 use App\Models\DonationReceipt;
 use App\Models\Donor;
@@ -141,13 +137,13 @@ it('E2E único con FakeGateway: página → pago → Payment → Donation → re
         ->and($donor->origin)->toBe(DonorOrigin::PublicPage)->and($donor->registered_by_id)->toBeNull()
         ->and($donor->accepts_communications)->toBeTrue()->and($donor->privacy_notice_version)->toBe('2026-09')
         ->and(DonationReceipt::query()->where('donation_id', $donation->id)->exists())->toBeTrue()
-        ->and(app(ResolveDonationFiscalRoute::class)->handle($donation)->route)->toBe(FiscalRoute::PublicGeneral)
+        ->and($donation->tax_receipt_requested)->toBeFalse()
+        ->and($donation->accountingNotice)->not->toBeNull()
         ->and(AuditLog::query()->where('auditable_type', 'donor')->where('event', 'created')->sole()->source)->toBe(AuditSource::Donor);
     Mail::assertSent(DonorMessage::class, fn (DonorMessage $mail): bool => $mail->hasTo('lucia.hernandez@example.com'));
 });
 
-it('E2E con datos fiscales y CFDI automático: ruta individual y CFDI timbrado con FakeCfdiProvider', function (): void {
-    config(['cfdi.auto_issue' => true]);
+it('E2E con datos fiscales: el CFDI solicitado llega al donativo y al aviso a Contabilidad; el CRM no emite nada', function (): void {
     $token = submitDonation(['wants_tax_receipt' => '1', 'rfc' => 'HELU800101AB1', 'tax_name' => 'LUCIA HERNANDEZ',
         'tax_regime' => '605', 'tax_postal_code' => '62000']);
 
@@ -155,9 +151,12 @@ it('E2E con datos fiscales y CFDI automático: ruta individual y CFDI timbrado c
 
     $donation = Donation::query()->sole();
     expect($donation->donor->taxProfile?->rfc)->toBe('HELU800101AB1')
-        ->and(Cfdi::query()->sole()->status)->toBe(CfdiStatus::Stamped)
-        ->and(Cfdi::query()->sole()->donation_id)->toBe($donation->id);
-    get("/donar/estado/{$token}")->assertSee('comprobante fiscal')->assertDontSee('HELU800101AB1');
+        ->and(Payment::query()->sole()->tax_receipt_requested)->toBeTrue()
+        ->and($donation->tax_receipt_requested)->toBeTrue()
+        ->and($donation->externalCfdis()->exists())->toBeFalse();
+    get("/donar/estado/{$token}")->assertSee('contabilidad')->assertDontSee('HELU800101AB1');
+    Mail::assertSent(DonorMessage::class, fn (DonorMessage $mail): bool => $mail->hasTo('lucia.hernandez@example.com')
+        && ! str_contains($mail->message->body, 'HELU800101AB1'));
 });
 
 it('E2E mensual: explica la recurrencia y crea Subscription → primer Payment → Donation', function (): void {

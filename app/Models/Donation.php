@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use App\Enums\CfdiStatus;
 use App\Enums\DonationKind;
 use App\Enums\DonationOrigin;
 use App\Enums\DonationStatus;
@@ -17,7 +16,6 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
@@ -58,15 +56,15 @@ use Illuminate\Support\Carbon;
  * @property-read Program|null $program
  * @property-read Campaign|null $campaign
  * @property-read Payment|null $payment
- * @property-read Collection<int, GlobalCfdi> $globalCfdis
- * @property-read Collection<int, FiscalIncident> $fiscalIncidents
+ * @property-read Collection<int, ExternalCfdi> $externalCfdis
  * @property-read DonationReceipt|null $receipt
+ * @property-read AccountingNotice|null $accountingNotice
  * @property DonationOrigin $origin
  * @property int|null $payment_id
  */
 #[Fillable([
     'donor_id', 'program_id', 'campaign_id', 'kind', 'manual_payment_method', 'amount', 'received_on',
-    'reference', 'in_kind_description', 'in_kind_quantity', 'in_kind_unit_code', 'in_kind_product_service_code', 'in_kind_unit_value', 'in_kind_total_value', 'tax_receipt_requested', 'notes',
+    'reference', 'in_kind_description', 'tax_receipt_requested', 'notes',
 ])]
 class Donation extends Model
 {
@@ -101,40 +99,24 @@ class Donation extends Model
     }
 
     /**
-     * CFDI emitidos para el donativo (como máximo uno vigente).
+     * CFDI externos: los que contabilidad emitió fuera del CRM y se adjuntaron
+     * como antecedente (incluye los retirados, con su motivo).
      *
-     * @return HasMany<Cfdi, $this>
+     * @return HasMany<ExternalCfdi, $this>
      */
-    public function cfdis(): HasMany
+    public function externalCfdis(): HasMany
     {
-        return $this->hasMany(Cfdi::class)->latest('id');
+        return $this->hasMany(ExternalCfdi::class)->latest('id');
     }
 
     /**
-     * @return BelongsToMany<GlobalCfdi, $this>
+     * Aviso a Contabilidad y su procesamiento contable (uno por donativo).
+     *
+     * @return HasOne<AccountingNotice, $this>
      */
-    public function globalCfdis(): BelongsToMany
+    public function accountingNotice(): HasOne
     {
-        return $this->belongsToMany(GlobalCfdi::class, 'donation_global_cfdi')
-            ->withPivot('operation_number')
-            ->withTimestamps();
-    }
-
-    /**
-     * @return HasMany<FiscalIncident, $this>
-     */
-    public function fiscalIncidents(): HasMany
-    {
-        return $this->hasMany(FiscalIncident::class);
-    }
-
-    /**
-     * El CFDI vigente (no cancelado ni descartado), si existe. Durante una
-     * sustitución (motivo 01) es el original hasta que se cancela.
-     */
-    public function activeCfdi(): ?Cfdi
-    {
-        return $this->cfdis()->whereNotIn('status', CfdiStatus::inactiveValues())->where('replacement_pending', false)->first();
+        return $this->hasOne(AccountingNotice::class);
     }
 
     /**
@@ -153,14 +135,6 @@ class Donation extends Model
     public function destinationLabel(): string
     {
         return $this->campaign->name ?? $this->effectiveProgram()->name ?? 'el fondo general';
-    }
-
-    /**
-     * Sustitución en curso (CFDI nuevo cuyo original aún no se cancela).
-     */
-    public function pendingReplacementCfdi(): ?Cfdi
-    {
-        return $this->cfdis()->whereNotIn('status', CfdiStatus::inactiveValues())->where('replacement_pending', true)->first();
     }
 
     /**

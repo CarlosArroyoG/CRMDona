@@ -45,6 +45,7 @@ use Illuminate\Support\Carbon;
  * @property int|null $cancelled_by_id
  * @property CancellationSource|null $cancellation_source
  * @property string|null $cancellation_reason
+ * @property bool $tax_receipt_requested El donante pidió CFDI; cada mensualidad lo hereda.
  * @property string $idempotency_key
  * @property Carbon $created_at
  * @property Carbon $updated_at
@@ -61,12 +62,15 @@ class Subscription extends Model
 
     protected $guarded = ['id'];
 
+    /** @var array<string, mixed> */
+    protected $attributes = ['tax_receipt_requested' => false];
+
     public static function auditValueFields(): array
     {
         return [
             'provider', 'external_id', 'donor_id', 'program_id', 'campaign_id', 'amount', 'currency', 'interval',
             'status', 'provider_status', 'retry_owner', 'next_charge_at', 'started_at', 'paused_at', 'paused_by_id',
-            'resumed_at', 'resumed_by_id', 'cancelled_at', 'cancelled_by_id', 'cancellation_source', 'cancellation_reason',
+            'resumed_at', 'resumed_by_id', 'cancelled_at', 'cancelled_by_id', 'cancellation_source', 'cancellation_reason', 'tax_receipt_requested',
         ];
     }
 
@@ -148,6 +152,7 @@ class Subscription extends Model
             'paused_at' => 'datetime',
             'resumed_at' => 'datetime',
             'cancelled_at' => 'datetime',
+            'tax_receipt_requested' => 'boolean',
             'cancellation_source' => CancellationSource::class,
         ];
     }

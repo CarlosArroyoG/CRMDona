@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Actions\Donations;
 
-use App\Actions\Cfdi\IssueCfdiAutomatically;
-use App\Actions\Communications\QueueDonationThankYou;
 use App\Enums\AuditEvent;
 use App\Enums\DonationStatus;
 use App\Models\Donation;
@@ -39,9 +37,8 @@ class ConfirmDonation
                 'confirmed_by_id' => $actor->id,
             ])->save();
 
-            // Primero se registra el agradecimiento (adjunta el CFDI si llega a tiempo); después el CFDI.
-            DB::afterCommit(fn () => rescue(fn () => app(QueueDonationThankYou::class)->handle($locked)));
-            DB::afterCommit(fn () => app(IssueCfdiAutomatically::class)->handle($locked));
+            // Recibo, agradecimiento y aviso a Contabilidad; ninguno revierte la confirmación.
+            DB::afterCommit(fn () => app(RunConfirmedDonationSteps::class)->handle($locked));
 
             return $locked;
         });

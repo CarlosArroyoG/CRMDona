@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use App\Http\Controllers\CfdiFileController;
 use App\Http\Controllers\DonationReceiptFileController;
+use App\Http\Controllers\ExternalCfdiFileController;
 use App\Http\Controllers\PaymentWebhookController;
 use App\Http\Controllers\PublicDonationController;
 use App\Http\Controllers\UnsubscribeController;
@@ -32,11 +32,11 @@ Route::post('/webhooks/payments/{provider}', PaymentWebhookController::class)
     ->middleware('throttle:600,1')
     ->name('webhooks.payments');
 
-// XML y PDF de CFDI (disco privado; permiso cfdi.view). Sesión del panel.
-Route::get('/admin/cfdi-files/{cfdi}/{format}', CfdiFileController::class)
+// XML y PDF de CFDI externos (disco privado; permiso cfdi.view). Sesión del panel.
+Route::get('/admin/external-cfdi-files/{externalCfdi}/{format}', ExternalCfdiFileController::class)
     ->whereIn('format', ['xml', 'pdf'])
     ->middleware('auth')
-    ->name('cfdi.files');
+    ->name('external-cfdi.files');
 
 // Recibo simple (disco privado; permiso receipts.view). Sesión del panel.
 Route::get('/admin/receipt-files/{receipt}', DonationReceiptFileController::class)

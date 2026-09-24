@@ -165,7 +165,7 @@
                 <input type="checkbox" name="accepts_communications" value="1" @checked(old('accepts_communications')) class="mt-1">
                 <span>Acepto recibir comunicaciones informativas de {{ $organization }}, como felicitaciones y noticias. (Opcional; puedes darte de baja cuando quieras.)</span>
             </label>
-            <p class="mt-2 text-sm text-slate-600">Siempre te enviaremos el agradecimiento, el recibo y, en su caso, el comprobante fiscal de tu donativo.</p>
+            <p class="mt-2 text-sm text-slate-600">Siempre te enviaremos el agradecimiento y el recibo de tu donativo. Si pides comprobante fiscal (CFDI), nuestra área de contabilidad lo emite por separado.</p>
         </fieldset>
 
         <button type="submit" class="w-full rounded-md px-4 py-3 font-semibold text-white" style="background: var(--brand)" data-loading-text="Revisando…">

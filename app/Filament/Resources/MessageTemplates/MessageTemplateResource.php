@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\MessageTemplates;
 
+use App\Enums\CommunicationKind;
 use App\Filament\Resources\MessageTemplates\Pages\EditMessageTemplate;
 use App\Filament\Resources\MessageTemplates\Pages\ListMessageTemplates;
 use App\Models\MessageTemplate;
@@ -17,6 +18,7 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
  * Plantillas de correo: una por tipo, texto simple con variables. Sin
@@ -50,6 +52,15 @@ class MessageTemplateResource extends Resource
                             ->map(fn (string $description, string $name): string => "{{ {$name} }} ({$description})")->implode('; ').'.'),
                 ]),
         ]);
+    }
+
+    /**
+     * @return Builder<MessageTemplate>
+     */
+    public static function getEloquentQuery(): Builder
+    {
+        // La plantilla histórica de envío de CFDI ya no se usa ni se edita.
+        return MessageTemplate::query()->whereIn('kind', array_map(fn (CommunicationKind $kind): string => $kind->value, CommunicationKind::active()));
     }
 
     public static function table(Table $table): Table

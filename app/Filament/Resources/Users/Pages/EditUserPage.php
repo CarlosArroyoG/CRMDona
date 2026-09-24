@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Users\Pages;
 
+use App\Actions\Users\SetAccountingNoticePreference;
 use App\Actions\Users\SetPaymentAlertPreference;
 use App\Actions\Users\UpdateUser;
 use App\Filament\Concerns\ReportsActionErrors;
@@ -39,7 +40,9 @@ class EditUserPage extends EditRecord
         /** @var User $actor */
         $actor = auth()->user();
 
-        return app(SetPaymentAlertPreference::class)->handle($user, (bool) ($data['receives_payment_alerts'] ?? false), $actor);
+        $user = app(SetPaymentAlertPreference::class)->handle($user, (bool) ($data['receives_payment_alerts'] ?? false), $actor);
+
+        return self::withFormErrors(fn () => app(SetAccountingNoticePreference::class)->handle($user, (bool) ($data['receives_accounting_notices'] ?? false), $actor));
     }
 
     protected function getRedirectUrl(): string

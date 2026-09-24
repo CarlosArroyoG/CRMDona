@@ -55,15 +55,6 @@
         <server name="PAYMENTS_FAKE_ENABLED" value="true" force="true"/>
         <env name="PAYMENTS_FAKE_STORE" value="array" force="true"/>
         <server name="PAYMENTS_FAKE_STORE" value="array" force="true"/>
-        <!-- CFDI: solo el PAC simulado en pruebas. -->
-        <env name="CFDI_PROVIDER" value="fake" force="true"/>
-        <server name="CFDI_PROVIDER" value="fake" force="true"/>
-        <env name="CFDI_AUTO_ISSUE" value="false" force="true"/>
-        <server name="CFDI_AUTO_ISSUE" value="false" force="true"/>
-        <env name="CFDI_FAKE_STORE" value="array" force="true"/>
-        <server name="CFDI_FAKE_STORE" value="array" force="true"/>
-        <env name="FACTURAPI_KEY" value="" force="true"/>
-        <server name="FACTURAPI_KEY" value="" force="true"/>
         <env name="STRIPE_ENABLED" value="false" force="true"/>
         <server name="STRIPE_ENABLED" value="false" force="true"/>
         <env name="STRIPE_SECRET_KEY" value="" force="true"/>

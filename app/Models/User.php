@@ -29,6 +29,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $deactivated_at
  * @property Carbon|null $password_change_required_at
  * @property bool $receives_payment_alerts Solo aplica a Coordinador y Contador; el Administrador siempre las recibe.
+ * @property bool $receives_accounting_notices Recibe los avisos a Contabilidad (solo con accounting.process: Administrador y Contador).
  */
 #[Fillable(['name', 'email', 'password'])]
 #[Hidden(['password', 'remember_token'])]
@@ -41,7 +42,7 @@ class User extends Authenticatable implements FilamentUser
 
     public static function auditValueFields(): array
     {
-        return ['role', 'deactivated_at', 'password_change_required_at', 'receives_payment_alerts'];
+        return ['role', 'deactivated_at', 'password_change_required_at', 'receives_payment_alerts', 'receives_accounting_notices'];
     }
 
     public static function auditNameOnlyFields(): array
@@ -126,6 +127,7 @@ class User extends Authenticatable implements FilamentUser
             'deactivated_at' => 'datetime',
             'password_change_required_at' => 'datetime',
             'receives_payment_alerts' => 'boolean',
+            'receives_accounting_notices' => 'boolean',
         ];
     }
 }

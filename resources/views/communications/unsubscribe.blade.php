@@ -11,7 +11,7 @@
         <h1 style="font-size:20px;margin-top:0;color:#162562;">{{ $organization }}</h1>
         @if ($done)
             <p>Listo. Ya no te enviaremos comunicaciones informativas, como felicitaciones.</p>
-            <p style="font-size:13px;color:#4b5563;">Seguirás recibiendo, si corresponde, los correos relacionados con tus donativos (agradecimiento, recibo y comprobante fiscal).</p>
+            <p style="font-size:13px;color:#4b5563;">Seguirás recibiendo, si corresponde, los correos relacionados con tus donativos (agradecimiento y recibo).</p>
         @else
             <p>¿Quieres dejar de recibir comunicaciones informativas, como felicitaciones?</p>
             <form method="post" action="{{ route('communications.unsubscribe.store', ['token' => $token]) }}">

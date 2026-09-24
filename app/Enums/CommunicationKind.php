@@ -7,17 +7,36 @@ namespace App\Enums;
 use Filament\Support\Contracts\HasLabel;
 
 /**
- * Tipos de correo a donantes (Fase 4). Agradecimiento y CFDI son
- * transaccionales: se refieren a un donativo concreto y se envían aunque el
- * donante no acepte comunicaciones (config `communications.
- * transactional_requires_consent`). La felicitación de cumpleaños es
- * informativa: exige consentimiento vigente y lleva enlace de baja.
+ * Tipos de correo a donantes (Fase 4). El agradecimiento es transaccional: se
+ * refiere a un donativo concreto y se envía aunque el donante no acepte
+ * comunicaciones (config `communications.transactional_requires_consent`).
+ * La felicitación de cumpleaños es informativa: exige consentimiento vigente
+ * y lleva enlace de baja.
+ *
+ * `Cfdi` es histórico: el CRM ya no emite ni envía CFDI
+ * (docs/tecnico/cfdi-externo.md). Se conserva solo para leer los registros
+ * anteriores; no se encola, no se reenvía y no tiene plantilla.
  */
 enum CommunicationKind: string implements HasLabel
 {
     case ThankYou = 'thank_you';
     case Cfdi = 'cfdi';
     case Birthday = 'birthday';
+
+    /**
+     * Tipos que el CRM todavía envía.
+     *
+     * @return list<self>
+     */
+    public static function active(): array
+    {
+        return [self::ThankYou, self::Birthday];
+    }
+
+    public function isHistorical(): bool
+    {
+        return $this === self::Cfdi;
+    }
 
     public function requiresConsent(): bool
     {
@@ -43,12 +62,7 @@ enum CommunicationKind: string implements HasLabel
                 'destino' => 'Campaña, programa o "fondo general"',
                 'folio_recibo' => 'Folio del recibo simple',
             ],
-            self::Cfdi => [
-                'importe' => 'Importe del donativo',
-                'fecha_donativo' => 'Fecha en que se recibió el donativo',
-                'folio_fiscal' => 'Folio fiscal (UUID) del CFDI',
-            ],
-            self::Birthday => [],
+            self::Cfdi, self::Birthday => [],
         };
     }
 
@@ -56,7 +70,7 @@ enum CommunicationKind: string implements HasLabel
     {
         return match ($this) {
             self::ThankYou => 'Gracias por tu donativo, {{ nombre }}',
-            self::Cfdi => 'Tu comprobante fiscal (CFDI) de {{ organizacion }}',
+            self::Cfdi => 'Comprobante fiscal (histórico)',
             self::Birthday => '¡Feliz cumpleaños, {{ nombre }}!',
         };
     }
@@ -65,7 +79,7 @@ enum CommunicationKind: string implements HasLabel
     {
         return match ($this) {
             self::ThankYou => "Hola, {{ nombre }}:\n\nGracias por tu donativo de {{ importe }} recibido el {{ fecha_donativo }} para {{ destino }}. Tu apoyo hace posible nuestro trabajo.\n\nCon gratitud,\n{{ organizacion }}",
-            self::Cfdi => "Hola, {{ nombre }}:\n\nTe enviamos el comprobante fiscal (CFDI) de tu donativo de {{ importe }} recibido el {{ fecha_donativo }}. Folio fiscal: {{ folio_fiscal }}.\n\nGracias por tu confianza,\n{{ organizacion }}",
+            self::Cfdi => '',
             self::Birthday => "Hola, {{ nombre }}:\n\nEn {{ organizacion }} te deseamos un muy feliz cumpleaños. Gracias por ser parte de nuestra comunidad.",
         };
     }
@@ -74,7 +88,7 @@ enum CommunicationKind: string implements HasLabel
     {
         return match ($this) {
             self::ThankYou => 'Agradecimiento por donativo',
-            self::Cfdi => 'Envío de CFDI',
+            self::Cfdi => 'Envío de CFDI (histórico)',
             self::Birthday => 'Felicitación de cumpleaños',
         };
     }

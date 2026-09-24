@@ -31,11 +31,6 @@ class DonationFactory extends Factory
             'status' => DonationStatus::Pending,
             'tax_receipt_requested' => false,
             'registered_by_id' => User::factory(),
-            'in_kind_quantity' => null,
-            'in_kind_unit_code' => null,
-            'in_kind_product_service_code' => null,
-            'in_kind_unit_value' => null,
-            'in_kind_total_value' => null,
         ];
     }
 
@@ -45,11 +40,6 @@ class DonationFactory extends Factory
             'kind' => DonationKind::InKind,
             'manual_payment_method' => null,
             'in_kind_description' => fake()->randomElement(['Despensas para comedor', 'Útiles escolares', 'Equipo de cómputo usado']),
-            'in_kind_quantity' => '1.000',
-            'in_kind_unit_code' => 'H87',
-            'in_kind_product_service_code' => '49101700',
-            'in_kind_unit_value' => '500.00',
-            'in_kind_total_value' => '500.00',
         ]);
     }
 

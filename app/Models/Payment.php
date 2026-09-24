@@ -46,6 +46,7 @@ use Illuminate\Support\Carbon;
  * @property CarbonInterface|null $next_retry_at
  * @property CarbonInterface|null $succeeded_at
  * @property CarbonInterface|null $failed_at
+ * @property bool $tax_receipt_requested El donante pidió CFDI en la página pública (se informa a Contabilidad).
  * @property string $idempotency_key
  * @property Carbon $created_at
  * @property Carbon $updated_at
@@ -65,12 +66,15 @@ class Payment extends Model
 
     protected $guarded = ['id'];
 
+    /** @var array<string, mixed> */
+    protected $attributes = ['tax_receipt_requested' => false];
+
     public static function auditValueFields(): array
     {
         return [
             'provider', 'external_id', 'kind', 'subscription_id', 'billing_period_start', 'donor_id', 'program_id',
             'campaign_id', 'amount', 'currency', 'status', 'provider_status', 'next_retry_owner', 'next_retry_at',
-            'succeeded_at', 'failed_at',
+            'succeeded_at', 'failed_at', 'tax_receipt_requested',
         ];
     }
 
@@ -247,6 +251,7 @@ class Payment extends Model
             'next_retry_at' => 'datetime',
             'succeeded_at' => 'datetime',
             'failed_at' => 'datetime',
+            'tax_receipt_requested' => 'boolean',
         ];
     }
 }

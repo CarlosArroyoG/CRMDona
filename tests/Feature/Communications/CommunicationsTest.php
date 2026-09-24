@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use App\Actions\Cfdi\RequestDonationCfdi;
 use App\Actions\Communications\IssueDonationReceipt;
 use App\Actions\Communications\QueueDonationThankYou;
 use App\Actions\Communications\ResendCommunication;
@@ -19,7 +18,6 @@ use App\Enums\TaxRegime;
 use App\Filament\Resources\MessageTemplates\MessageTemplateResource;
 use App\Jobs\SendBirthdayGreetings;
 use App\Jobs\SendCommunication;
-use App\Jobs\StampCfdi;
 use App\Mail\DonorMessage;
 use App\Models\AuditLog;
 use App\Models\Communication;
@@ -33,8 +31,10 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Console\Scheduling\Event;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Mail\MailManager;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\Mailer\Exception\TransportException;
 use Symfony\Component\Mailer\SentMessage;
@@ -112,48 +112,47 @@ it('recibo simple: folio interno, datos de la organización e importe; dice que 
         ->and(fn () => app(IssueDonationReceipt::class)->handle(pendingDonation()))->toThrow(ValidationException::class);
 });
 
-it('sin CFDI todavía: el agradecimiento sale y avisa que el CFDI llegará aparte, sin afirmar validez fiscal', function (): void {
+it('el agradecimiento lleva solo el recibo simple: no promete, espera ni adjunta un CFDI', function (): void {
     confirm(pendingDonation());
 
     $mail = sentMessages()[0];
     expect($mail->message->attachmentNames())->toHaveCount(1)
-        ->and($mail->message->notices)->toContain('Tu comprobante fiscal (CFDI) te llegará en un correo aparte en cuanto esté listo.');
+        ->and($mail->message->notices)->toBe([IssueDonationReceipt::DISCLAIMER]);
 });
 
-it('público en general: el agradecimiento no promete un CFDI', function (): void {
-    confirm(pendingDonation(taxProfile: false));
+it('el agradecimiento no espera: sale en la primera pasada de la cola, aunque el donante haya pedido CFDI', function (): void {
+    config(['queue.default' => 'database']);
+    $donation = confirm(pendingDonation(['tax_receipt_requested' => true]));
 
-    expect(implode(' ', sentMessages()[0]->message->notices))->not->toContain('CFDI) te llegará');
-});
-
-it('CFDI posterior: al timbrarse se envía una vez, sin repetir el agradecimiento', function (): void {
-    $donation = confirm(pendingDonation());
-    $admin = userWithRole(Role::Administrator);
-
-    $cfdi = app(RequestDonationCfdi::class)->handle($donation, $admin)->refresh();
-    dispatch_sync(new StampCfdi($cfdi->id));
-
-    $kinds = Communication::query()->orderBy('id')->pluck('kind')->map->value->all();
-    expect($cfdi->status->value)->toBe('stamped')
-        ->and($kinds)->toBe(['thank_you', 'cfdi'])
-        ->and(sentMessages())->toHaveCount(2)
-        ->and(sentMessages()[1]->message->attachmentNames())->toBe(['CFDI-'.strtoupper((string) $cfdi->uuid).'.xml', 'CFDI-'.strtoupper((string) $cfdi->uuid).'.pdf']);
-});
-
-it('con CFDI ya timbrado cuando sale el agradecimiento: lo adjunta y no manda otro correo de CFDI', function (): void {
-    config(['cfdi.auto_issue' => true, 'queue.default' => 'database', 'communications.thank_you_delay_seconds' => 60]);
-    $donation = confirm(pendingDonation());
-
-    runQueueWorker(); // Timbra; el agradecimiento aún espera.
-    travelTo(now()->addMinutes(2));
     runQueueWorker();
 
     $communication = Communication::query()->sole();
     expect($communication->kind)->toBe(CommunicationKind::ThankYou)
         ->and($communication->status)->toBe(CommunicationStatus::Sent)
-        ->and($communication->cfdi_id)->toBe($donation->activeCfdi()?->id)
-        ->and($communication->attachments)->toHaveCount(3)
+        ->and($communication->cfdi_id)->toBeNull()
+        ->and($donation->externalCfdis()->exists())->toBeFalse()
         ->and(sentMessages())->toHaveCount(1);
+});
+
+it('un envío histórico de CFDI no se manda ni se reenvía', function (): void {
+    $donation = confirm(pendingDonation(taxProfile: false));
+    $legacyCfdiId = DB::table('cfdis')->insertGetId([
+        'donation_id' => $donation->id, 'provider' => 'facturapi', 'uuid' => (string) Str::uuid(), 'status' => 'stamped', 'total' => '1500.00',
+        'idempotency_key' => 'legacy:'.$donation->id, 'requested_at' => now(), 'stamped_at' => now(), 'xml_path' => 'cfdi/legado.xml',
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $historical = Communication::query()->create([
+        'kind' => CommunicationKind::Cfdi, 'donor_id' => $donation->donor_id, 'donation_id' => $donation->id, 'cfdi_id' => $legacyCfdiId,
+        'dedupe_key' => "cfdi:legacy:{$donation->id}", 'status' => CommunicationStatus::Queued,
+    ]);
+
+    dispatch_sync(new SendCommunication($historical->id));
+
+    expect($historical->refresh()->status)->toBe(CommunicationStatus::Skipped)
+        ->and($historical->skip_reason)->toContain('ya no envía CFDI')
+        ->and(ResendCommunication::canResend($historical))->toBeFalse()
+        ->and(sentMessages())->toHaveCount(1)
+        ->and(MessageTemplate::query()->where('kind', 'cfdi')->exists())->toBeFalse();
 });
 
 it('fallo del servidor de correo: queda fallido con el error y el reintento lo envía una sola vez', function (): void {

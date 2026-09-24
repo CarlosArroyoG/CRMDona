@@ -12,9 +12,9 @@ use App\Models\OrganizationSetting;
 
 /**
  * Agradecimiento al confirmarse un donativo (manual o en línea, incluida cada
- * mensualidad). Uno por donativo (`thank_you:donation:{id}`). Sale con una
- * espera corta para adjuntar el CFDI si se timbra pronto; si no, sale sin él
- * y el CFDI se envía después por separado (QueueCfdiDelivery).
+ * mensualidad). Uno por donativo (`thank_you:donation:{id}`). Sale de
+ * inmediato con el recibo simple adjunto: nunca espera un CFDI (el CRM no los
+ * emite; docs/tecnico/cfdi-externo.md).
  *
  * `$force` = pedido por una persona aunque el agradecimiento automático esté
  * apagado en Organización.
@@ -40,7 +40,6 @@ class QueueDonationThankYou
             "thank_you:donation:{$donation->id}",
             donation: $donation,
             requestedById: $requestedById,
-            delaySeconds: $force ? 0 : config()->integer('communications.thank_you_delay_seconds'),
         );
     }
 }

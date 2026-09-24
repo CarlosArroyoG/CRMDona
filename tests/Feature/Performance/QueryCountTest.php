@@ -2,14 +2,12 @@
 
 declare(strict_types=1);
 
-use App\Actions\Cfdi\BuildDonationCfdiDraft;
-use App\Actions\Cfdi\RequestDonationCfdi;
 use App\Actions\Donations\ConfirmDonation;
+use App\Actions\ExternalCfdi\AttachExternalCfdi;
 use App\Enums\ManualPaymentMethod;
 use App\Enums\Role;
 use App\Enums\TaxRegime;
-use App\Filament\Resources\CfdiReports\Pages\ListCfdiReport;
-use App\Filament\Resources\Cfdis\Pages\ListCfdis;
+use App\Filament\Resources\AccountingControl\Pages\ListAccountingControl;
 use App\Filament\Resources\Communications\Pages\ListCommunications;
 use App\Filament\Resources\Donations\Pages\ListDonations;
 use App\Filament\Resources\Donors\Pages\ListDonors;
@@ -38,7 +36,7 @@ beforeEach(function (): void {
     Mail::fake();
     OrganizationSetting::current()->forceFill([
         'legal_name' => 'FUNDACION DE PRUEBA', 'rfc' => 'FPR010101AAA', 'tax_regime' => TaxRegime::NonProfitLegalEntities,
-        'tax_postal_code' => '62000', 'authorization_number' => '600-04-02-2026-0001', 'authorization_date' => '2026-01-15', 'donation_legend' => BuildDonationCfdiDraft::DONATARIA_LEGEND,
+        'tax_postal_code' => '62000', 'authorization_number' => '600-04-02-2026-0001', 'authorization_date' => '2026-01-15',
     ])->save();
     actingAs(userWithRole(Role::Administrator));
 });
@@ -74,12 +72,6 @@ it('listados sin consultas por fila', function (string $page, Closure $seed): vo
     'donativos' => [ListDonations::class, fn (int $n) => Donation::factory()->confirmed()->count($n)->create(['campaign_id' => Campaign::factory()->create()->id])],
     'pagos' => [ListPayments::class, fn (int $n) => Payment::factory()->succeeded()->count($n)->create()],
     'donativos mensuales' => [ListSubscriptions::class, fn (int $n) => Subscription::factory()->count($n)->create()],
-    'CFDI' => [ListCfdis::class, function (int $n): void {
-        foreach (range(1, $n) as $i) {
-            $donation = Donation::factory()->confirmed()->create(['donor_id' => Donor::factory()->withTaxProfile()->create()->id, 'manual_payment_method' => ManualPaymentMethod::Cash]);
-            app(RequestDonationCfdi::class)->handle($donation, userWithRole(Role::Administrator));
-        }
-    }],
     'historial de envíos' => [ListCommunications::class, fn (int $n) => Donation::factory()->count($n)->create()
         ->each(fn (Donation $donation) => app(ConfirmDonation::class)->handle($donation, userWithRole(Role::Accountant)))],
 ]);
@@ -95,13 +87,16 @@ it('el tablero hace un número fijo de consultas', function (): void {
     );
 });
 
-it('el reporte CFDI precarga CFDI, perfil fiscal y pago (la ruta fiscal de filas sin CFDI se calcula con la lógica de emisión)', function (): void {
+it('el control contable precarga recibo, aviso, CFDI externo y destino', function (): void {
     $seed = function (int $n): void {
         foreach (range(1, $n) as $i) {
-            $donation = Donation::factory()->confirmed()->create(['donor_id' => Donor::factory()->withTaxProfile()->create()->id, 'manual_payment_method' => ManualPaymentMethod::Cash]);
-            app(RequestDonationCfdi::class)->handle($donation, userWithRole(Role::Administrator));
+            $donation = app(ConfirmDonation::class)->handle(
+                Donation::factory()->create(['donor_id' => Donor::factory()->withTaxProfile()->create()->id, 'manual_payment_method' => ManualPaymentMethod::Cash, 'campaign_id' => Campaign::factory()->create()->id]),
+                userWithRole(Role::Accountant),
+            );
+            app(AttachExternalCfdi::class)->handle($donation, externalCfdiXml(), null, null, userWithRole(Role::Accountant));
         }
     };
 
-    assertNoPerRowQueries($seed, fn () => Livewire::test(ListCfdiReport::class));
+    assertNoPerRowQueries($seed, fn () => Livewire::test(ListAccountingControl::class));
 });

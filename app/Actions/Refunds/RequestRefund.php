@@ -11,7 +11,6 @@ use App\Enums\RefundReason;
 use App\Enums\RefundSource;
 use App\Enums\RefundStatus;
 use App\Filament\Resources\Donations\DonationResource;
-use App\Models\FiscalIncident;
 use App\Models\Payment;
 use App\Models\Refund;
 use App\Models\User;
@@ -120,21 +119,16 @@ class RequestRefund
             ]);
         });
 
+        // Si el donativo ya tiene un CFDI externo adjunto, contabilidad debe revisarlo por fuera del CRM.
         $donation = $payment->donation;
-        if ($donation?->activeCfdi() !== null) {
-            $incident = FiscalIncident::query()->firstOrCreate(
-                ['dedupe_key' => "refund:{$refund->id}:cfdi_review"],
-                [
-                    'donation_id' => $donation->id,
-                    'type' => 'refund_cfdi_review',
-                    'status' => 'open',
-                    'details' => 'Existe un reembolso relacionado con un CFDI. Requiere resolución humana; el CRM no cancela ni sustituye automáticamente.',
-                    'detected_at' => now(),
-                ],
-            );
-            if ($incident->wasRecentlyCreated) {
-                OperationalAlerts::send('fiscal:refund:'.$refund->id, Permission::IssueCfdis, 'Revisión fiscal por reembolso', ['El donativo requiere revisar su CFDI y el reembolso relacionado.'], DonationResource::getUrl('view', ['record' => $donation->id], panel: 'admin'));
-            }
+        if ($donation !== null && $donation->externalCfdis()->active()->exists()) {
+            rescue(fn () => OperationalAlerts::send(
+                'external-cfdi:refund:'.$refund->id,
+                Permission::ManageExternalCfdis,
+                'Reembolso de un donativo con CFDI externo',
+                ['El donativo #'.$donation->id.' tiene un CFDI emitido por contabilidad y se solicitó un reembolso. Revisarlo en el proceso contable (el CRM no cancela ni sustituye CFDI).'],
+                DonationResource::getUrl('view', ['record' => $donation->id], panel: 'admin'),
+            ));
         }
 
         return $this->submit->handle($refund);

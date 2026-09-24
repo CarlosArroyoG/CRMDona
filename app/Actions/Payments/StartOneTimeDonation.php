@@ -59,6 +59,7 @@ class StartOneTimeDonation
             'amount' => $data['amount'],
             'currency' => 'MXN',
             'status' => PaymentStatus::Pending,
+            'tax_receipt_requested' => $data['tax_receipt_requested'],
         ]);
 
         if (! $payment->wasRecentlyCreated && ($payment->donor_id !== $data['donor']->id

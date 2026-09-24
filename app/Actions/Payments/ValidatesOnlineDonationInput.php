@@ -29,7 +29,7 @@ trait ValidatesOnlineDonationInput
     /**
      * @param  array<string, mixed>  $input
      * @param  class-string  $capability
-     * @return array{gateway: PaymentGateway, provider: PaymentProvider, donor: Donor, campaign_id: int|null, program_id: int|null, amount: numeric-string, idempotency_key: string, card_token: string|null, payment_method_id: string|null}
+     * @return array{gateway: PaymentGateway, provider: PaymentProvider, donor: Donor, campaign_id: int|null, program_id: int|null, amount: numeric-string, idempotency_key: string, card_token: string|null, payment_method_id: string|null, tax_receipt_requested: bool}
      *
      * @throws ValidationException
      */
@@ -47,6 +47,8 @@ trait ValidatesOnlineDonationInput
             'idempotency_key' => ['required', 'string', 'min:16', 'max:255', 'regex:/^[A-Za-z0-9_:\-]+$/'],
             'card_token' => ['nullable', 'string', 'max:255'],
             'payment_method_id' => ['nullable', 'string', 'max:50'],
+            // El donante pidió CFDI: se informa a Contabilidad en el aviso del donativo (el CRM no lo emite).
+            'tax_receipt_requested' => ['boolean'],
         ], [], [
             'provider' => 'proveedor de pago', 'donor_id' => 'donante', 'campaign_id' => 'campaña', 'program_id' => 'programa',
             'amount' => 'importe', 'idempotency_key' => 'llave de idempotencia',
@@ -77,6 +79,7 @@ trait ValidatesOnlineDonationInput
             'idempotency_key' => $data['idempotency_key'],
             'card_token' => $data['card_token'] ?? null,
             'payment_method_id' => $data['payment_method_id'] ?? null,
+            'tax_receipt_requested' => (bool) ($data['tax_receipt_requested'] ?? false),
         ];
     }
 

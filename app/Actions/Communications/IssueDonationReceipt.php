@@ -88,7 +88,7 @@ class IssueDonationReceipt
         return $pdf->space(16)
             ->line("Gracias por tu generosidad. {$organization}.", 11, false, 6)
             ->space(16)
-            ->line(self::DISCLAIMER.' Cuando corresponda, el comprobante fiscal es el CFDI que se entrega por separado.', 9)
+            ->line(self::DISCLAIMER.' Si solicitaste comprobante fiscal (CFDI), nuestra área de contabilidad lo emite por separado.', 9)
             ->render();
     }
 }

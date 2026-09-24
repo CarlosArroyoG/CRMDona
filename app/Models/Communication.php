@@ -22,7 +22,7 @@ use Illuminate\Support\Carbon;
  * @property CommunicationKind $kind
  * @property int $donor_id
  * @property int|null $donation_id
- * @property int|null $cfdi_id
+ * @property int|null $cfdi_id Histórico: envíos de CFDI de antes de que el CRM dejara de emitirlos.
  * @property string $dedupe_key
  * @property CommunicationStatus $status
  * @property string|null $recipient Correo enmascarado.
@@ -38,7 +38,6 @@ use Illuminate\Support\Carbon;
  * @property Carbon $updated_at
  * @property-read Donor $donor
  * @property-read Donation|null $donation
- * @property-read Cfdi|null $cfdi
  * @property-read User|null $requestedBy
  */
 class Communication extends Model
@@ -70,14 +69,6 @@ class Communication extends Model
     public function donation(): BelongsTo
     {
         return $this->belongsTo(Donation::class);
-    }
-
-    /**
-     * @return BelongsTo<Cfdi, $this>
-     */
-    public function cfdi(): BelongsTo
-    {
-        return $this->belongsTo(Cfdi::class);
     }
 
     /**

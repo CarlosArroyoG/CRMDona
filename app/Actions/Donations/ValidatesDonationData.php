@@ -48,11 +48,6 @@ trait ValidatesDonationData
             'received_on' => ['required', 'date', 'before_or_equal:today'],
             'reference' => ['nullable', 'string', 'max:100'],
             'in_kind_description' => [Rule::requiredIf($inKind), 'nullable', 'string', 'max:2000'],
-            'in_kind_quantity' => [Rule::requiredIf($inKind), 'nullable', 'numeric', 'gt:0', 'max:999999999.999'],
-            'in_kind_unit_code' => [Rule::requiredIf($inKind), 'nullable', 'string', 'max:10'],
-            'in_kind_product_service_code' => [Rule::requiredIf($inKind), 'nullable', 'string', 'max:10'],
-            'in_kind_unit_value' => [Rule::requiredIf($inKind), 'nullable', new MoneyAmount],
-            'in_kind_total_value' => [Rule::requiredIf($inKind), 'nullable', new MoneyAmount],
             'tax_receipt_requested' => ['boolean'],
             'notes' => ['nullable', 'string', 'max:5000'],
         ], [
@@ -63,8 +58,6 @@ trait ValidatesDonationData
             'manual_payment_method' => 'forma de pago', 'amount' => $inKind ? 'valor asignado' : 'importe',
             'received_on' => 'fecha de recepción', 'reference' => 'referencia',
             'in_kind_description' => 'descripción de lo donado', 'notes' => 'notas',
-            'in_kind_quantity' => 'cantidad', 'in_kind_unit_code' => 'unidad SAT', 'in_kind_product_service_code' => 'clave de producto/servicio SAT',
-            'in_kind_unit_value' => 'valor unitario', 'in_kind_total_value' => 'valor total',
         ])->validate();
 
         return [
@@ -77,11 +70,6 @@ trait ValidatesDonationData
             'received_on' => $data['received_on'],
             'reference' => $data['reference'] ?? null,
             'in_kind_description' => $inKind ? $data['in_kind_description'] : null,
-            'in_kind_quantity' => $inKind ? (string) $data['in_kind_quantity'] : null,
-            'in_kind_unit_code' => $inKind ? $data['in_kind_unit_code'] : null,
-            'in_kind_product_service_code' => $inKind ? $data['in_kind_product_service_code'] : null,
-            'in_kind_unit_value' => $inKind ? Money::normalize($data['in_kind_unit_value']) : null,
-            'in_kind_total_value' => $inKind ? Money::normalize($data['in_kind_total_value']) : null,
             'tax_receipt_requested' => (bool) ($data['tax_receipt_requested'] ?? false),
             'notes' => $data['notes'] ?? null,
         ];

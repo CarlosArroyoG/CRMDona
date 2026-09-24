@@ -13,8 +13,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
- * CFDI de un donativo. No copia datos fiscales del emisor ni del receptor:
- * lo emitido es el XML timbrado, guardado en almacenamiento privado.
+ * Histórico de solo lectura: CFDI que el CRM registró cuando aún pretendía
+ * emitirlos. El CRM ya no emite, timbra ni cancela CFDI
+ * (docs/tecnico/cfdi-externo.md); los timbrados se copiaron como antecedentes
+ * a `external_cfdis`. Se conserva para la bitácora.
  *
  * @property int $id
  * @property int|null $donation_id
@@ -49,7 +51,6 @@ use Illuminate\Support\Carbon;
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property-read Donation|null $donation
- * @property-read GlobalCfdi|null $globalCfdi
  * @property-read User|null $requestedBy
  * @property-read User|null $cancellationRequestedBy
  * @property-read Cfdi|null $substitutes
@@ -80,14 +81,6 @@ class Cfdi extends Model
     public function donation(): BelongsTo
     {
         return $this->belongsTo(Donation::class);
-    }
-
-    /**
-     * @return BelongsTo<GlobalCfdi, $this>
-     */
-    public function globalCfdi(): BelongsTo
-    {
-        return $this->belongsTo(GlobalCfdi::class);
     }
 
     /**

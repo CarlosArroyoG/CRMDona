@@ -12,8 +12,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * Datos fiscales del donante, solo si pidió comprobante deducible. El CFDI
- * futuro copiará estos datos al timbrar; aquí no hay reglas fiscales.
+ * Datos fiscales del donante, solo si pidió comprobante deducible. Se envían
+ * a Contabilidad en el aviso del donativo; el CRM no emite CFDI.
  *
  * @property int $id
  * @property int $donor_id
@@ -23,7 +23,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $tax_postal_code
  * @property CfdiUse|null $cfdi_use
  */
-#[Fillable(['rfc', 'tax_name', 'tax_regime', 'tax_postal_code', 'cfdi_use', 'foreign_resident', 'foreign_tax_id'])]
+#[Fillable(['rfc', 'tax_name', 'tax_regime', 'tax_postal_code', 'cfdi_use'])]
 class DonorTaxProfile extends Model
 {
     use Auditable;
@@ -70,7 +70,6 @@ class DonorTaxProfile extends Model
         return [
             'tax_regime' => TaxRegime::class,
             'cfdi_use' => CfdiUse::class,
-            'foreign_resident' => 'boolean',
         ];
     }
 }

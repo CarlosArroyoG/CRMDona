@@ -10,13 +10,9 @@ declare(strict_types=1);
  */
 return [
 
-    // Agradecimiento y CFDI se refieren a un donativo concreto (transaccionales).
-    // true = también exigen "Acepta recibir comunicaciones".
+    // El agradecimiento se refiere a un donativo concreto (transaccional).
+    // true = también exige "Acepta recibir comunicaciones".
     'transactional_requires_consent' => (bool) env('COMMUNICATIONS_TRANSACTIONAL_REQUIRES_CONSENT', false),
-
-    // Espera antes de enviar el agradecimiento, para adjuntar el CFDI si se timbra
-    // pronto. Si no está listo, el agradecimiento sale igual y el CFDI después.
-    'thank_you_delay_seconds' => (int) env('COMMUNICATIONS_THANK_YOU_DELAY', 300),
 
     // Felicitaciones: todos los días a esta hora (zona de la organización).
     'birthday_time' => '09:00',

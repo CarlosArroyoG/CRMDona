@@ -254,6 +254,7 @@ class SyncPayment
                 'currency' => $subscription->currency,
                 'status' => PaymentStatus::Pending,
                 'idempotency_key' => "{$provider->value}:recurring:{$subscription->id}:{$period}",
+                'tax_receipt_requested' => $subscription->tax_receipt_requested,
             ],
         );
 
