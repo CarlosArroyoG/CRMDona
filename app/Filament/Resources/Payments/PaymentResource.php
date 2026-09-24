@@ -77,11 +77,13 @@ class PaymentResource extends Resource
 
     protected static ?string $modelLabel = 'pago en línea';
 
-    protected static ?string $pluralModelLabel = 'pagos en línea';
+    protected static ?string $pluralModelLabel = 'Pagos en línea';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Pagos en línea';
+    protected static bool $hasTitleCaseModelLabel = false;
 
-    protected static ?int $navigationSort = 1;
+    protected static string|\UnitEnum|null $navigationGroup = 'Donativos';
+
+    protected static ?int $navigationSort = 4;
 
     public static function infolist(Schema $schema): Schema
     {

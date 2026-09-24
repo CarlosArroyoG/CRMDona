@@ -41,13 +41,15 @@ class WebhookEventResource extends Resource
 
     protected static ?string $modelLabel = 'notificación del proveedor';
 
-    protected static ?string $pluralModelLabel = 'notificaciones de proveedores';
+    protected static ?string $pluralModelLabel = 'Notificaciones de proveedores';
 
-    protected static ?string $navigationLabel = 'Bandeja de webhooks';
+    protected static bool $hasTitleCaseModelLabel = false;
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Pagos en línea';
+    protected static ?string $navigationLabel = 'Notificaciones de proveedores';
 
-    protected static ?int $navigationSort = 6;
+    protected static string|\UnitEnum|null $navigationGroup = 'Soporte técnico';
+
+    protected static ?int $navigationSort = 1;
 
     public static function infolist(Schema $schema): Schema
     {

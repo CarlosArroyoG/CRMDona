@@ -30,13 +30,17 @@ class PaymentDisputeResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedShieldExclamation;
 
+    protected static ?string $navigationLabel = 'Contracargos';
+
     protected static ?string $modelLabel = 'disputa';
 
-    protected static ?string $pluralModelLabel = 'disputas y contracargos';
+    protected static ?string $pluralModelLabel = 'Disputas y contracargos';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Pagos en línea';
+    protected static bool $hasTitleCaseModelLabel = false;
 
-    protected static ?int $navigationSort = 5;
+    protected static string|\UnitEnum|null $navigationGroup = 'Contabilidad';
+
+    protected static ?int $navigationSort = 3;
 
     public static function table(Table $table): Table
     {

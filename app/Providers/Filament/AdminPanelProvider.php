@@ -12,11 +12,10 @@ use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
-use Filament\Pages\Dashboard;
+use Filament\Navigation\NavigationGroup;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
-use Filament\Widgets\AccountWidget;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
@@ -40,7 +39,16 @@ class AdminPanelProvider extends PanelProvider
             // MFA obligatorio para todos (#45): aplicación autenticadora (TOTP) con códigos de recuperación.
             ->multiFactorAuthentication([AppAuthentication::make()->recoverable()], isRequired: true)
             ->databaseNotifications()
-            ->navigationGroups(['Donativos', 'Pagos en línea', 'Destinos', 'Administración'])
+            ->navigationGroups([
+                NavigationGroup::make('Donativos'),
+                NavigationGroup::make('Recaudación'),
+                NavigationGroup::make('Comunicaciones'),
+                NavigationGroup::make('Contabilidad'),
+                NavigationGroup::make('Administración'),
+                // Diagnóstico (solo Administrador): al final y plegado para no competir con la operación diaria.
+                NavigationGroup::make('Soporte técnico')->collapsed(),
+            ])
+            ->sidebarCollapsibleOnDesktop()
             ->brandName(fn (): string => (string) config('app.name'))
             // Logo configurado por la organización; sin él, Filament muestra el nombre de la marca.
             ->brandLogo(fn (): ?string => OrganizationSetting::current()->logo_path !== null
@@ -69,13 +77,8 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
-            ->pages([
-                Dashboard::class,
-            ])
+            // El Escritorio (App\Filament\Pages\Dashboard) y sus widgets se descubren solos.
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
-            ->widgets([
-                AccountWidget::class,
-            ])
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,

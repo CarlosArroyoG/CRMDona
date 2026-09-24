@@ -34,7 +34,7 @@ class MessageTemplateResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Plantillas';
 
-    protected static ?string $navigationLabel = 'Plantillas';
+    protected static ?string $navigationLabel = 'Plantillas de correo';
 
     protected static string|\UnitEnum|null $navigationGroup = 'Comunicaciones';
 

@@ -36,9 +36,9 @@ class RefundResource extends Resource
 
     protected static ?string $pluralModelLabel = 'reembolsos';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Pagos en línea';
+    protected static string|\UnitEnum|null $navigationGroup = 'Contabilidad';
 
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 2;
 
     public static function table(Table $table): Table
     {

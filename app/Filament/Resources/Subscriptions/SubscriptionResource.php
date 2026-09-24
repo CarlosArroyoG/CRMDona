@@ -54,11 +54,13 @@ class SubscriptionResource extends Resource
 
     protected static ?string $modelLabel = 'donativo mensual';
 
-    protected static ?string $pluralModelLabel = 'donativos mensuales';
+    protected static ?string $pluralModelLabel = 'Donativos mensuales';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Pagos en línea';
+    protected static bool $hasTitleCaseModelLabel = false;
 
-    protected static ?int $navigationSort = 2;
+    protected static string|\UnitEnum|null $navigationGroup = 'Donativos';
+
+    protected static ?int $navigationSort = 3;
 
     public static function infolist(Schema $schema): Schema
     {

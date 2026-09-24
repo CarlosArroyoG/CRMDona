@@ -53,13 +53,15 @@ class PaymentIncidentResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedExclamationTriangle;
 
+    protected static ?string $navigationLabel = 'Incidencias de pago';
+
     protected static ?string $modelLabel = 'incidencia';
 
     protected static ?string $pluralModelLabel = 'incidencias';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Pagos en línea';
+    protected static string|\UnitEnum|null $navigationGroup = 'Donativos';
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 5;
 
     public static function getEloquentQuery(): Builder
     {

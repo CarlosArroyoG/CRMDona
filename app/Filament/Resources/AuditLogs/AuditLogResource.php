@@ -37,11 +37,11 @@ class AuditLogResource extends Resource
 
     protected static ?string $pluralModelLabel = 'bitácora';
 
-    protected static ?string $navigationLabel = 'Bitácora';
+    protected static ?string $navigationLabel = 'Bitácora de cambios';
 
     protected static string|\UnitEnum|null $navigationGroup = 'Administración';
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 5;
 
     public static function infolist(Schema $schema): Schema
     {
