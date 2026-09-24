@@ -49,6 +49,18 @@ jobs:
       - name: Instalar dependencias
         run: composer install --no-interaction --prefer-dist --no-progress
 
+      # El tema de Filament y la página pública usan los assets de Vite: Pest renderiza
+      # pantallas y necesita public/build. Misma versión de Node que el Dockerfile.
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Compilar assets
+        run: |
+          npm ci
+          npm run build
+
       - name: Preparar entorno
         run: |
           cp .env.example .env
