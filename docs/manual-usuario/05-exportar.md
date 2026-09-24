@@ -23,6 +23,9 @@ personales). Programas y campañas: todos los roles.
 - El archivo **se elimina automáticamente a los 7 días**. Los datos del CRM no se borran.
 - Los archivos contienen datos personales: guárdalos en un lugar seguro y no los compartas sin
   necesidad.
+- Si un dato empieza con `=`, `+`, `-` o `@` (por ejemplo, un nombre capturado en la página
+  pública), se exporta con un apóstrofo delante (`'=`). Así Excel lo trata como texto y nunca lo
+  ejecuta como fórmula. Los teléfonos y los importes salen sin apóstrofo.
 
 ## Si no llega el aviso
 

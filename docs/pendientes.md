@@ -46,6 +46,9 @@
 | 42 | Donativos confirmados antes del aviso a Contabilidad: quedaron "No enviado" y pendientes de procesamiento contable. Contabilidad decide si los marca como procesados (hay acción en lote) | Operativo | Al migrar `crm` y producción | No se envía correo retroactivo |
 | 43 | Aplicar a `crm` la migración `2026_10_02_000001_create_mail_settings_table` (aditiva) | PENDIENTE DE AUTORIZACIÓN | Antes de usar Correo saliente en local | Validada en `crm_validation` (fresh, rollback y reaplicación) |
 | 44 | Si se rota `APP_KEY`, volver a capturar la contraseña SMTP (queda cifrada con la llave anterior) | Operativo | Siempre | `despliegue-coolify.md` |
+| 45 | Segundo factor (MFA) de Filament para Administrador y Contador, que ven datos fiscales y personales | [D] Decisión del responsable | Antes de producción (recomendado) | Revisión de seguridad 2026-09-24. Filament 5 lo trae integrado; no requiere paquete nuevo |
+| 46 | Mercado Pago: rechazar notificaciones con `ts` antiguo (repetición). Hoy se valida la firma, y la repetición no cambia datos porque se consulta el estado real al proveedor | [S] Técnico | Sandbox de Mercado Pago (#15) | Confirmar en sandbox si `ts` viene en segundos o milisegundos antes de fijar la tolerancia |
+| 47 | Defensa en profundidad: `UpdateUser`, `CreateUser`, `SaveProgram`, `SaveCampaign`, `Delete*`, `SetDonorArchived`, `UpdatePendingDonation` y `UpdateOrganizationSettings` no reciben al usuario y confían en las Policies de Filament | Técnico (mejora) | Refactorización posterior | Revisión de seguridad 2026-09-24. `Register/Confirm/CancelDonation` y `SetUserActive` ya revalidan el permiso |
 
 ## Pendientes para producción
 

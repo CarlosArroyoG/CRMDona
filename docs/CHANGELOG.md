@@ -2,6 +2,23 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+## [Revisión de seguridad y duplicados] — 2026-09-24
+
+### Seguridad
+- Logotipo de la organización: solo PNG o JPG, por contenido (MIME) y por extensión. Antes se aceptaba cualquier `image/*`, incluido SVG, y Filament conserva la extensión del cliente: un PNG llamado `.html` se habría servido como página desde el disco público.
+- Exportaciones: se neutralizan las fórmulas de hoja de cálculo (CWE-1236) en todas las columnas. Un valor que empieza con `=`, `+`, `-` o `@` sale con apóstrofo. El teléfono validado queda exento.
+- `.dockerignore`: ya no entran a la imagen `storage/app/private` y `storage/app/public` (CFDI, recibos y exportaciones locales), `storage/framework/testing`, `bootstrap/cache/*.php` ni `public/storage`.
+- Lector de CFDI: además del filtro de texto, rechaza cualquier DOCTYPE después de interpretar el XML. Esto cubre un DOCTYPE escondido en UTF-16.
+- `RegisterDonation`, `ConfirmDonation`, `CancelDonation` y `SetUserActive` revalidan el permiso del usuario, igual que las Actions de las fases 2 a 6.
+
+### Cambiado
+- `App\Filament\Concerns\ResolvesActor` (`actor()` y `actorCan()`) sustituye 8 copias idénticas de `actor()`, 7 comprobaciones en línea y el `userCan()` de `DonationResource`.
+- `App\Actions\Donors\DonorIdentityRules`: una sola definición de las reglas de nombre, contacto y teléfono para el panel y la página pública. El mensaje del teléfono es el mismo en ambos.
+
+### Agregado
+- `docs/manual-usuario/00-guia-rapida.md`: explicación sencilla de cada función del CRM.
+- Pendientes #45 (MFA), #46 (antigüedad de `ts` en Mercado Pago) y #47 (Actions que aún confían solo en las Policies).
+
 ## [Privacidad y pendientes externos] — 2026-09-23
 
 ### Cambiado

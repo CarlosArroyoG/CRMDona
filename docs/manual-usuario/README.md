@@ -4,6 +4,7 @@ Guía para el personal que usa el panel del CRM. No requiere conocimientos técn
 
 ## Contenido
 
+0. [Guía rápida: qué hace cada función, en una sola lectura](00-guia-rapida.md)
 1. [Acceso al panel y cambio de contraseña](01-acceso-al-panel.md)
 2. [Donantes](02-donantes.md)
 3. [Donativos](03-donativos.md)
