@@ -13,7 +13,7 @@ posteriores, y el aviso de privacidad vigente.
 | Número de oficio o carta de autorización, fecha de autorización | Autorización como donataria |
 | Leyenda de donativo | Texto que acompañará a los recibos |
 | URL del aviso de privacidad, versión vigente | **Obligatorias juntas.** Sin ellas no se puede registrar que un donante aceptó el aviso |
-| Logotipo | PNG o JPG, máximo 2 MB |
+| Logotipo | PNG o JPG, máximo 2 MB. Es el único logotipo del CRM: aparece en el panel, la página de donación, el ícono de la pestaña, el recibo PDF y los correos |
 | Firma de correo | Texto simple para los correos futuros |
 | Importe mínimo y máximo por donativo en línea | Reglas propias de la Fundación. **Vacío = sin límite propio.** Además siempre aplica el límite técnico del proveedor de pago (por ejemplo, Stripe no acepta cargos menores a $10 MXN); se usa el más restrictivo |
 

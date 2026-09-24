@@ -21,6 +21,7 @@ Guía para el personal que usa el panel del CRM. No requiere conocimientos técn
 14. [Tablero y reportes](14-tablero-y-reportes.md)
 15. [Página pública de donativos](15-pagina-publica.md)
 16. [Correo saliente](16-correo-saliente.md) — solo Administrador
+17. [Cobrar con tarjeta, enlace de pago y WhatsApp](17-cobro-con-tarjeta.md)
 
 ## Qué puede hacer cada rol
 
@@ -65,7 +66,7 @@ Si un botón no aparece, es porque tu rol no tiene esa acción.
 | Grupo | Pantallas |
 |---|---|
 | (sin grupo) | Escritorio: pendientes, accesos rápidos e indicadores del mes |
-| Donativos | Donativos, Donantes, Donativos mensuales, Pagos en línea (con el reporte de pagos), Incidencias de pago |
+| Donativos | Donativos, Donantes, Donativos mensuales, Solicitudes de pago, Pagos en línea (con el reporte de pagos), Incidencias de pago |
 | Recaudación | Campañas, Programas |
 | Comunicaciones | Historial de envíos, Plantillas de correo |
 | Contabilidad | Control contable, Reembolsos, Contracargos |

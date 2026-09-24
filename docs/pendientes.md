@@ -50,6 +50,10 @@
 | 46 | Mercado Pago: rechazar notificaciones con `ts` antiguo (repetición). Hoy se valida la firma, y la repetición no cambia datos porque se consulta el estado real al proveedor | [S] Técnico | Sandbox de Mercado Pago (#15) | Confirmar en sandbox si `ts` viene en segundos o milisegundos antes de fijar la tolerancia |
 | 47 | Defensa en profundidad: `UpdateUser`, `CreateUser`, `SaveProgram`, `SaveCampaign`, `Delete*`, `SetDonorArchived`, `UpdatePendingDonation` y `UpdateOrganizationSettings` no reciben al usuario y confían en las Policies de Filament | Técnico (mejora) | Refactorización posterior | Revisión de seguridad 2026-09-24. `Register/Confirm/CancelDonation` y `SetUserActive` ya revalidan el permiso |
 | 48 | Recuperar una cuenta que perdió la aplicación autenticadora **y** los códigos de recuperación. Hoy el CRM no permite que otra persona apague el MFA de un usuario; restablecer la contraseña no lo quita. El Administrador solo puede desactivar la cuenta, y para un Administrador bloqueado existe `app:create-admin` | [D] Decisión del responsable | Antes de producción (recomendado) | Sin bypass; definir un procedimiento verificado y auditado |
+| 49 | Mercado Pago en el cobro asistido: validar con el sandbox institucional el Card Payment Brick en el resumen del enlace (reintento con la misma llave y `card_token` nuevo) y el mensual por `/preapproval` | [S] Técnico | Sandbox de Mercado Pago (#15) | La solicitud, el enlace y el cierre por webhook no dependen del proveedor. `docs/tecnico/solicitudes-de-pago.md` §7 |
+| 50 | Subir el logotipo oficial de la Fundación en **Organización → Logotipo** (PNG o JPG, idealmente con fondo transparente). Es la única fuente para panel, `/donar`, favicon, recibo y correos | PENDIENTE DE LA INSTITUCIÓN | Antes de producción | El CRM no descarga ni trae logos en el código |
+| 51 | Aviso de privacidad definitivo: mencionar el enlace de pago por correo (transaccional) y la felicitación por WhatsApp preparada por el personal con el consentimiento de comunicaciones | PENDIENTE DE LA INSTITUCIÓN | Antes de producción | Decisión vigente: WhatsApp usa `accepts_communications`, sin consentimiento aparte |
+| 52 | Pruebas manuales en Stripe Test del cobro asistido (enlace único y mensual, "Abrir pago ahora" y reintento) antes de Live | [S] Operativo | Antes de habilitar Live (#14) | La integración de Stripe no cambió; el enlace reutiliza `/donar` |
 
 ## Pendientes para producción
 
@@ -69,6 +73,7 @@
   - URL pública y versión, capturadas en Organización (`docs/privacidad/aviso-privacidad-contenido-funcional.md`).
 - **Dominio y DNS:** dominios definitivos del panel y de la página pública y acceso al DNS (#2).
 - **Stripe:** cuenta y credenciales institucionales Live y configuración productiva (#14); Test ya validado.
+- **Identidad:** subir el logotipo oficial en Organización (#50).
 
 ### Técnicos (nuestros)
 

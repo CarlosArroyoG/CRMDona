@@ -44,6 +44,12 @@ campañas), rango de fechas de recepción, importe mínimo y máximo, y si solic
 
 Botón **Crear donativo**.
 
+Primero, en **¿Cómo se recibe?** (Administrador y Coordinador):
+
+- **Ya se recibió**: efectivo, transferencia, cheque, depósito o especie. Es el registro de siempre (tabla siguiente).
+- **Cobrar con tarjeta en línea**: no registra el donativo; prepara una solicitud de pago para que el donante pague
+  con su tarjeta en la página segura del proveedor. Ver [Cobrar con tarjeta](17-cobro-con-tarjeta.md).
+
 | Campo | Significado |
 |---|---|
 | Donante | Escribe parte del nombre. Los archivados no aparecen |

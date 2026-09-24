@@ -12,8 +12,9 @@ El documento de requisitos completo lo entregó el usuario al iniciar el proyect
 - **Fase 0 — Cimientos: cerrada** (2026-09-22). Ver `docs/fases/FASE-00-resumen.md`.
 - **Fase 1 — Núcleo del CRM: cerrada** (2026-09-22). Ver `docs/fases/FASE-01-resumen.md`.
 - **Fase 2 — Pagos en línea (Stripe y Mercado Pago): implementada y validada con FakeGateway**
-  (2026-09-23). **Falta el sandbox real** de ambos proveedores (puntos [S]) y la aprobación del
-  usuario. Ver `docs/fases/FASE-02-resumen.md`, `docs/tecnico/fase-2-diseno-pagos.md` (fuente de verdad)
+  (2026-09-23). **Stripe Test ya validado end-to-end** (webhook firmado, duplicados, fuera de orden, rechazo,
+  Donation solo por confirmación, recibo y comunicaciones); falta Stripe **Live** institucional (#14) y el
+  **sandbox de Mercado Pago** (#15). Ver `docs/fases/FASE-02-resumen.md`, `docs/tecnico/fase-2-diseno-pagos.md` (fuente de verdad)
   e `integraciones-pagos.md`. No marcar un [S] como [V] solo porque el código compile.
 - **Fase 2: bloque implementable cerrado administrativamente (2026-09-23)**. Sandbox abierto. Pausa `void` aprobada provisionalmente y límites en `null`.
 - **CFDI — cambio de alcance (2026-09-23, ADR-012): el CRM NO emite, timbra, cancela ni sustituye CFDI** y no llama a ningún PAC.
@@ -32,7 +33,7 @@ El documento de requisitos completo lo entregó el usuario al iniciar el proyect
   - Los cálculos viven en `app/Reports` (`DashboardMetrics`, `PaymentReport`, `AccountingControl`), nunca en widgets ni pantallas.
   - Definiciones: `docs/tecnico/fase-5-reportes.md`.
 - **Fase 6 — Página pública: cerrada** (2026-09-23), validada con FakeGateway.
-  - Stripe y Mercado Pago quedan en [S].
+  - Stripe Test validado; Stripe Live y Mercado Pago quedan en [S].
   - Cerrada el 2026-09-23 (`docs/fases/FASE-06-resumen.md`); migración de `donors.origin` aplicada a `crm`.
   - Build local de assets en Windows: `node node_modules/vite/bin/vite.js build` (libkrun no guarda enlaces simbólicos).
   - Fuente de verdad: `docs/tecnico/fase-6-pagina-publica.md`.
@@ -41,7 +42,13 @@ El documento de requisitos completo lo entregó el usuario al iniciar el proyect
 - **Fase 7 — Operación, seguridad y rendimiento:** cerrada localmente (2026-09-23). Ver `docs/fases/FASE-07-resumen.md` y `docs/tecnico/backup-restore-local.md`.
   - Pest 611 pruebas / 2487 aserciones, Pint 421 archivos y Larastan nivel 8 sin errores.
   - Build frontend e imagen `prod` validados con Docker; backup/restore PostgreSQL local probado en bases desechables.
-  - No declara producción validada. Stripe, Mercado Pago, SMTP, rebotes, S3, dominio, Coolify y credenciales productivas siguen `[S]`.
+  - No declara producción validada. Stripe Live, Mercado Pago, SMTP, rebotes, S3, dominio, Coolify y credenciales productivas siguen `[S]`.
+- **Cobro asistido, identidad y felicitaciones** (2026-09-24). Fuente de verdad: `docs/tecnico/solicitudes-de-pago.md`.
+  - "Crear donativo" → "Cobrar con tarjeta en línea" crea una `PaymentRequest` (no un Donation) y reutiliza `/donar` por `/donar/enlace/{token}` (7 días, hash + cifrado). Permiso `payments.request` (A, Co).
+  - La tarjeta nunca pasa por el CRM; MOTO fuera. La solicitud se paga solo por el proveedor (`SyncPayment` → `CompletePaymentRequest`).
+  - Identidad solo por `App\Support\Branding` (logo de Organización); nunca logos en el código.
+  - WhatsApp = "Preparar WhatsApp" (`wa.me`), nunca "enviado"; requiere `accepts_communications`.
+  - Stripe Test validado; pendientes: Stripe Live (#14) y sandbox de Mercado Pago (#15, #49).
 - **Base `crm`:** tiene datos persistentes de desarrollo. Se permiten `migrate` normales (con respaldo si hay riesgo).
   Nunca `migrate:fresh`, rollback destructivo ni experimentos contra `crm`; usar `crm_testing` o `crm_validation`.
 - Modelo de datos y reglas: `docs/tecnico/modelo-de-datos.md` y ADR-002 a ADR-012.

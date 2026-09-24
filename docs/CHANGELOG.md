@@ -2,6 +2,22 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+## [Cobro asistido, identidad y felicitaciones] — 2026-09-24
+
+Detalle en `docs/tecnico/solicitudes-de-pago.md`.
+
+### Agregado
+- **Cobro con tarjeta desde "Crear donativo"** (selector "¿Cómo se recibe?"): crea una solicitud de pago (`payment_requests`, migración reversible `2026_10_04_000001`) y **no** un donativo. Único o mensual. La tarjeta nunca pasa por el CRM; MOTO fuera de alcance.
+- **Solicitudes de pago** (Donativos): Abrir pago ahora, Copiar enlace, Enviar por correo, Regenerar y Cancelar. Permiso nuevo `payments.request` (Administrador y Coordinador).
+- **Enlace `/donar/enlace/{token}`**: token aleatorio guardado como hash y cifrado, 7 días de vigencia, reutiliza el checkout de `/donar`. Idempotencia `payment-request:{id}:{intento}`. La solicitud se marca pagada solo con la confirmación del proveedor.
+- **Correo de solicitud** (`CommunicationKind::PaymentRequest`), transaccional e individual, con plantilla editable y botón seguro; el enlace no queda en el historial.
+- **Preparar WhatsApp** (ficha del donante y cumpleaños del Escritorio): abre `wa.me` con la plantilla de cumpleaños; requiere consentimiento y teléfono utilizable; se registra "WhatsApp preparado", nunca "enviado".
+- **Identidad institucional** (`App\Support\Branding`): el logo de Organización llega a panel, `/donar`, favicon derivado (`/favicon.png`), recibo PDF (proporcional, sigue siendo no fiscal) y correos, sobre fondo blanco.
+
+### Cambiado
+- `StartPublicDonation` transporta `program_id` (programa directo sin campaña).
+- `SimplePdf` admite una imagen JPG (el logotipo).
+
 ## [Pasada UX del panel] — 2026-09-24
 
 ### Cambiado
