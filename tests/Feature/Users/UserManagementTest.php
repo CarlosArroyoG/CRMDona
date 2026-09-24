@@ -9,6 +9,7 @@ use App\Enums\AuditEvent;
 use App\Enums\Permission;
 use App\Enums\Role;
 use App\Models\AuditLog;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
@@ -65,7 +66,9 @@ it('impide quedarse sin Administradores activos', function (): void {
     expect(userErrors(fn () => app(SetUserActive::class)->handle($otherAdmin, false, $otherAdmin)))->toHaveKey('user');
 
     app(SetUserActive::class)->handle($otherAdmin, false, $onlyAdmin);
-    expect(userErrors(fn () => app(SetUserActive::class)->handle($onlyAdmin, false, userWithRole(Role::Accountant))))->toHaveKey('user');
+    // Solo un Administrador activo puede desactivar, y no a sí mismo: el último nunca queda desactivado.
+    expect(fn () => app(SetUserActive::class)->handle($onlyAdmin, false, userWithRole(Role::Accountant)))->toThrow(AuthorizationException::class)
+        ->and($onlyAdmin->refresh()->isActive())->toBeTrue();
 });
 
 it('desactiva y reactiva usuarios; el desactivado no entra ni tiene permisos', function (): void {

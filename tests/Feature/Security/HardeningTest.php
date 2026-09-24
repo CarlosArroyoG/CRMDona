@@ -2,10 +2,13 @@
 
 declare(strict_types=1);
 
+use App\Actions\Donations\CancelDonation;
 use App\Actions\Donations\ConfirmDonation;
+use App\Actions\Donations\RegisterDonation;
 use App\Actions\ExternalCfdi\AttachExternalCfdi;
 use App\Actions\Incidents\OpenPaymentIncident;
 use App\Actions\Incidents\ResolveIncident;
+use App\Actions\Users\SetUserActive;
 use App\Enums\IncidentStatus;
 use App\Enums\IncidentType;
 use App\Enums\ManualPaymentMethod;
@@ -27,6 +30,7 @@ use App\Reports\DashboardMetrics;
 use Carbon\CarbonImmutable;
 use Filament\Actions\Testing\TestAction;
 use Filament\Auth\Pages\Login;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\Queue\Job;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Support\Facades\Artisan;
@@ -118,6 +122,19 @@ it('Solo lectura no abre fichas protegidas por URL directa ni ejecuta acciones o
 
     Livewire::test(ListDonations::class)->assertActionHidden(TestAction::make('export')->table());
     expect(Export::query()->count())->toBe(0);
+});
+
+it('las Actions revalidan el permiso aunque se invoquen fuera del panel', function (): void {
+    $pending = Donation::factory()->create();
+    $readOnly = userWithRole(Role::ReadOnly);
+    $coordinator = userWithRole(Role::FundraisingCoordinator);
+
+    expect(fn () => app(RegisterDonation::class)->handle([], $readOnly))->toThrow(AuthorizationException::class)
+        ->and(fn () => app(ConfirmDonation::class)->handle($pending, $coordinator))->toThrow(AuthorizationException::class)
+        ->and(fn () => app(CancelDonation::class)->handle($pending, 'Motivo de prueba', $coordinator))->toThrow(AuthorizationException::class)
+        ->and(fn () => app(SetUserActive::class)->handle($readOnly, false, $coordinator))->toThrow(AuthorizationException::class)
+        ->and($pending->refresh()->isPending())->toBeTrue()
+        ->and($readOnly->refresh()->isActive())->toBeTrue();
 });
 
 it('los webhooks sin firma válida se rechazan y no guardan el payload', function (): void {

@@ -6,8 +6,10 @@ namespace App\Actions\Donations;
 
 use App\Enums\AuditEvent;
 use App\Enums\DonationStatus;
+use App\Enums\Permission;
 use App\Models\Donation;
 use App\Models\User;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
@@ -21,10 +23,15 @@ class CancelDonation
     public const string ALREADY_CANCELLED = 'Este donativo ya está cancelado.';
 
     /**
+     * @throws AuthorizationException
      * @throws ValidationException
      */
     public function handle(Donation $donation, ?string $reason, User $actor): Donation
     {
+        if (! $actor->hasPermission(Permission::ConfirmDonations)) {
+            throw new AuthorizationException('No tienes permiso para cancelar donativos.');
+        }
+
         $data = Validator::make(
             ['cancellation_reason' => $reason !== null ? trim($reason) : null],
             ['cancellation_reason' => ['required', 'string', 'min:5', 'max:1000']],

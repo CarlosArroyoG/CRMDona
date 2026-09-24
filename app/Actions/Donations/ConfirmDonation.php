@@ -6,8 +6,10 @@ namespace App\Actions\Donations;
 
 use App\Enums\AuditEvent;
 use App\Enums\DonationStatus;
+use App\Enums\Permission;
 use App\Models\Donation;
 use App\Models\User;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -20,10 +22,15 @@ class ConfirmDonation
     public const string NOT_PENDING = 'Solo se pueden confirmar donativos "Por confirmar".';
 
     /**
+     * @throws AuthorizationException
      * @throws ValidationException
      */
     public function handle(Donation $donation, User $actor): Donation
     {
+        if (! $actor->hasPermission(Permission::ConfirmDonations)) {
+            throw new AuthorizationException('No tienes permiso para confirmar donativos.');
+        }
+
         return DB::transaction(function () use ($donation, $actor): Donation {
             $locked = Donation::query()->lockForUpdate()->findOrFail($donation->id);
 
