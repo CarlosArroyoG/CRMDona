@@ -14,26 +14,31 @@
     </style>
     @stack('head')
 </head>
-<body class="min-h-screen bg-slate-50 text-slate-900 antialiased">
+<body class="min-h-screen bg-db-bg-blue font-sans text-db-text antialiased">
     <a href="#contenido" class="sr-only focus:not-sr-only">Saltar al contenido</a>
-    <header class="bg-white shadow-sm" style="border-top: 4px solid var(--brand)">
-        <div class="mx-auto flex max-w-2xl items-center gap-3 px-4 py-3">
+
+    <header style="background: var(--brand)">
+        <div class="mx-auto flex max-w-2xl items-center gap-3 px-4 py-4 sm:py-5">
             @if ($logoUrl)
-                <img src="{{ $logoUrl }}" alt="{{ $organization }}" class="h-10 w-auto">
+                <img src="{{ $logoUrl }}" alt="{{ $organization }}" class="h-10 w-auto sm:h-12">
             @else
-                <span class="text-lg font-semibold" style="color: var(--brand)">{{ $organization }}</span>
+                <span class="text-lg font-semibold text-white sm:text-xl">{{ $organization }}</span>
             @endif
         </div>
+        <div class="h-1" style="background: var(--brand-accent)"></div>
     </header>
 
     <main id="contenido" class="mx-auto max-w-2xl px-4 py-6 sm:py-10">
-        @yield('content')
+        <div class="rounded-2xl bg-db-surface p-5 shadow-sm ring-1 ring-db-border sm:p-8">
+            @yield('content')
+        </div>
     </main>
 
-    <footer class="mx-auto max-w-2xl px-4 pb-10 text-sm text-slate-600">
-        <p>{{ $organization }}.
+    <footer class="mt-6 border-t border-db-border bg-db-soft-blue">
+        <p class="mx-auto max-w-2xl px-4 py-6 text-sm text-db-text-muted">
+            {{ $organization }}.
             @if ($privacyUrl)
-                <a href="{{ $privacyUrl }}" target="_blank" rel="noopener" class="underline">Aviso de privacidad</a>.
+                <a href="{{ $privacyUrl }}" target="_blank" rel="noopener" class="font-medium text-db-blue underline underline-offset-2">Aviso de privacidad</a>.
             @endif
         </p>
     </footer>
