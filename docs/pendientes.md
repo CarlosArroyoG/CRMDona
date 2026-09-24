@@ -14,8 +14,8 @@
 | 10 | ~~Probar una exportación real con `worker` y Redis~~ | Cerrado | — | Verificada manualmente por el responsable (2026-09-22) |
 | 11 | Índice GIN (`pg_trgm`) para la búsqueda sin acentos si el volumen de donantes crece | Técnico (mejora) | Cuando haga falta | ADR-009 |
 | 12 | Reducir el tamaño de la imagen `prod` (~1.1 GB) separando las herramientas de compilación | Técnico (mejora) | Refactorización posterior | No afecta el funcionamiento |
-| 14 | **Sandbox de Stripe**: cuenta de prueba MX, llaves en `.env`, webhook con Stripe CLI, Smart Retries con "dejar la suscripción vencida" y ciclo completo con Test Clocks. Confirmar los [S] de Stripe (§25.2 del diseño) | PENDIENTE EXTERNO + [S] | Antes de habilitar Stripe | Instrucciones: `docs/tecnico/integraciones-pagos.md` §3.1 |
-| 15 | **Sandbox de Mercado Pago**: aplicación, cuentas de prueba, credenciales de prueba y webhooks. Ejecutar el checklist de 16 puntos (§16.3 del diseño): Orders, `/preapproval` sin plan, `authorized_payment`, reintentos reales, pausa, reactivación, contracargos, límites | PENDIENTE EXTERNO + [S] | Antes de habilitar Mercado Pago | Si contradice la opción A, detenerse y consultar |
+| 14 | **Stripe Test** validado el 2026-09-23 con un sandbox: pago único aprobado (webhook firmado, idempotencia, orden de eventos, Payment → Donation → recibo → agradecimiento → aviso contable) y rechazo mensual sin efectos. Faltan: ciclo mensual con Test Clocks, Smart Retries y la cuenta institucional | Parcial [S] | Antes de habilitar Stripe en producción | Rotar la `sk_test` usada en la validación |
+| 15 | **Mercado Pago — PENDIENTE DE LA INSTITUCIÓN** (no es un defecto del CRM ni bloquea otros bloques). Pasos: 1) crear la cuenta institucional; 2) crear la aplicación o integración; 3) obtener credenciales **Test**; 4) configurar `MERCADO_PAGO_ACCESS_TOKEN` y `MERCADO_PAGO_PUBLIC_KEY` solo en `.env` o en Coolify, nunca en Git; 5) configurar el webhook HTTPS `/webhooks/payments/mercado_pago` (en local, con un túnel HTTPS); 6) configurar `MERCADO_PAGO_WEBHOOK_SECRET`; 7) validar un pago aprobado; 8) validar un pago rechazado; 9) validar webhook e idempotencia; 10) solo después, credenciales productivas | PENDIENTE EXTERNO | Antes de habilitar Mercado Pago | `integraciones-pagos.md` §3.2 |
 | 16 | Límites de negocio de donativos en línea (mínimo y máximo) | [D] DECIDIDO 2026-09-23: permanecen `null` hasta decisión posterior | Después del sandbox | Solo aplica el técnico (Stripe 10 MXN; Mercado Pago sin verificar). No inventar valores |
 | 17 | Pausa en Stripe con `pause_collection.behavior = void` (el periodo pausado no acumula adeudo) | [D] APROBADO PROVISIONALMENTE 2026-09-23; validación real [S] | Stripe Test | Implementado como `void`; reversible en el adaptador |
 | 18 | ~~Tratamiento fiscal de reembolsos y contracargos sobre CFDI~~ | Sin efecto en el CRM (ADR-012) | — | Lo decide Contabilidad fuera del CRM. El CRM avisa (alerta operativa) si se reembolsa un donativo con CFDI externo adjunto |
@@ -42,7 +42,33 @@
 | 38 | Build local de estilos: en Windows (libkrun) los enlaces simbólicos de `node_modules/.bin` no se guardan; usar `node node_modules/vite/bin/vite.js build`. La imagen de producción compila normal | Informativo | — | Verificado 2026-09-23 |
 | 39 | Cantidades sugeridas definitivas de la página pública (hoy 200, 500, 1000 y 2000 MXN, configurables) | [D] Negocio (reversible) | Antes de producción | `DONATIONS_SUGGESTED_AMOUNTS` |
 | 40 | Activar en producción "Recibe avisos a Contabilidad" para la contadora (Usuarios → Editar). Sin destinatarios, los avisos quedan "No enviado" y los Administradores reciben una alerta diaria | PENDIENTE EXTERNO | Antes de producción | `docs/tecnico/cfdi-externo.md` §3 |
-| 41 | Aviso de privacidad: mencionar que los datos fiscales del donante que solicita CFDI se comparten internamente con Contabilidad por correo para emitirlo | PENDIENTE DE REDACCIÓN LEGAL | Antes de producción | Complementa #34 |
+| 41 | ~~Aviso de privacidad según el flujo real~~ **Resuelto en el CRM 2026-09-23**: resumen visible en `/donar` antes de enviar datos (fiscal solo para Contabilidad, CFDI externo, pago sin tarjeta completa ni CVV, transaccional vs. informativo, baja) y versión mostrada. Contenido funcional para la institución en `docs/privacidad/aviso-privacidad-contenido-funcional.md`. El texto definitivo y sus datos (domicilio, contacto de privacidad, ARCO, transferencias, plazos) son de la institución (ver abajo) | Cerrado en el CRM | — | No es un dictamen jurídico |
 | 42 | Donativos confirmados antes del aviso a Contabilidad: quedaron "No enviado" y pendientes de procesamiento contable. Contabilidad decide si los marca como procesados (hay acción en lote) | Operativo | Al migrar `crm` y producción | No se envía correo retroactivo |
 | 43 | Aplicar a `crm` la migración `2026_10_02_000001_create_mail_settings_table` (aditiva) | PENDIENTE DE AUTORIZACIÓN | Antes de usar Correo saliente en local | Validada en `crm_validation` (fresh, rollback y reaplicación) |
 | 44 | Si se rota `APP_KEY`, volver a capturar la contraseña SMTP (queda cifrada con la llave anterior) | Operativo | Siempre | `despliegue-coolify.md` |
+
+## Pendientes para producción
+
+### De la institución
+
+- **Mercado Pago:** cuenta institucional, aplicación, credenciales de prueba y luego productivas, webhook y validación (#15).
+- **Correo:**
+  - proveedor SMTP y sus datos, capturados en **Administración → Correo saliente**;
+  - SPF, DKIM y DMARC publicados en el DNS del dominio remitente;
+  - correo de prueba (#32).
+- **Contabilidad:** activar a la o las destinatarias de los avisos contables en Usuarios → "Recibe avisos a Contabilidad" (#40).
+- **Aviso de privacidad definitivo:**
+  - responsable, domicilio y medio de contacto de privacidad;
+  - procedimiento ARCO (#6);
+  - transferencias;
+  - plazos de conservación (#5);
+  - URL pública y versión, capturadas en Organización (`docs/privacidad/aviso-privacidad-contenido-funcional.md`).
+- **Dominio y DNS:** dominios definitivos del panel y de la página pública y acceso al DNS (#2).
+- **Stripe:** cuenta institucional para producción (#14).
+
+### Técnicos (nuestros)
+
+- Respaldo externo S3-compatible de PostgreSQL y del volumen `crm-storage`, más una prueba de restauración (#4).
+- Despliegue en Coolify con los 5 recursos (#3).
+- HTTPS y dominio cuando la institución los entregue (#2, #3).
+- Smoke final de producción: donativo en línea, recibo, agradecimiento, aviso contable, correo de prueba y respaldo.

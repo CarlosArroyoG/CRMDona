@@ -2,6 +2,20 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+## [Privacidad y pendientes externos] — 2026-09-23
+
+### Cambiado
+- Página pública `/donar`: resumen de privacidad visible antes de enviar datos, con la versión del aviso. Explica:
+  - que los datos fiscales, solo si se pide CFDI, los ve el personal autorizado de Contabilidad, que lo emite fuera de la plataforma;
+  - que la pasarela procesa el pago y no se guarda el número completo de la tarjeta ni el CVV;
+  - la diferencia entre comunicaciones transaccionales e informativas, y la baja.
+- Se retiró el texto heredado "la Fundación cumple sus obligaciones fiscales", que implicaba facturación automática.
+- `phpunit.xml` fija `DONATIONS_PUBLIC_PROVIDER` vacío: las pruebas ya no dependen del proveedor elegido en el `.env` local.
+
+### Agregado
+- `docs/privacidad/aviso-privacidad-contenido-funcional.md`: contenido funcional para el aviso definitivo, con los datos institucionales faltantes marcados. No es un dictamen jurídico.
+- Pendientes de producción separados entre institución y técnicos. Mercado Pago queda como pendiente externo de la institución.
+
 ## [Correo saliente SMTP administrable] — 2026-09-23
 
 ### Agregado
