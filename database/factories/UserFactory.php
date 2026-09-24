@@ -6,6 +6,7 @@ namespace Database\Factories;
 
 use App\Enums\Role;
 use App\Models\User;
+use Filament\Auth\MultiFactor\App\AppAuthentication;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -33,7 +34,19 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
+            // MFA obligatorio (#45): el usuario de prueba ya tiene su aplicación autenticadora configurada.
+            'app_authentication_secret' => AppAuthentication::make()->generateSecret(),
         ];
+    }
+
+    /**
+     * Usuario que aún no configura su aplicación autenticadora (primer acceso).
+     */
+    public function withoutMultiFactorAuthentication(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'app_authentication_secret' => null,
+        ]);
     }
 
     public function withRole(Role $role): static

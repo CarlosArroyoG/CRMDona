@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Enums\Role;
 use App\Models\User;
+use Filament\Auth\MultiFactor\App\AppAuthentication;
 use Filament\Auth\Pages\Login;
 use Filament\Facades\Filament;
 use Livewire\Livewire;
@@ -41,9 +42,12 @@ it('permite iniciar sesión al administrador desde el formulario', function (): 
         'password' => 'clave-segura-2026',
     ]);
 
+    // Contraseña y después el código de su aplicación autenticadora (MFA obligatorio, #45).
     Livewire::test(Login::class)
         ->set('data.email', 'ana.admin@example.com')
         ->set('data.password', 'clave-segura-2026')
+        ->call('authenticate')
+        ->set('data.multiFactor.app.code', AppAuthentication::make()->getCurrentCode($admin))
         ->call('authenticate')
         ->assertHasNoErrors()
         ->assertRedirect('/admin');

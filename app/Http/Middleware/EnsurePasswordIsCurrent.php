@@ -20,10 +20,15 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class EnsurePasswordIsCurrent
 {
-    /** Rutas permitidas mientras la contraseña sea temporal. */
+    /**
+     * Rutas permitidas mientras la contraseña sea temporal. Incluye la
+     * configuración obligatoria del MFA: Filament la exige antes del perfil y,
+     * sin ella, ambos middleware se redirigirían en bucle.
+     */
     private const array ALLOWED_ROUTES = [
         'filament.admin.auth.profile',
         'filament.admin.auth.logout',
+        'filament.admin.auth.multi-factor-authentication.set-up-required',
     ];
 
     public const string EXPIRED_MESSAGE = 'Tu contraseña temporal venció. Pide al Administrador un nuevo restablecimiento.';

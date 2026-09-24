@@ -7,6 +7,7 @@ namespace App\Providers\Filament;
 use App\Filament\Pages\Auth\ChangePassword;
 use App\Http\Middleware\EnsurePasswordIsCurrent;
 use App\Models\OrganizationSetting;
+use Filament\Auth\MultiFactor\App\AppAuthentication;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -36,6 +37,8 @@ class AdminPanelProvider extends PanelProvider
             // Recuperación por correo: sale por el correo saliente vigente (panel o MAIL_*).
             ->passwordReset()
             ->profile(ChangePassword::class, isSimple: false)
+            // MFA obligatorio para todos (#45): aplicación autenticadora (TOTP) con códigos de recuperación.
+            ->multiFactorAuthentication([AppAuthentication::make()->recoverable()], isRequired: true)
             ->databaseNotifications()
             ->navigationGroups(['Donativos', 'Pagos en línea', 'Destinos', 'Administración'])
             ->brandName(fn (): string => (string) config('app.name'))

@@ -9,6 +9,10 @@ use App\Enums\Permission;
 use App\Enums\Role;
 use App\Models\Concerns\Auditable;
 use Database\Factories\UserFactory;
+use Filament\Auth\MultiFactor\App\Concerns\InteractsWithAppAuthentication;
+use Filament\Auth\MultiFactor\App\Concerns\InteractsWithAppAuthenticationRecovery;
+use Filament\Auth\MultiFactor\App\Contracts\HasAppAuthentication;
+use Filament\Auth\MultiFactor\App\Contracts\HasAppAuthenticationRecovery;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -33,12 +37,16 @@ use Illuminate\Support\Carbon;
  */
 #[Fillable(['name', 'email', 'password'])]
 #[Hidden(['password', 'remember_token'])]
-class User extends Authenticatable implements FilamentUser
+class User extends Authenticatable implements FilamentUser, HasAppAuthentication, HasAppAuthenticationRecovery
 {
     use Auditable;
 
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
+
+    // MFA nativo de Filament (#45): secreto cifrado y códigos de recuperación con hash, ocultos
+    // en la serialización. Nunca entran a la bitácora (no están en los campos auditados).
+    use InteractsWithAppAuthentication, InteractsWithAppAuthenticationRecovery;
 
     public static function auditValueFields(): array
     {
