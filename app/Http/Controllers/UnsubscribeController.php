@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Actions\Communications\UnsubscribeDonor;
-use App\Models\OrganizationSetting;
+use App\Support\Branding;
 use Illuminate\Contracts\View\View;
 
 /**
@@ -31,6 +31,6 @@ class UnsubscribeController extends Controller
 
     private function organization(): string
     {
-        return OrganizationSetting::current()->legal_name ?? config()->string('app.name');
+        return Branding::name();
     }
 }

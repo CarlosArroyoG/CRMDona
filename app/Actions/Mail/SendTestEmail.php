@@ -12,8 +12,8 @@ use App\Mail\Outgoing\OutgoingMailConfig;
 use App\Mail\Outgoing\SmtpErrorTranslator;
 use App\Models\Communication;
 use App\Models\MailSetting;
-use App\Models\OrganizationSetting;
 use App\Models\User;
+use App\Support\Branding;
 use App\Support\SensitiveData;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Mail\MailManager;
@@ -68,7 +68,7 @@ class SendTestEmail
         }
 
         $masked = (string) Communication::maskEmail($data['recipient']);
-        $organization = OrganizationSetting::current()->legal_name ?? config()->string('app.name');
+        $organization = Branding::name();
 
         try {
             $mailer = $this->manager->build(['transport' => OutgoingMailConfig::MAILER, 'name' => 'crm-prueba']);

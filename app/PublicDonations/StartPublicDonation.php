@@ -7,8 +7,10 @@ namespace App\PublicDonations;
 use App\Actions\Payments\StartOneTimeDonation;
 use App\Actions\Subscriptions\StartMonthlyDonation;
 use App\Enums\PaymentProvider;
+use App\Enums\ProgramStatus;
 use App\Models\Campaign;
 use App\Models\Payment;
+use App\Models\Program;
 use App\Models\Subscription;
 use App\Payments\Data\CheckoutResult;
 use App\Payments\Exceptions\PaymentProviderException;
@@ -43,12 +45,19 @@ class StartPublicDonation
             throw ValidationException::withMessages(['campaign' => 'Esta campaña ya no está recibiendo donativos.']);
         }
 
+        // Programa directo (sin campaña): solo lo trae el enlace de una solicitud de pago.
+        $programId = $campaignId === null && is_int($payload['program_id'] ?? null) ? $payload['program_id'] : null;
+        if ($programId !== null && Program::query()->find($programId)?->status !== ProgramStatus::Active) {
+            throw ValidationException::withMessages(['program' => 'Este programa ya no está recibiendo donativos.']);
+        }
+
         $donorId = is_int($payload['donor_id'] ?? null) ? $payload['donor_id'] : $this->donors->handle($payload)->id;
 
         $input = [
             'provider' => $provider->value,
             'donor_id' => $donorId,
             'campaign_id' => $campaignId,
+            'program_id' => $programId,
             'amount' => $payload['amount'],
             'idempotency_key' => $payload['idempotency_key'],
             'card_token' => $cardToken,

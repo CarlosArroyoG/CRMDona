@@ -43,6 +43,14 @@
     color: #ffffff;
 }
 
+/* El logotipo institucional es oscuro sobre fondo claro: en el encabezado azul va sobre una placa blanca. */
+.fi-topbar img.fi-logo {
+    box-sizing: content-box;
+    background: #ffffff;
+    padding: 0.2rem 0.6rem;
+    border-radius: 0.5rem;
+}
+
 /* Barra lateral: etiquetas de grupo como encabezados y elemento activo claro. */
 .fi-sidebar-nav {
     row-gap: 1.25rem;

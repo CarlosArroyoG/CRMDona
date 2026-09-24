@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Mail;
 
 use App\Communications\ComposedMessage;
+use App\Support\Branding;
 use Illuminate\Mail\Attachment;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
@@ -43,6 +44,11 @@ class DonorMessage extends Mailable
                 'signature' => $this->message->signature,
                 'unsubscribeUrl' => $this->message->unsubscribeUrl,
                 'body' => $this->message->body,
+                'actionUrl' => $this->message->actionUrl,
+                'actionLabel' => $this->message->actionLabel,
+                // Identidad institucional: logo configurado por Administración o, sin él, el nombre.
+                'organization' => Branding::name(),
+                'logoUrl' => Branding::logoUrl(),
             ],
         );
     }

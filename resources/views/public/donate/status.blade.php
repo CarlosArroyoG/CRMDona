@@ -22,7 +22,7 @@
                 <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-db-soft-yellow text-3xl">🙏</div>
                 <h1 id="titulo" class="mt-4 text-2xl font-bold text-db-navy sm:text-3xl">¡Gracias por tu donativo!</h1>
                 <p class="mt-3 text-db-text">
-                    Confirmamos tu donativo de <strong>{{ $amount }} MXN</strong>{{ $monthly ? ' mensual' : '' }}{{ $campaign ? ' para '.$campaign->name : '' }}.
+                    Confirmamos tu donativo de <strong>{{ $amount }} MXN</strong>{{ $monthly ? ' mensual' : '' }}{{ ($campaign ?? $program) ? ' para '.($campaign ?? $program)->name : '' }}.
                 </p>
                 <p class="mt-2 text-db-text-muted">Te enviaremos por correo tu agradecimiento con el recibo.{{ $payload['tax'] !== null ? ' Tu solicitud de comprobante fiscal (CFDI) pasa a nuestra área de contabilidad, que lo emite por separado.' : '' }}</p>
                 @if ($monthly)

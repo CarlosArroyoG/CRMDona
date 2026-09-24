@@ -47,6 +47,8 @@ const APPROVED_MATRIX = [
     'payments.receive_alerts' => ['A', 'C', 'Co'],
     'webhooks.view' => ['A'],
     'payment_settings.view' => ['A'],
+    // Cobro asistido: solicitudes de pago con enlace (el Contador no las genera).
+    'payments.request' => ['A', 'C'],
     // CFDI externos (cambio de alcance: el CRM no emite CFDI).
     'cfdi.view' => ['A', 'C', 'Co'],
     'cfdi.manage' => ['A', 'Co'],

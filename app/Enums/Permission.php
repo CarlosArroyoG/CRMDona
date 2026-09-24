@@ -54,6 +54,8 @@ enum Permission: string
     case ReceivePaymentAlerts = 'payments.receive_alerts';
     case ViewWebhooks = 'webhooks.view';
     case ViewPaymentSettings = 'payment_settings.view';
+    // Cobro asistido (docs/tecnico/solicitudes-de-pago.md): preparar solicitudes de pago con enlace.
+    case RequestPayments = 'payments.request';
 
     // CFDI externos (docs/tecnico/cfdi-externo.md): el CRM no emite CFDI; solo conserva
     // los que contabilidad emite fuera, como antecedentes del donativo.
@@ -81,7 +83,7 @@ enum Permission: string
             self::ViewDonors, self::ViewPrograms, self::ViewCampaigns, self::ViewDonations,
             self::ExportPrograms, self::ExportCampaigns, self::ViewPayments, self::ViewSubscriptions => Role::cases(),
             self::ManageDonors, self::ManageTags, self::ManagePrograms, self::ManageCampaigns,
-            self::ManageSubscriptions, self::ManageMessageTemplates => $fundraising,
+            self::ManageSubscriptions, self::ManageMessageTemplates, self::RequestPayments => $fundraising,
             self::ManageDonorTaxProfiles, self::ExportDonors, self::RegisterDonations, self::ExportDonations,
             self::ExportPayments, self::ViewIncidents, self::ManageIncidents, self::ReceivePaymentAlerts,
             self::ViewCfdis, self::ViewDonationReceipts, self::ViewCommunications, self::ResendCommunications => $staff,

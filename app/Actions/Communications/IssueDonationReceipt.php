@@ -9,6 +9,7 @@ use App\Enums\DonationStatus;
 use App\Models\Donation;
 use App\Models\DonationReceipt;
 use App\Models\OrganizationSetting;
+use App\Support\Branding;
 use App\Support\Money;
 use App\Support\SimplePdf;
 use Illuminate\Support\Facades\DB;
@@ -55,11 +56,16 @@ class IssueDonationReceipt
     private function pdf(Donation $donation, string $folio, DonationReceipt $receipt): string
     {
         $settings = OrganizationSetting::current();
-        $organization = $settings->legal_name ?? config()->string('app.name');
+        $organization = Branding::name();
         $amount = Money::format($donation->amount).' MXN';
 
-        $pdf = (new SimplePdf)
-            ->line('RECIBO DE DONATIVO', 18, true)
+        $pdf = new SimplePdf;
+        // Logotipo institucional proporcional (si está configurado); el recibo sigue siendo no fiscal.
+        if (($logo = Branding::logoJpeg()) !== null) {
+            $pdf->image($logo['data'], $logo['width'], $logo['height']);
+        }
+
+        $pdf->line('RECIBO DE DONATIVO', 18, true)
             ->line(self::DISCLAIMER, 10, true, 6)
             ->space(8)
             ->line("Folio interno: {$folio}", 11, false, 6)

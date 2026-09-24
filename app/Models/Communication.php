@@ -37,7 +37,9 @@ use Illuminate\Support\Carbon;
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property-read Donor $donor
+ * @property int|null $payment_request_id
  * @property-read Donation|null $donation
+ * @property-read PaymentRequest|null $paymentRequest
  * @property-read User|null $requestedBy
  */
 class Communication extends Model
@@ -69,6 +71,16 @@ class Communication extends Model
     public function donation(): BelongsTo
     {
         return $this->belongsTo(Donation::class);
+    }
+
+    /**
+     * Solicitud de pago cuyo enlace se envía (solo kind = payment_request).
+     *
+     * @return BelongsTo<PaymentRequest, $this>
+     */
+    public function paymentRequest(): BelongsTo
+    {
+        return $this->belongsTo(PaymentRequest::class);
     }
 
     /**

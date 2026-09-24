@@ -56,12 +56,12 @@ class SendCommunication implements ShouldQueue
             return;
         }
 
-        $communication = Communication::query()->with(['donor', 'donation.donor'])->findOrFail($this->communicationId);
+        $communication = Communication::query()->with(['donor', 'donation.donor', 'paymentRequest'])->findOrFail($this->communicationId);
         $donor = $communication->donor;
 
         $skip = $communication->kind->isHistorical()
             ? 'El CRM ya no envía CFDI; contabilidad los emite y entrega fuera del sistema.'
-            : QueueCommunication::skipReason($communication->kind, $donor);
+            : QueueCommunication::skipReason($communication->kind, $donor, $communication->paymentRequest);
         if ($skip !== null) {
             $communication->forceFill(['status' => CommunicationStatus::Skipped, 'skip_reason' => $skip])->save();
 

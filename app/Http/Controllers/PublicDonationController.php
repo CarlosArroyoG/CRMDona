@@ -9,21 +9,24 @@ use App\Enums\PaymentProvider;
 use App\Enums\TaxRegime;
 use App\Models\Campaign;
 use App\Models\OrganizationSetting;
+use App\Models\PaymentRequest;
+use App\Models\Program;
 use App\Payments\Exceptions\PaymentProviderException;
 use App\Payments\GatewayRegistry;
 use App\Payments\Gateways\FakeGateway;
 use App\Payments\Gateways\FakeScenario;
+use App\PublicDonations\OpenPaymentRequest;
 use App\PublicDonations\PublicDonationPage;
 use App\PublicDonations\PublicDonationStatus;
 use App\PublicDonations\StartPublicDonation;
 use App\PublicDonations\ValidatePublicDonationForm;
 use App\Support\AuditOrigin;
+use App\Support\Branding;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\Response;
@@ -91,6 +94,30 @@ class PublicDonationController extends Controller
         return redirect()->route('donate.summary', ['token' => $token]);
     }
 
+    /**
+     * Enlace de una solicitud de pago (cobro asistido). Arma el mismo payload
+     * que el formulario, con los datos guardados de la solicitud, y sigue el
+     * flujo público: resumen, pago con el proveedor y estado.
+     */
+    public function fromRequest(Request $request, string $token, OpenPaymentRequest $opener): RedirectResponse|Response
+    {
+        $paymentRequest = PaymentRequest::findByToken($token);
+        if ($paymentRequest === null) {
+            return response()->view('public.donate.unavailable', $this->shared() + ['message' => 'Este enlace de pago no es válido. Revisa que esté completo o comunícate con la Fundación.'], 404);
+        }
+
+        try {
+            $payload = $opener->payload($paymentRequest);
+        } catch (ValidationException $exception) {
+            return response()->view('public.donate.unavailable', $this->shared() + ['message' => collect($exception->errors())->flatten()->first() ?? 'Este enlace de pago no está disponible.'], 410);
+        }
+
+        $session = Str::random(40);
+        $this->remember($request, $session, $payload);
+
+        return redirect()->route('donate.summary', ['token' => $session]);
+    }
+
     public function summary(Request $request, string $token): View|RedirectResponse
     {
         $payload = $this->payload($request, $token);
@@ -104,25 +131,32 @@ class PublicDonationController extends Controller
             'token' => $token,
             'payload' => $payload,
             'campaign' => $this->campaignById($payload),
+            'program' => $this->programById($payload),
+            'fromRequest' => isset($payload['payment_request_id']),
             'provider' => $provider,
             'fakeScenarios' => $provider === PaymentProvider::Fake ? self::FAKE_SCENARIOS : [],
             'mercadoPagoPublicKey' => $provider === PaymentProvider::MercadoPago ? config('payments.providers.mercado_pago.public_key') : null,
         ]);
     }
 
-    public function pay(Request $request, string $token, StartPublicDonation $start, AuditOrigin $origin, GatewayRegistry $registry): RedirectResponse|View|JsonResponse
+    public function pay(Request $request, string $token, StartPublicDonation $start, AuditOrigin $origin, GatewayRegistry $registry, OpenPaymentRequest $opener): RedirectResponse|View|JsonResponse
     {
         $payload = $this->payload($request, $token);
+        $requestId = is_int($payload['payment_request_id'] ?? null) ? $payload['payment_request_id'] : null;
         $provider = PaymentProvider::tryFrom((string) ($payload['provider'] ?? ''));
         if ($provider === null || ! $registry->isEnabled($provider)) {
             return $this->failBack($request, $token, 'Los donativos en línea no están disponibles por ahora.');
         }
 
-        if ($provider === PaymentProvider::Fake && PublicDonationStatus::of($payload) === PublicDonationStatus::NOT_STARTED) {
-            $this->applyFakeScenario($registry, $request->string('fake_scenario')->toString());
-        }
-
         try {
+            if ($requestId !== null) {
+                $opener->assertPayloadUsable($payload);
+            }
+
+            if ($provider === PaymentProvider::Fake && PublicDonationStatus::of($payload) === PublicDonationStatus::NOT_STARTED) {
+                $this->applyFakeScenario($registry, $request->string('fake_scenario')->toString());
+            }
+
             $result = $origin->run(AuditSource::Donor, fn (): array => $start->handle(
                 $payload,
                 $provider,
@@ -135,6 +169,10 @@ class PublicDonationController extends Controller
             Log::warning('Página pública: el proveedor no respondió al iniciar el pago.', ['provider' => $provider->value]);
 
             return $this->failBack($request, $token, 'El servicio de pago no respondió. Intenta de nuevo en unos minutos; no se hará un cargo doble.');
+        }
+
+        if ($requestId !== null) {
+            $opener->recordStart($requestId, $result['payment'], $result['subscription']);
         }
 
         $this->remember($request, $token, [
@@ -168,6 +206,7 @@ class PublicDonationController extends Controller
             'payload' => $payload,
             'state' => $state,
             'campaign' => $this->campaignById($payload),
+            'program' => $this->programById($payload),
         ]);
     }
 
@@ -189,7 +228,7 @@ class PublicDonationController extends Controller
     /**
      * Reintentar después de un rechazo: mismos datos, pago nuevo (otra llave).
      */
-    public function retry(Request $request, string $token): RedirectResponse
+    public function retry(Request $request, string $token, OpenPaymentRequest $opener): RedirectResponse|Response
     {
         $payload = $this->payload($request, $token);
         if (! in_array(PublicDonationStatus::of($payload), [PublicDonationStatus::FAILED, PublicDonationStatus::DECLINED], true)) {
@@ -197,6 +236,18 @@ class PublicDonationController extends Controller
         }
 
         $new = Str::random(40);
+        $paymentRequest = is_int($payload['payment_request_id'] ?? null) ? PaymentRequest::query()->find($payload['payment_request_id']) : null;
+        if ($paymentRequest !== null) {
+            // Enlace: el intento siguiente de la misma solicitud (misma regla de idempotencia).
+            try {
+                $this->remember($request, $new, $opener->payload($paymentRequest, retry: true));
+            } catch (ValidationException $exception) {
+                return response()->view('public.donate.unavailable', $this->shared() + ['message' => collect($exception->errors())->flatten()->first() ?? 'Este enlace de pago no está disponible.'], 410);
+            }
+
+            return redirect()->route('donate.summary', ['token' => $new]);
+        }
+
         $this->remember($request, $new, [...$payload, 'idempotency_key' => 'public:'.Str::uuid(), 'payment_id' => null, 'subscription_id' => null]);
 
         return redirect()->route('donate.summary', ['token' => $new]);
@@ -281,6 +332,14 @@ class PublicDonationController extends Controller
     }
 
     /**
+     * @param  array<string, mixed>  $payload
+     */
+    private function programById(array $payload): ?Program
+    {
+        return is_int($payload['program_id'] ?? null) ? Program::query()->find($payload['program_id']) : null;
+    }
+
+    /**
      * @return array<string, mixed>
      */
     private function shared(): array
@@ -288,8 +347,9 @@ class PublicDonationController extends Controller
         $settings = OrganizationSetting::current();
 
         return [
-            'organization' => $settings->legal_name ?? config()->string('app.name'),
-            'logoUrl' => $settings->logo_path !== null ? Storage::disk('public')->url($settings->logo_path) : null,
+            'organization' => Branding::name(),
+            'logoUrl' => Branding::logoUrl(),
+            'faviconUrl' => Branding::faviconUrl(),
             'privacyUrl' => $settings->privacy_notice_url,
             'privacyVersion' => $settings->privacy_notice_version,
             'colors' => [

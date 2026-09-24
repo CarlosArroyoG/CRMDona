@@ -1,4 +1,8 @@
 {!! $body !!}
+@if ($actionUrl)
+
+{!! $actionLabel !!}: {!! $actionUrl !!}
+@endif
 @if ($signature)
 
 {!! $signature !!}

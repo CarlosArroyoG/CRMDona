@@ -23,6 +23,9 @@ final readonly class ComposedMessage
         public bool $usedFallback,
         public ?string $signature,
         public ?string $unsubscribeUrl,
+        // Botón principal del correo (p. ej. el enlace de pago). Se arma al enviar; nunca se guarda.
+        public ?string $actionUrl = null,
+        public ?string $actionLabel = null,
     ) {}
 
     /**

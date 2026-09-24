@@ -83,7 +83,7 @@ class PaymentResource extends Resource
 
     protected static string|\UnitEnum|null $navigationGroup = 'Donativos';
 
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 5;
 
     public static function infolist(Schema $schema): Schema
     {

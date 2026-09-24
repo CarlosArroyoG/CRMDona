@@ -6,7 +6,7 @@ namespace App\Providers\Filament;
 
 use App\Filament\Pages\Auth\ChangePassword;
 use App\Http\Middleware\EnsurePasswordIsCurrent;
-use App\Models\OrganizationSetting;
+use App\Support\Branding;
 use Filament\Auth\MultiFactor\App\AppAuthentication;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -21,7 +21,6 @@ use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 class AdminPanelProvider extends PanelProvider
@@ -50,11 +49,10 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->sidebarCollapsibleOnDesktop()
             ->brandName(fn (): string => (string) config('app.name'))
-            // Logo configurado por la organización; sin él, Filament muestra el nombre de la marca.
-            ->brandLogo(fn (): ?string => OrganizationSetting::current()->logo_path !== null
-                ? Storage::disk('public')->url(OrganizationSetting::current()->logo_path)
-                : null)
-            ->brandLogoHeight('2.5rem')
+            // Logo configurado por la organización (App\Support\Branding); sin él, Filament muestra el nombre.
+            ->brandLogo(fn (): ?string => Branding::logoUrl())
+            ->brandLogoHeight('2.25rem')
+            ->favicon(fn (): string => Branding::faviconUrl())
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->colors([
                 // Paleta explícita: Color::hex() normaliza la luminosidad y aclara el

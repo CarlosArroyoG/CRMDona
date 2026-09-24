@@ -5,7 +5,8 @@
 @php
     $monthly = $payload['frequency'] === 'monthly';
     $donor = $payload['donor'];
-    $name = $donor['type'] === 'organization' ? $donor['legal_name'] : trim($donor['first_name'].' '.$donor['last_name'].' '.($donor['second_last_name'] ?? ''));
+    $name = $donor['type'] === 'organization' ? $donor['legal_name'] : trim(($donor['first_name'] ?? '').' '.($donor['last_name'] ?? '').' '.($donor['second_last_name'] ?? ''));
+    $destination = $campaign?->name ?? $program?->name ?? 'Donativo general a '.$organization;
     $amount = \App\Support\Money::format($payload['amount']);
 @endphp
 
@@ -25,10 +26,12 @@
         <p class="mt-2 text-3xl font-bold text-db-navy">{{ $amount }} MXN{{ $monthly ? ' al mes' : '' }}</p>
         <dl class="mt-4 grid grid-cols-1 gap-3 border-t border-db-border pt-4 sm:grid-cols-2">
             <div><dt class="text-sm text-db-text-muted">Frecuencia</dt><dd class="font-medium">{{ $monthly ? 'Mensual (recurrente)' : 'Una sola vez' }}</dd></div>
-            <div><dt class="text-sm text-db-text-muted">Destino</dt><dd class="font-medium">{{ $campaign?->name ?? 'Donativo general a '.$organization }}</dd></div>
+            <div><dt class="text-sm text-db-text-muted">Destino</dt><dd class="font-medium">{{ $destination }}</dd></div>
             <div><dt class="text-sm text-db-text-muted">A nombre de</dt><dd class="font-medium">{{ $name }}</dd></div>
-            <div><dt class="text-sm text-db-text-muted">Correo</dt><dd class="font-medium">{{ $donor['email'] }}</dd></div>
-            <div><dt class="text-sm text-db-text-muted">Comprobante fiscal a tu nombre</dt><dd class="font-medium">{{ $payload['tax'] !== null ? 'Sí, con los datos fiscales que capturaste' : 'No' }}</dd></div>
+            @if (filled($donor['email']))
+                <div><dt class="text-sm text-db-text-muted">Correo</dt><dd class="font-medium">{{ $donor['email'] }}</dd></div>
+            @endif
+            <div><dt class="text-sm text-db-text-muted">Comprobante fiscal a tu nombre</dt><dd class="font-medium">{{ $payload['tax'] !== null ? ($fromRequest ? 'Sí, con los datos fiscales que tiene registrados la Fundación' : 'Sí, con los datos fiscales que capturaste') : 'No' }}</dd></div>
         </dl>
         @if ($monthly)
             <p class="mt-4 rounded-lg bg-db-soft-yellow p-3 text-sm text-db-text">
@@ -36,7 +39,11 @@
                 Si un cobro no se logra, el proveedor de pago puede volver a intentarlo según sus propias reglas.
             </p>
         @endif
-        <p class="mt-4 text-sm"><a href="{{ $campaign !== null ? route('donate.campaign', ['campaign' => $campaign->slug]) : route('donate.create') }}" class="font-medium text-db-blue underline underline-offset-2">Corregir mis datos</a></p>
+        @if ($fromRequest)
+            <p class="mt-4 text-sm text-db-text-muted">La Fundación preparó este donativo para ti. Si algún dato no es correcto, no pagues y comunícate con nosotros.</p>
+        @else
+            <p class="mt-4 text-sm"><a href="{{ $campaign !== null ? route('donate.campaign', ['campaign' => $campaign->slug]) : route('donate.create') }}" class="font-medium text-db-blue underline underline-offset-2">Corregir mis datos</a></p>
+        @endif
     </section>
 
     <section class="mt-6 rounded-xl border border-db-border bg-db-bg-blue p-5" aria-labelledby="pago">

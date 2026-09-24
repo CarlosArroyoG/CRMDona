@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Payments;
 
 use App\Actions\Incidents\OpenPaymentIncident;
+use App\Actions\PaymentRequests\CompletePaymentRequest;
 use App\Actions\Refunds\SyncRefund;
 use App\Enums\IncidentType;
 use App\Enums\PaymentAttemptStatus;
@@ -37,6 +38,7 @@ class SyncPayment
         private readonly CreateDonationFromPayment $createDonation,
         private readonly OpenPaymentIncident $openIncident,
         private readonly SyncRefund $syncRefund,
+        private readonly CompletePaymentRequest $completeRequest,
     ) {}
 
     public function handle(PaymentProvider $provider, PaymentSnapshot $snapshot): ?Payment
@@ -64,6 +66,8 @@ class SyncPayment
 
             if ($payment->status === PaymentStatus::Succeeded) {
                 $this->createDonation->handle($payment);
+                // Si el pago salió de una solicitud (cobro asistido), el proveedor la da por pagada.
+                $this->completeRequest->handle($payment);
             }
 
             $this->openIncidents($payment, $previous, $newlyFailed);

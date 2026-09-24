@@ -11,6 +11,7 @@ use App\Enums\DonationKind;
 use App\Enums\DonationOrigin;
 use App\Enums\DonationStatus;
 use App\Enums\ManualPaymentMethod;
+use App\Enums\PaymentRequestFrequency;
 use App\Enums\Permission;
 use App\Enums\ProgramStatus;
 use App\Filament\Concerns\ReportsActionErrors;
@@ -73,34 +74,61 @@ class DonationResource extends Resource
 
     protected static ?int $navigationSort = 1;
 
+    /** "¿Cómo se recibe?" en Crear donativo. */
+    public const string COLLECT_RECEIVED = 'received';
+
+    public const string COLLECT_CARD = 'card';
+
     public static function form(Schema $schema): Schema
     {
-        $inKind = fn (Get $get): bool => self::kindOf($get) === DonationKind::InKind;
-        $monetary = fn (Get $get): bool => self::kindOf($get) === DonationKind::Monetary;
+        // "Cobrar con tarjeta en línea" (solo al crear y con payments.request): no crea un donativo,
+        // prepara una solicitud de pago; el donativo lo crea el pago que confirma el proveedor.
+        $card = fn (Get $get): bool => $get('collection') === self::COLLECT_CARD;
+        $inKind = fn (Get $get): bool => ! $card($get) && self::kindOf($get) === DonationKind::InKind;
+        $monetary = fn (Get $get): bool => ! $card($get) && self::kindOf($get) === DonationKind::Monetary;
+        $manual = fn (Get $get): bool => ! $card($get);
 
         return $schema->components([
             Section::make('Donativo')
-                ->description('Todo donativo se registra "Por confirmar". Lo confirma el Contador o el Administrador.')
+                ->description(fn (Get $get): string => $card($get)
+                    ? 'El donante escribe su tarjeta en la página segura del proveedor de pago, en este equipo o con el enlace que le envíes. El CRM nunca ve los datos de la tarjeta. El donativo se registra solo cuando el proveedor confirma el pago.'
+                    : 'Todo donativo se registra "Por confirmar". Lo confirma el Contador o el Administrador.')
                 ->columns(2)
                 ->schema([
+                    Radio::make('collection')->label('¿Cómo se recibe?')->columnSpanFull()
+                        ->options([
+                            self::COLLECT_RECEIVED => 'Ya se recibió (efectivo, transferencia, cheque, depósito o especie)',
+                            self::COLLECT_CARD => 'Cobrar con tarjeta en línea',
+                        ])
+                        ->descriptions([
+                            self::COLLECT_CARD => 'Pago único o mensual. Después podrás abrir el pago en este equipo, copiar el enlace o enviarlo por correo.',
+                        ])
+                        ->default(self::COLLECT_RECEIVED)->required()->live()
+                        ->visible(fn (string $operation): bool => $operation === 'create' && self::actorCan(Permission::RequestPayments)),
                     Select::make('donor_id')->label('Donante')->required()->searchable()->columnSpanFull()
                         ->getSearchResultsUsing(fn (string $search): array => Search::unaccent(Donor::query()->whereNull('archived_at'), 'display_name', $search)
                             ->orderBy('display_name')->limit(20)->pluck('display_name', 'id')->all())
                         ->getOptionLabelUsing(fn (mixed $value): ?string => self::donorLabel($value))
                         ->helperText('Escribe parte del nombre o razón social. Los donantes archivados no aparecen.'),
                     Radio::make('kind')->label('Tipo de donativo')->options(DonationKind::class)
-                        ->default(DonationKind::Monetary->value)->required()->inline()->live(),
+                        ->default(DonationKind::Monetary->value)->required()->inline()->live()->visible($manual),
+                    Radio::make('frequency')->label('Frecuencia')->options(PaymentRequestFrequency::class)
+                        ->default(PaymentRequestFrequency::OneTime->value)->required()->inline()->visible($card),
                     Select::make('manual_payment_method')->label('Forma de pago')->options(ManualPaymentMethod::class)
                         ->required($monetary)->visible($monetary)->native(false),
-                    TextInput::make('amount')->label(fn (Get $get): string => $inKind($get) ? 'Valor asignado (MXN)' : 'Importe (MXN)')
+                    TextInput::make('amount')->label(fn (Get $get): string => match (true) {
+                        $card($get) => 'Importe a cobrar (MXN)',
+                        $inKind($get) => 'Valor asignado (MXN)',
+                        default => 'Importe (MXN)',
+                    })
                         ->required()->prefix('$')->inputMode('decimal')
                         ->helperText('Ejemplo: 1500 o 1500.50. Máximo dos decimales.'),
                     DatePicker::make('received_on')->label('Fecha de recepción')->required()->native(false)
-                        ->displayFormat('d/m/Y')->default(now())->maxDate(now()),
+                        ->displayFormat('d/m/Y')->default(now())->maxDate(now())->visible($manual),
                     Textarea::make('in_kind_description')->label('Descripción de lo donado')->rows(3)->maxLength(2000)
                         ->required($inKind)->visible($inKind)->columnSpanFull()
                         ->helperText('Descripción detallada del bien y su estado.'),
-                    TextInput::make('reference')->label('Referencia')->maxLength(100)
+                    TextInput::make('reference')->label('Referencia')->maxLength(100)->visible($manual)
                         ->helperText('Folio de transferencia, número de cheque o de recibo físico.'),
                     Toggle::make('tax_receipt_requested')->label('El donante solicitó CFDI')
                         ->helperText('Contabilidad recibe este dato en el aviso del donativo y emite el CFDI fuera del CRM. Si lo solicitó, captura sus datos fiscales en la ficha del donante.'),
@@ -122,7 +150,7 @@ class DonationResource extends Resource
                     ->options(fn (): array => Program::query()->where('status', ProgramStatus::Active->value)->orderBy('name')->pluck('name', 'id')->all())
                     ->searchable()->visible(fn (Get $get): bool => $get('destination') === 'program'),
             ]),
-            Section::make('Notas')->schema([
+            Section::make('Notas')->visible($manual)->schema([
                 Textarea::make('notes')->label('Notas internas')->rows(3)->maxLength(5000),
             ]),
         ]);

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Controllers\DonationReceiptFileController;
 use App\Http\Controllers\ExternalCfdiFileController;
+use App\Http\Controllers\FaviconController;
 use App\Http\Controllers\PaymentWebhookController;
 use App\Http\Controllers\PublicDonationController;
 use App\Http\Controllers\UnsubscribeController;
@@ -11,6 +12,9 @@ use Illuminate\Support\Facades\Route;
 
 // La raíz lleva a la página pública de donativos.
 Route::redirect('/', '/donar');
+
+// Favicon derivado del logotipo que configura Administración.
+Route::get('/favicon.png', FaviconController::class)->middleware('throttle:120,1')->name('favicon');
 
 // Página pública de donativos (Fase 6). Envíos con CSRF y límite por IP.
 // El token de sesión es aleatorio y solo sirve en el navegador que lo creó.
@@ -23,6 +27,8 @@ Route::controller(PublicDonationController::class)->prefix('/donar')->name('dona
     Route::get('/resumen/{token}', 'summary')->where('token', '[A-Za-z0-9]{40}')->name('summary');
     Route::post('/pagar/{token}', 'pay')->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:public-donations')->name('pay');
     Route::get('/estado/{token}', 'status')->where('token', '[A-Za-z0-9]{40}')->name('status');
+    // Enlace de una solicitud de pago (cobro asistido): token aleatorio; importe y destino salen de la base.
+    Route::get('/enlace/{token}', 'fromRequest')->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:public-donations')->name('request');
     Route::post('/reintentar/{token}', 'retry')->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:public-donations')->name('retry');
 });
 

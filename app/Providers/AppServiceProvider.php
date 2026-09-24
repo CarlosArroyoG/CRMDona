@@ -29,6 +29,7 @@ use App\Models\PaymentAttempt;
 use App\Models\PaymentDispute;
 use App\Models\PaymentIncident;
 use App\Models\PaymentIncidentNote;
+use App\Models\PaymentRequest;
 use App\Models\Program;
 use App\Models\Refund;
 use App\Models\Subscription;
@@ -113,6 +114,7 @@ class AppServiceProvider extends ServiceProvider
             'message_template' => MessageTemplate::class,
             'communication' => Communication::class,
             'mail_setting' => MailSetting::class,
+            'payment_request' => PaymentRequest::class,
         ]);
 
         // Dentro de un Job de la cola, los cambios se registran como "Proceso automático".

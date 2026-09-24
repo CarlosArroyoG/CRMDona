@@ -28,6 +28,9 @@ enum AuditEvent: string implements HasColor, HasLabel
     case Discarded = 'discarded';
     // Correo saliente
     case MailTest = 'mail_test';
+    // Solicitudes de pago y felicitaciones
+    case Regenerated = 'regenerated';
+    case WhatsAppPrepared = 'whatsapp_prepared';
 
     public function getLabel(): string
     {
@@ -49,6 +52,8 @@ enum AuditEvent: string implements HasColor, HasLabel
             self::IncidentResolved => 'Incidencia resuelta',
             self::Discarded => 'Descarte',
             self::MailTest => 'Correo de prueba',
+            self::Regenerated => 'Enlace regenerado',
+            self::WhatsAppPrepared => 'WhatsApp preparado (envío manual)',
         };
     }
 
@@ -59,7 +64,7 @@ enum AuditEvent: string implements HasColor, HasLabel
             self::Deleted, self::Cancelled, self::Deactivated => 'danger',
             self::Archived, self::Paused, self::Discarded => 'gray',
             self::PasswordReset, self::IncidentTaken => 'warning',
-            self::Updated, self::TagsChanged, self::MailTest => 'info',
+            self::Updated, self::TagsChanged, self::MailTest, self::Regenerated, self::WhatsAppPrepared => 'info',
         };
     }
 }
