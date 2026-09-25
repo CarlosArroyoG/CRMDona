@@ -6,12 +6,16 @@ use App\Http\Controllers\DonationReceiptFileController;
 use App\Http\Controllers\ExternalCfdiFileController;
 use App\Http\Controllers\FaviconController;
 use App\Http\Controllers\PaymentWebhookController;
+use App\Http\Controllers\PrivacyNoticeController;
 use App\Http\Controllers\PublicDonationController;
 use App\Http\Controllers\UnsubscribeController;
 use Illuminate\Support\Facades\Route;
 
 // La raíz lleva a la página pública de donativos.
 Route::redirect('/', '/donar');
+
+// Aviso de privacidad publicado por el CRM (lo activa Administración → Organización).
+Route::get('/aviso-de-privacidad', PrivacyNoticeController::class)->middleware('throttle:120,1')->name('privacy.notice');
 
 // Favicon derivado del logotipo que configura Administración.
 Route::get('/favicon.png', FaviconController::class)->middleware('throttle:120,1')->name('favicon');

@@ -25,6 +25,8 @@ use Illuminate\Support\Carbon;
  * @property string|null $email_signature
  * @property string|null $privacy_notice_url
  * @property string|null $privacy_notice_version
+ * @property string|null $privacy_address Domicilio del responsable (aviso publicado por el CRM).
+ * @property string|null $privacy_contact_email Correo para asuntos de privacidad y derechos ARCO.
  * @property string|null $online_donation_min_amount Mínimo de negocio; nulo = solo el límite técnico del proveedor.
  * @property string|null $online_donation_max_amount Máximo de negocio; nulo = sin máximo adicional del CRM.
  * @property bool $thank_you_emails_enabled Agradecimiento automático al confirmar un donativo.
@@ -34,6 +36,7 @@ use Illuminate\Support\Carbon;
     'legal_name', 'rfc', 'tax_regime', 'tax_postal_code', 'authorization_number', 'authorization_date',
     'donation_legend', 'logo_path', 'email_signature', 'privacy_notice_url', 'privacy_notice_version',
     'online_donation_min_amount', 'online_donation_max_amount', 'thank_you_emails_enabled', 'birthday_emails_enabled',
+    'privacy_address', 'privacy_contact_email',
 ])]
 class OrganizationSetting extends Model
 {
@@ -60,6 +63,7 @@ class OrganizationSetting extends Model
             'legal_name', 'rfc', 'tax_regime', 'tax_postal_code', 'authorization_number', 'authorization_date',
             'donation_legend', 'logo_path', 'email_signature', 'privacy_notice_url', 'privacy_notice_version',
             'online_donation_min_amount', 'online_donation_max_amount', 'thank_you_emails_enabled', 'birthday_emails_enabled',
+            'privacy_address', 'privacy_contact_email',
         ];
     }
 

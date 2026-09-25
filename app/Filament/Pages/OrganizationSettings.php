@@ -73,6 +73,7 @@ class OrganizationSettings extends Page
             ...$settings->only([
                 'legal_name', 'rfc', 'tax_postal_code', 'authorization_number', 'donation_legend',
                 'logo_path', 'email_signature', 'privacy_notice_url', 'privacy_notice_version',
+                'privacy_address', 'privacy_contact_email',
             ]),
             'tax_regime' => $settings->tax_regime?->value,
             'authorization_date' => $settings->authorization_date?->toDateString(),
@@ -102,9 +103,12 @@ class OrganizationSettings extends Page
                         ->helperText('Texto que acompañará a los recibos en fases posteriores.'),
                 ]),
                 Section::make('Aviso de privacidad')
-                    ->description('Sin URL y versión no se puede registrar que un donante aceptó el aviso.')
+                    ->description('Sin URL y versión la página de donación no acepta donativos. Puedes usar el aviso que publica el CRM ('.route('privacy.notice').'): captura el domicilio y el correo de privacidad y presiona "Publicar aviso del CRM". O escribe la URL de un aviso propio.')
                     ->columns(2)
                     ->schema([
+                        TextInput::make('privacy_address')->label('Domicilio del responsable')->maxLength(500)->columnSpanFull()
+                            ->helperText('Aparece en el aviso del CRM. Ejemplo: calle, número, colonia, código postal, Cuernavaca, Morelos.'),
+                        TextInput::make('privacy_contact_email')->label('Correo para asuntos de privacidad (ARCO)')->email()->maxLength(255),
                         TextInput::make('privacy_notice_url')->label('URL del aviso de privacidad')->url()->maxLength(255),
                         TextInput::make('privacy_notice_version')->label('Versión vigente')->maxLength(50)
                             ->helperText('Ejemplo: 2026-09. Cámbiala cuando se publique un aviso nuevo.'),
@@ -159,5 +163,46 @@ class OrganizationSettings extends Page
         self::withFormErrors(fn () => app(UpdateOrganizationSettings::class)->handle($this->form->getState()));
 
         Notification::make()->success()->title('Configuración guardada')->send();
+    }
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            Action::make('publishCrmNotice')
+                ->label('Publicar aviso del CRM')
+                ->icon(Heroicon::OutlinedShieldCheck)
+                ->visible(self::canEdit())
+                ->requiresConfirmation()
+                ->modalHeading('Publicar el aviso de privacidad del CRM')
+                ->modalDescription('Se guardan los datos de esta pantalla, el aviso queda publicado en '.route('privacy.notice').' con la versión de hoy y la página de donación lo pedirá a cada donante. Revísalo con tu asesoría legal.')
+                ->modalSubmitActionLabel('Publicar')
+                ->action(fn () => $this->publishCrmNotice()),
+        ];
+    }
+
+    /**
+     * Publica el aviso del CRM: exige domicilio y correo de privacidad (el
+     * CRM no los inventa) y fija la URL y la versión con la fecha de hoy.
+     */
+    public function publishCrmNotice(): void
+    {
+        abort_unless(self::canEdit(), 403);
+
+        $state = $this->form->getState();
+        if (blank($state['privacy_address'] ?? null) || blank($state['privacy_contact_email'] ?? null)) {
+            Notification::make()->danger()->title('Faltan datos del aviso')
+                ->body('Captura el domicilio del responsable y el correo para asuntos de privacidad.')->send();
+
+            return;
+        }
+
+        $state['privacy_notice_url'] = route('privacy.notice');
+        $state['privacy_notice_version'] = now(config()->string('app.timezone'))->format('Y-m-d');
+        self::withFormErrors(fn () => app(UpdateOrganizationSettings::class)->handle($state));
+
+        $this->data['privacy_notice_url'] = $state['privacy_notice_url'];
+        $this->data['privacy_notice_version'] = $state['privacy_notice_version'];
+        Notification::make()->success()->title('Aviso de privacidad publicado')
+            ->body('La página de donación ya puede recibir donativos (si hay un proveedor de pago activo).')->send();
     }
 }

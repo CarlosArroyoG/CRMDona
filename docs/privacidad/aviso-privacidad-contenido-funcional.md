@@ -4,8 +4,13 @@
 > realmente el CRM y para qué. Sirve para que la institución redacte o actualice su aviso de privacidad,
 > con su asesoría legal, y lo publique en su sitio.
 >
-> El CRM **no aloja el texto del aviso**. En **Administración → Organización → Aviso de privacidad** se
-> configuran:
+> **Actualización 2026-09-25:** el CRM publica un aviso basado en este contenido en `/aviso-de-privacidad`
+> (`resources/views/public/privacy.blade.php`). Se activa en **Organización** capturando el domicilio del
+> responsable y el correo de privacidad y presionando **Publicar aviso del CRM**, que fija la URL y la
+> versión (fecha del día). Debe revisarlo la asesoría legal de la institución. También se puede seguir usando
+> un aviso propio publicado en otro sitio.
+>
+> En **Administración → Organización → Aviso de privacidad** se configuran:
 > - la **URL** donde está publicado;
 > - su **versión vigente** (por ejemplo, `2026-09`).
 >

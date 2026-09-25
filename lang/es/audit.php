@@ -29,9 +29,19 @@ return [
         'donation_receipt' => 'Recibo simple',
         'message_template' => 'Plantilla de correo',
         'mail_setting' => 'Correo saliente',
+        'payment_request' => 'Solicitud de pago',
     ],
 
     'fields' => [
+        // Solicitudes de pago, aviso de privacidad del CRM y WhatsApp preparado
+        'frequency' => 'Frecuencia',
+        'expires_at' => 'Vigente hasta',
+        'token_version' => 'Versión del enlace',
+        'paid_at' => 'Pagada el',
+        'privacy_address' => 'Domicilio del responsable (aviso de privacidad)',
+        'privacy_contact_email' => 'Correo de privacidad',
+        'canal' => 'Canal',
+        'mensaje' => 'Mensaje',
         // Comunes
         'name' => 'Nombre',
         'email' => 'Correo electrónico',

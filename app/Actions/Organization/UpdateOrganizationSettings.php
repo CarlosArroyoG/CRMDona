@@ -24,7 +24,7 @@ class UpdateOrganizationSettings
     private const array FIELDS = [
         'legal_name', 'rfc', 'tax_regime', 'tax_postal_code', 'authorization_number', 'authorization_date',
         'donation_legend', 'logo_path', 'email_signature', 'privacy_notice_url', 'privacy_notice_version',
-        'online_donation_min_amount', 'online_donation_max_amount',
+        'online_donation_min_amount', 'online_donation_max_amount', 'privacy_address', 'privacy_contact_email',
     ];
 
     /**
@@ -54,6 +54,8 @@ class UpdateOrganizationSettings
             'privacy_notice_version' => ['nullable', 'string', 'max:50', 'required_with:privacy_notice_url'],
             'online_donation_min_amount' => ['nullable', new MoneyAmount],
             'online_donation_max_amount' => ['nullable', new MoneyAmount],
+            'privacy_address' => ['nullable', 'string', 'max:500'],
+            'privacy_contact_email' => ['nullable', 'string', 'email:rfc', 'max:255'],
         ], [
             'tax_postal_code.regex' => 'El código postal fiscal debe tener 5 dígitos.',
         ], [
@@ -62,6 +64,7 @@ class UpdateOrganizationSettings
             'donation_legend' => 'leyenda de donativo', 'logo_path' => 'logotipo', 'email_signature' => 'firma de correo',
             'privacy_notice_url' => 'URL del aviso de privacidad', 'privacy_notice_version' => 'versión del aviso de privacidad',
             'online_donation_min_amount' => 'mínimo por donativo en línea', 'online_donation_max_amount' => 'máximo por donativo en línea',
+            'privacy_address' => 'domicilio del responsable', 'privacy_contact_email' => 'correo de privacidad',
         ])->validate();
 
         foreach (['online_donation_min_amount', 'online_donation_max_amount'] as $limit) {

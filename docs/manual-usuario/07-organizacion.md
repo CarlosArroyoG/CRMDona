@@ -12,7 +12,8 @@ posteriores, y el aviso de privacidad vigente.
 | Razón social, RFC, régimen fiscal, código postal fiscal | Datos fiscales de la Fundación |
 | Número de oficio o carta de autorización, fecha de autorización | Autorización como donataria |
 | Leyenda de donativo | Texto que acompañará a los recibos |
-| URL del aviso de privacidad, versión vigente | **Obligatorias juntas.** Sin ellas no se puede registrar que un donante aceptó el aviso |
+| URL del aviso de privacidad, versión vigente | **Obligatorias juntas.** Sin ellas la página de donación no acepta donativos |
+| Domicilio del responsable y correo de privacidad | Datos del aviso que publica el CRM. Con ambos, el botón **Publicar aviso del CRM** (arriba a la derecha) publica el aviso en `/aviso-de-privacidad` y llena la URL y la versión automáticamente |
 | Logotipo | PNG o JPG, máximo 2 MB. Es el único logotipo del CRM: aparece en el panel, la página de donación, el ícono de la pestaña, el recibo PDF y los correos |
 | Firma de correo | Texto simple para los correos futuros |
 | Importe mínimo y máximo por donativo en línea | Reglas propias de la Fundación. **Vacío = sin límite propio.** Además siempre aplica el límite técnico del proveedor de pago (por ejemplo, Stripe no acepta cargos menores a $10 MXN); se usa el más restrictivo |

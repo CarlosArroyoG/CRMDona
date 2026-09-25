@@ -21,6 +21,7 @@ use App\Models\PaymentAttempt;
 use App\Models\PaymentDispute;
 use App\Models\PaymentIncident;
 use App\Models\PaymentIncidentNote;
+use App\Models\PaymentRequest;
 use App\Models\Program;
 use App\Models\Refund;
 use App\Models\Subscription;
@@ -137,6 +138,7 @@ it('tiene etiqueta en español para cada tipo y campo auditado', function (): vo
         'payment_incident_note' => PaymentIncidentNote::class, 'cfdi' => Cfdi::class, 'external_cfdi' => ExternalCfdi::class,
         'accounting_notice' => AccountingNotice::class,
         'donation_receipt' => DonationReceipt::class, 'message_template' => MessageTemplate::class,
+        'payment_request' => PaymentRequest::class,
     ];
 
     foreach ($models as $type => $class) {

@@ -2,6 +2,16 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+## [Aviso de privacidad del CRM] — 2026-09-25
+
+### Agregado
+- Página pública `/aviso-de-privacidad` con el aviso según lo que el CRM hace con los datos (responsable, datos, finalidades, proveedores, ARCO, conservación, cookies y cambios). No guarda ni menciona datos de tarjeta más allá de marca y últimos 4 dígitos.
+- Organización: domicilio del responsable y correo de privacidad (migración reversible `2026_10_05_000001`) y botón **Publicar aviso del CRM**, que exige ambos datos y fija URL y versión del aviso. Con eso `/donar` acepta donativos si hay un proveedor activo.
+- Etiquetas de bitácora para solicitudes de pago, aviso y "WhatsApp preparado".
+
+### Cambiado
+- `Branding::publicLayout()` concentra los datos del diseño público (antes en el controlador de `/donar`).
+
 ## [Cobro asistido, identidad y felicitaciones] — 2026-09-24
 
 Detalle en `docs/tecnico/solicitudes-de-pago.md`.

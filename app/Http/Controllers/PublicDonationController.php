@@ -8,7 +8,6 @@ use App\Enums\AuditSource;
 use App\Enums\PaymentProvider;
 use App\Enums\TaxRegime;
 use App\Models\Campaign;
-use App\Models\OrganizationSetting;
 use App\Models\PaymentRequest;
 use App\Models\Program;
 use App\Payments\Exceptions\PaymentProviderException;
@@ -310,14 +309,6 @@ class PublicDonationController extends Controller
         $request->session()->put(self::SESSION, array_slice($all, -5, null, true));
     }
 
-    /**
-     * Solo colores #RGB o #RRGGBB: nada de la configuración llega sin validar al CSS.
-     */
-    private static function hexColor(mixed $value, string $default): string
-    {
-        return is_string($value) && preg_match('/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $value) === 1 ? $value : $default;
-    }
-
     private function campaign(?string $slug): ?Campaign
     {
         return $slug !== null ? Campaign::query()->with('program')->where('slug', $slug)->first() : null;
@@ -344,18 +335,6 @@ class PublicDonationController extends Controller
      */
     private function shared(): array
     {
-        $settings = OrganizationSetting::current();
-
-        return [
-            'organization' => Branding::name(),
-            'logoUrl' => Branding::logoUrl(),
-            'faviconUrl' => Branding::faviconUrl(),
-            'privacyUrl' => $settings->privacy_notice_url,
-            'privacyVersion' => $settings->privacy_notice_version,
-            'colors' => [
-                'primary' => self::hexColor(config('donations.public.colors.primary'), '#162562'),
-                'secondary' => self::hexColor(config('donations.public.colors.secondary'), '#F2C94C'),
-            ],
-        ];
+        return Branding::publicLayout();
     }
 }

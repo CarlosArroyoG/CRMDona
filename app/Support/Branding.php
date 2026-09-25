@@ -125,6 +125,30 @@ final class Branding
         return route('favicon', $logo !== null ? ['v' => substr(sha1($logo), 0, 8)] : []);
     }
 
+    /**
+     * Datos del diseño público (página de donación y aviso de privacidad).
+     * Solo colores #RGB o #RRGGBB: nada de la configuración llega sin validar al CSS.
+     *
+     * @return array<string, mixed>
+     */
+    public static function publicLayout(): array
+    {
+        $settings = OrganizationSetting::current();
+        $color = fn (mixed $value, string $default): string => is_string($value) && preg_match('/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $value) === 1 ? $value : $default;
+
+        return [
+            'organization' => self::name(),
+            'logoUrl' => self::logoUrl(),
+            'faviconUrl' => self::faviconUrl(),
+            'privacyUrl' => $settings->privacy_notice_url,
+            'privacyVersion' => $settings->privacy_notice_version,
+            'colors' => [
+                'primary' => $color(config('donations.public.colors.primary'), '#162562'),
+                'secondary' => $color(config('donations.public.colors.secondary'), '#F2C94C'),
+            ],
+        ];
+    }
+
     private static function logoImage(): ?GdImage
     {
         $path = self::logoPath();
