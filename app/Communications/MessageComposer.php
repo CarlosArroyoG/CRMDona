@@ -6,6 +6,7 @@ namespace App\Communications;
 
 use App\Actions\Communications\IssueDonationReceipt;
 use App\Enums\CommunicationKind;
+use App\Models\BulkMessage;
 use App\Models\Communication;
 use App\Models\Donation;
 use App\Models\Donor;
@@ -26,6 +27,10 @@ use RuntimeException;
  */
 final class MessageComposer
 {
+    public const string UNSUBSCRIBE_NOTICE = 'Si ya no deseas recibir estos mensajes, puedes darte de baja con el enlace al final de este correo.';
+
+    private const string SAMPLE_NAME = 'María';
+
     public function __construct(private readonly IssueDonationReceipt $receipts) {}
 
     /**
@@ -65,12 +70,14 @@ final class MessageComposer
         }
 
         $unsubscribe = null;
-        if ($kind === CommunicationKind::Birthday) {
+        if ($kind->hasUnsubscribeLink()) {
             $unsubscribe = route('communications.unsubscribe', ['token' => $donor->communicationsToken()]);
-            $notices[] = 'Si ya no deseas recibir estos mensajes, puedes darte de baja con el enlace al final de este correo.';
+            $notices[] = self::UNSUBSCRIBE_NOTICE;
         }
 
-        [$subject, $body, $fallback] = $this->render($kind, $variables);
+        [$subject, $body, $fallback] = $kind === CommunicationKind::BulkMessage
+            ? $this->renderBulk($communication->bulkMessage ?? throw new RuntimeException('El correo no tiene envío masivo.'), $variables)
+            : $this->render($kind, $variables);
 
         return new ComposedMessage(
             subject: $subject,
@@ -82,6 +89,28 @@ final class MessageComposer
             unsubscribeUrl: $unsubscribe,
             actionUrl: $action['url'] ?? null,
             actionLabel: $action['label'] ?? null,
+        );
+    }
+
+    /**
+     * Correo de prueba de un envío masivo para quien lo prepara: datos de
+     * ejemplo (nunca de un donante real) y sin enlace de baja funcional.
+     */
+    public function bulkTest(BulkMessage $message): ComposedMessage
+    {
+        [$subject, $body] = $this->renderBulk($message, ['nombre' => self::SAMPLE_NAME, 'organizacion' => Branding::name()]);
+
+        return new ComposedMessage(
+            subject: '[Prueba] '.$subject,
+            body: $body,
+            notices: [
+                'Correo de prueba: en el envío real, cada donante verá su propio nombre y un enlace para darse de baja.',
+                self::UNSUBSCRIBE_NOTICE,
+            ],
+            attachments: [],
+            usedFallback: false,
+            signature: OrganizationSetting::current()->email_signature,
+            unsubscribeUrl: null,
         );
     }
 
@@ -103,7 +132,7 @@ final class MessageComposer
     public function preview(CommunicationKind $kind, string $subject, string $body): array
     {
         $sample = [
-            'nombre' => 'María', 'organizacion' => Branding::name(),
+            'nombre' => self::SAMPLE_NAME, 'organizacion' => Branding::name(),
             'importe' => '$1,500.00 MXN', 'fecha_donativo' => now()->format('d/m/Y'), 'destino' => 'el fondo general',
             'folio_recibo' => 'R-000123', 'frecuencia' => 'una sola vez', 'vigencia' => now()->addDays(PaymentRequest::VALID_DAYS)->format('d/m/Y'),
         ];
@@ -114,6 +143,18 @@ final class MessageComposer
         } catch (InvalidArgumentException $exception) {
             return ['subject' => '', 'body' => '', 'error' => $exception->getMessage()];
         }
+    }
+
+    /**
+     * El texto de un envío masivo se valida al guardarlo; si aun así fallara,
+     * no hay texto predeterminado que tenga sentido: el envío queda fallido.
+     *
+     * @param  array<string, string>  $variables
+     * @return array{0: string, 1: string, 2: bool}
+     */
+    private function renderBulk(BulkMessage $message, array $variables): array
+    {
+        return [TemplateRenderer::render($message->subject, $variables), TemplateRenderer::render($message->body, $variables), false];
     }
 
     /**

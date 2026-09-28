@@ -49,6 +49,10 @@ El documento de requisitos completo lo entregó el usuario al iniciar el proyect
   - Identidad solo por `App\Support\Branding` (logo de Organización); nunca logos en el código.
   - WhatsApp = "Preparar WhatsApp" (`wa.me`), nunca "enviado"; requiere `accepts_communications`.
   - Stripe Test validado; pendientes: Stripe Live (#14) y sandbox de Mercado Pago (#15, #49).
+- **Carga CSV de donantes y envíos masivos** (2026-09-28). Fuente de verdad: `docs/tecnico/carga-y-envios-masivos.md`.
+  - Carga: importador de Filament → `ImportDonorRow` → `SaveDonor`. Solo altas (correo repetido = fila rechazada). Consentimiento solo con confirmación. `origin = csv_import`. Permiso `donors.import` (A, C). Filas rechazadas purgadas a 7 días.
+  - Envíos masivos: `bulk_messages`, audiencia solo en `App\Communications\BulkAudience` (siempre con correo, no archivado y con consentimiento). Prueba obligatoria antes de enviar; `PrepareBulkMessage` reparte a `COMMUNICATIONS_BULK_PER_MINUTE`; se puede detener. Permiso `communications.bulk` (A, C).
+  - Solo correo: WhatsApp masivo no existe (solo "Preparar WhatsApp" individual).
 - **Base `crm`:** tiene datos persistentes de desarrollo. Se permiten `migrate` normales (con respaldo si hay riesgo).
   Nunca `migrate:fresh`, rollback destructivo ni experimentos contra `crm`; usar `crm_testing` o `crm_validation`.
 - Modelo de datos y reglas: `docs/tecnico/modelo-de-datos.md` y ADR-002 a ADR-012.

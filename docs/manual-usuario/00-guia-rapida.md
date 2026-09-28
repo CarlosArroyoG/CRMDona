@@ -182,6 +182,9 @@ una disputa…
 - **Plantillas:** el texto de cada correo se edita con variables como `{{ nombre }}`.
 - **Historial de envíos:** cada correo con su estado (enviado, fallido, no enviado…). Desde ahí
   se puede **reenviar**.
+- **Envíos masivos:** un correo a varios donantes elegidos por etiquetas, campaña, programa o
+  fechas. Antes de enviar hay que mandarse una prueba. Solo llega a quien acepta comunicaciones y
+  se puede detener.
 - **Baja:** los correos traen un enlace para que el donante deje de recibirlos, sin necesidad
   de cuenta.
 
@@ -190,6 +193,8 @@ una disputa…
 ## 13. Exportar a Excel o CSV
 
 - Botón **Exportar** en las listas. Respeta los filtros que tengas puestos.
+- Al revés, **Cargar CSV** en Donantes registra muchos donantes a la vez. Solo agrega nuevos: si el
+  correo ya existe, esa fila se omite y se informa ([capítulo 2](02-donantes.md)).
 - El archivo llega a la **campana** y **se borra a los 7 días**. Solo quien lo generó puede
   descargarlo.
 - Por seguridad, si un dato empieza con `=`, `+`, `-` o `@`, se exporta con un apóstrofo delante

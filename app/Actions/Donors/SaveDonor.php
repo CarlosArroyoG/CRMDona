@@ -6,6 +6,7 @@ namespace App\Actions\Donors;
 
 use App\Actions\Concerns\NormalizesInput;
 use App\Enums\AuditEvent;
+use App\Enums\DonorOrigin;
 use App\Enums\DonorType;
 use App\Enums\Permission;
 use App\Models\Donor;
@@ -35,11 +36,13 @@ class SaveDonor
     public function __construct(private readonly SaveDonorTaxProfile $taxProfiles) {}
 
     /**
+     * `$origin` solo se aplica al crear: la carga CSV registra `csv_import`.
+     *
      * @param  array<string, mixed>  $input
      *
      * @throws ValidationException
      */
-    public function handle(?Donor $donor, array $input, User $actor): Donor
+    public function handle(?Donor $donor, array $input, User $actor, DonorOrigin $origin = DonorOrigin::Manual): Donor
     {
         $data = $this->validate($this->normalize($input));
         $type = DonorType::from($data['type']);
@@ -51,7 +54,7 @@ class SaveDonor
             $this->taxProfiles->validate(new Donor(['type' => $type]), $taxInput, 'tax_profile.');
         }
 
-        return DB::transaction(function () use ($donor, $data, $type, $actor, $manageTax, $taxInput): Donor {
+        return DB::transaction(function () use ($donor, $data, $type, $actor, $manageTax, $taxInput, $origin): Donor {
             $donor ??= new Donor;
             $isNew = ! $donor->exists;
             $individual = $type === DonorType::Individual;
@@ -71,7 +74,7 @@ class SaveDonor
             $this->applyConsents($donor, (bool) ($data['privacy_notice_accepted'] ?? false), (bool) ($data['accepts_communications'] ?? false));
 
             if ($isNew) {
-                $donor->forceFill(['registered_by_id' => $actor->id]);
+                $donor->forceFill(['registered_by_id' => $actor->id, 'origin' => $origin]);
             }
             $donor->save();
 

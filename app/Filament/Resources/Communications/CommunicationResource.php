@@ -8,6 +8,7 @@ use App\Actions\Communications\ResendCommunication;
 use App\Enums\CommunicationKind;
 use App\Enums\CommunicationStatus;
 use App\Filament\Concerns\ReportsActionErrors;
+use App\Filament\Resources\BulkMessages\BulkMessageResource;
 use App\Filament\Resources\Communications\Pages\ListCommunications;
 use App\Filament\Resources\Communications\Pages\ViewCommunication;
 use App\Filament\Resources\Donations\DonationResource;
@@ -64,6 +65,9 @@ class CommunicationResource extends Resource
                 TextEntry::make('donation_id')->label('Donativo')->placeholder('—')
                     ->formatStateUsing(fn (int $state): string => "Ver donativo #{$state}")
                     ->url(fn (Communication $record): ?string => $record->donation_id !== null ? DonationResource::getUrl('view', ['record' => $record->donation_id]) : null),
+                TextEntry::make('bulkMessage.subject')->label('Envío masivo')
+                    ->visible(fn (Communication $record): bool => $record->bulk_message_id !== null)
+                    ->url(fn (Communication $record): ?string => $record->bulk_message_id !== null ? BulkMessageResource::getUrl('view', ['record' => $record->bulk_message_id]) : null),
                 TextEntry::make('created_at')->label('Registrado')->dateTime('d/m/Y H:i'),
                 TextEntry::make('sent_at')->label('Enviado')->dateTime('d/m/Y H:i')->placeholder('—'),
                 TextEntry::make('attempts')->label('Intentos'),
@@ -94,7 +98,7 @@ class CommunicationResource extends Resource
             ])
             ->recordActions([ViewAction::make()])
             ->emptyStateHeading('Sin envíos')
-            ->emptyStateDescription('Aquí aparecen los agradecimientos, CFDI y felicitaciones enviados a donantes.');
+            ->emptyStateDescription('Aquí aparecen los agradecimientos, felicitaciones, enlaces de pago y envíos masivos a donantes.');
     }
 
     public static function resendAction(): Action

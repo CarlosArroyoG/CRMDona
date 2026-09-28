@@ -16,6 +16,8 @@ enum Permission: string
     case DeleteDonors = 'donors.delete';
     case ManageDonorTaxProfiles = 'donors.tax_profile';
     case ExportDonors = 'donors.export';
+    // Carga masiva por CSV (docs/tecnico/carga-y-envios-masivos.md).
+    case ImportDonors = 'donors.import';
     case ManageTags = 'tags.manage';
 
     case ViewPrograms = 'programs.view';
@@ -69,6 +71,8 @@ enum Permission: string
     case ViewCommunications = 'communications.view';
     case ResendCommunications = 'communications.resend';
     case ManageMessageTemplates = 'communications.templates';
+    // Envíos masivos informativos (docs/tecnico/carga-y-envios-masivos.md).
+    case SendBulkMessages = 'communications.bulk';
 
     /**
      * @return list<Role>
@@ -83,7 +87,8 @@ enum Permission: string
             self::ViewDonors, self::ViewPrograms, self::ViewCampaigns, self::ViewDonations,
             self::ExportPrograms, self::ExportCampaigns, self::ViewPayments, self::ViewSubscriptions => Role::cases(),
             self::ManageDonors, self::ManageTags, self::ManagePrograms, self::ManageCampaigns,
-            self::ManageSubscriptions, self::ManageMessageTemplates, self::RequestPayments => $fundraising,
+            self::ManageSubscriptions, self::ManageMessageTemplates, self::RequestPayments,
+            self::ImportDonors, self::SendBulkMessages => $fundraising,
             self::ManageDonorTaxProfiles, self::ExportDonors, self::RegisterDonations, self::ExportDonations,
             self::ExportPayments, self::ViewIncidents, self::ManageIncidents, self::ReceivePaymentAlerts,
             self::ViewCfdis, self::ViewDonationReceipts, self::ViewCommunications, self::ResendCommunications => $staff,

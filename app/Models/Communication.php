@@ -15,8 +15,9 @@ use Illuminate\Support\Carbon;
  * Un correo a un donante y su resultado. Es el registro de envíos: no guarda
  * el cuerpo del mensaje, y el destinatario queda enmascarado (el correo
  * completo vive solo en `donors`). `dedupe_key` única = un solo
- * agradecimiento por donativo, un solo envío por CFDI y una felicitación por
- * donante y año; un reenvío manual usa otra llave.
+ * agradecimiento por donativo, un solo envío por CFDI, una felicitación por
+ * donante y año y un correo por envío masivo y donante; un reenvío manual usa
+ * otra llave.
  *
  * @property int $id
  * @property CommunicationKind $kind
@@ -38,6 +39,8 @@ use Illuminate\Support\Carbon;
  * @property Carbon $updated_at
  * @property-read Donor $donor
  * @property int|null $payment_request_id
+ * @property int|null $bulk_message_id
+ * @property-read BulkMessage|null $bulkMessage
  * @property-read Donation|null $donation
  * @property-read PaymentRequest|null $paymentRequest
  * @property-read User|null $requestedBy
@@ -81,6 +84,16 @@ class Communication extends Model
     public function paymentRequest(): BelongsTo
     {
         return $this->belongsTo(PaymentRequest::class);
+    }
+
+    /**
+     * Envío masivo al que pertenece (solo kind = bulk_message).
+     *
+     * @return BelongsTo<BulkMessage, $this>
+     */
+    public function bulkMessage(): BelongsTo
+    {
+        return $this->belongsTo(BulkMessage::class);
     }
 
     /**

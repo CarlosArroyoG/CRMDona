@@ -9,10 +9,12 @@ use App\Actions\Donors\FindDonorDuplicates;
 use App\Actions\Donors\SaveDonorTaxProfile;
 use App\Actions\Donors\SetDonorArchived;
 use App\Enums\CfdiUse;
+use App\Enums\DonorOrigin;
 use App\Enums\DonorType;
 use App\Enums\TaxRegime;
 use App\Filament\Concerns\ReportsActionErrors;
 use App\Filament\Exports\DonorExporter;
+use App\Filament\Imports\DonorImporter;
 use App\Filament\Resources\Donors\Pages\CreateDonor;
 use App\Filament\Resources\Donors\Pages\EditDonor;
 use App\Filament\Resources\Donors\Pages\ListDonors;
@@ -27,6 +29,7 @@ use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ExportAction;
+use Filament\Actions\ImportAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Field;
@@ -48,6 +51,7 @@ use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Gate;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class DonorResource extends Resource
 {
@@ -66,6 +70,9 @@ class DonorResource extends Resource
     protected static string|\UnitEnum|null $navigationGroup = 'Donativos';
 
     protected static ?int $navigationSort = 2;
+
+    /** Filas por archivo CSV; un archivo más grande se divide en varias cargas. */
+    public const int IMPORT_MAX_ROWS = 5000;
 
     public static function form(Schema $schema): Schema
     {
@@ -175,6 +182,7 @@ class DonorResource extends Resource
                     TextEntry::make('taxProfile.cfdi_use')->label('Uso de CFDI')->placeholder('Sin definir'),
                 ]),
             Section::make('Registro')->columns(2)->collapsed()->schema([
+                TextEntry::make('origin')->label('Registrado desde'),
                 TextEntry::make('registeredBy.name')->label('Registrado por')->placeholder('El propio donante (página pública)'),
                 TextEntry::make('created_at')->label('Registrado el')->dateTime('d/m/Y H:i'),
             ]),
@@ -199,6 +207,7 @@ class DonorResource extends Resource
             ->defaultSort('display_name')
             ->filters([
                 SelectFilter::make('type')->label('Tipo de persona')->options(DonorType::class),
+                SelectFilter::make('origin')->label('Registrado desde')->options(DonorOrigin::class),
                 SelectFilter::make('tags')->label('Etiquetas')->relationship('tags', 'name')->multiple()->preload(),
                 TernaryFilter::make('archived')->label('Archivados')
                     ->placeholder('Solo activos')->trueLabel('Solo archivados')->falseLabel('Todos')
@@ -216,6 +225,21 @@ class DonorResource extends Resource
                     ),
             ])
             ->headerActions([
+                Action::make('downloadImportTemplate')->label('Descargar plantilla CSV')
+                    ->icon(Heroicon::OutlinedArrowDownTray)->color('gray')
+                    ->tooltip('Modelo con las columnas que lleva la carga de donantes y tres filas de ejemplo.')
+                    ->visible(fn (): bool => Gate::allows('import', Donor::class))
+                    ->action(fn (): StreamedResponse => response()->streamDownload(
+                        function (): void {
+                            echo DonorImporter::templateCsv();
+                        },
+                        'plantilla-donantes.csv',
+                        ['Content-Type' => 'text/csv; charset=UTF-8'],
+                    )),
+                ImportAction::make()->label('Cargar CSV')->importer(DonorImporter::class)
+                    ->modalDescription('Usa la plantilla (botón "Descargar plantilla CSV" en la lista). Columnas: tipo_persona, nombre, apellido_paterno, apellido_materno, razon_social, persona_contacto, correo, telefono, fecha_nacimiento (dd/mm/aaaa), etiquetas (separadas por ;), notas y acepta_comunicaciones (sí/no). Persona física: nombre y apellido paterno obligatorios; persona moral: razón social. Cada fila crea un donante nuevo; si el correo ya existe, la fila se omite y aparece en el archivo de filas rechazadas.')
+                    ->maxRows(self::IMPORT_MAX_ROWS)
+                    ->visible(fn (): bool => Gate::allows('import', Donor::class)),
                 ExportAction::make()->label('Exportar')->exporter(DonorExporter::class)
                     ->visible(fn (): bool => Gate::allows('export', Donor::class)),
             ])

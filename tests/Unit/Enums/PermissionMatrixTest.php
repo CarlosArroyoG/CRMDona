@@ -15,6 +15,8 @@ const APPROVED_MATRIX = [
     'donors.delete' => ['A'],
     'donors.tax_profile' => ['A', 'C', 'Co'],
     'donors.export' => ['A', 'C', 'Co'],
+    // Carga masiva por CSV (2026-09-28).
+    'donors.import' => ['A', 'C'],
     'tags.manage' => ['A', 'C'],
     'programs.view' => ['A', 'C', 'Co', 'L'],
     'programs.manage' => ['A', 'C'],
@@ -58,6 +60,8 @@ const APPROVED_MATRIX = [
     'communications.view' => ['A', 'C', 'Co'],
     'communications.resend' => ['A', 'C', 'Co'],
     'communications.templates' => ['A', 'C'],
+    // Envíos masivos informativos (2026-09-28).
+    'communications.bulk' => ['A', 'C'],
 ];
 
 function roleCode(Role $role): string

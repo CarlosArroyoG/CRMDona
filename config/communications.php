@@ -27,4 +27,10 @@ return [
         // Un envío que sigue "Enviando" después de esto se puede retomar.
         'stuck_after_minutes' => 15,
     ],
+
+    // Envíos masivos: correos por minuto (se reparten en la cola con espera)
+    // para no rebasar los límites del proveedor SMTP.
+    'bulk' => [
+        'per_minute' => (int) env('COMMUNICATIONS_BULK_PER_MINUTE', 30),
+    ],
 ];

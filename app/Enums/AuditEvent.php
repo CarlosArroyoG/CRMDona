@@ -31,6 +31,9 @@ enum AuditEvent: string implements HasColor, HasLabel
     // Solicitudes de pago y felicitaciones
     case Regenerated = 'regenerated';
     case WhatsAppPrepared = 'whatsapp_prepared';
+    // Envíos masivos
+    case BulkSent = 'bulk_sent';
+    case BulkStopped = 'bulk_stopped';
 
     public function getLabel(): string
     {
@@ -54,14 +57,16 @@ enum AuditEvent: string implements HasColor, HasLabel
             self::MailTest => 'Correo de prueba',
             self::Regenerated => 'Enlace regenerado',
             self::WhatsAppPrepared => 'WhatsApp preparado (envío manual)',
+            self::BulkSent => 'Envío masivo iniciado',
+            self::BulkStopped => 'Envío masivo detenido',
         };
     }
 
     public function getColor(): string
     {
         return match ($this) {
-            self::Created, self::Confirmed, self::Reactivated, self::Unarchived, self::Resumed, self::IncidentResolved => 'success',
-            self::Deleted, self::Cancelled, self::Deactivated => 'danger',
+            self::Created, self::BulkSent, self::Confirmed, self::Reactivated, self::Unarchived, self::Resumed, self::IncidentResolved => 'success',
+            self::Deleted, self::Cancelled, self::Deactivated, self::BulkStopped => 'danger',
             self::Archived, self::Paused, self::Discarded => 'gray',
             self::PasswordReset, self::IncidentTaken => 'warning',
             self::Updated, self::TagsChanged, self::MailTest, self::Regenerated, self::WhatsAppPrepared => 'info',

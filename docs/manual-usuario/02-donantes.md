@@ -28,6 +28,7 @@ mayúsculas: "jose pena" encuentra a "José Peña".
 |---|---|
 | Tipo de persona | Solo personas físicas o solo morales |
 | Etiquetas | Donantes con una o varias etiquetas |
+| Registrado desde | A mano, desde la página pública o por carga CSV |
 | Archivados | Por defecto se muestran **solo activos**; elige "Solo archivados" o "Todos" |
 | Datos fiscales | Con o sin datos fiscales |
 
@@ -53,6 +54,42 @@ Botón **Crear donante**.
 
 **Aviso de duplicado:** si ya existe un donante con el mismo correo o RFC, aparece un aviso junto al
 campo. **No impide guardar**: una familia puede compartir correo. Revisa que no sea la misma persona.
+
+## Cargar donantes desde un archivo CSV
+
+Para registrar muchos donantes a la vez (por ejemplo, una lista de un evento). Administrador y
+Coordinador. Botón **Cargar CSV** en la lista de donantes.
+
+1. En la lista de donantes pulsa **Descargar plantilla CSV**. Trae las columnas correctas y tres
+   filas de ejemplo: una persona física, una persona moral y una fila mínima. **Borra las filas de
+   ejemplo** y escribe tus donantes debajo de los encabezados, sin cambiarlos. Al guardar en Excel,
+   elige "CSV UTF-8" si está disponible; el sistema también entiende el CSV normal de Excel.
+2. Sube el archivo. El sistema reconoce las columnas y te deja corregir cuál es cuál.
+3. Opcional: escribe una **etiqueta para toda la carga** (por ejemplo, "Carga septiembre 2026").
+4. Marca la **confirmación de consentimiento** solo si la Fundación tiene evidencia de que los
+   donantes marcados "sí" en la columna `acepta_comunicaciones` autorizaron recibir correos. Sin la
+   confirmación, todos quedan sin aceptar comunicaciones.
+5. Pulsa **Importar**. El archivo se procesa en segundo plano; la campana avisa al terminar.
+
+| Columna | Qué escribir |
+|---|---|
+| `tipo_persona` | "física" o "moral" (vacío = física) |
+| `nombre`, `apellido_paterno`, `apellido_materno` | Persona física (nombre y apellido paterno obligatorios) |
+| `razon_social`, `persona_contacto` | Persona moral (razón social obligatoria) |
+| `correo`, `telefono` | Opcionales |
+| `fecha_nacimiento` | `15/03/1980` (año con cuatro dígitos) |
+| `etiquetas` | Separadas por punto y coma: `Padrino; Evento 2026` |
+| `notas` | Opcional |
+| `acepta_comunicaciones` | "sí" o "no" |
+
+Qué hace el sistema por su cuenta:
+
+- Solo **agrega** donantes nuevos. Si el correo ya está registrado, esa fila **no se importa** y el
+  donante existente no cambia.
+- Las filas con error no detienen la carga. La notificación final trae un archivo con cada fila
+  rechazada y el motivo; corrígelas y vuelve a cargar solo esas. El archivo se borra a los 7 días.
+- No se cargan el aviso de privacidad ni los datos fiscales: se capturan en la ficha de cada donante.
+- Máximo 5 000 filas por archivo.
 
 ## Ficha del donante
 
@@ -86,3 +123,5 @@ donativos hasta reactivarlo.
 | "El campo RFC no tiene la estructura de un RFC de Persona física (13 caracteres)." | Revisa el RFC: 13 caracteres persona física, 12 persona moral |
 | "El código postal fiscal debe tener 5 dígitos." | Captura los 5 dígitos |
 | "Este donante tiene donativos registrados y no puede eliminarse. Puedes archivarlo." | Usa **Archivar** |
+| "Ya existe un donante con el correo …; no se modificó." (carga CSV) | Es un donante ya registrado; si hay que cambiar algo, edítalo en su ficha |
+| "Fecha de nacimiento inválida: usa el formato dd/mm/aaaa." (carga CSV) | Escribe la fecha con año de cuatro dígitos, por ejemplo `15/03/1980` |

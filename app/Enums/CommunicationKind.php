@@ -18,6 +18,11 @@ use Filament\Support\Contracts\HasLabel;
  * donante (docs/tecnico/solicitudes-de-pago.md). No es un envío masivo ni de
  * campaña: siempre nace de una solicitud y de una persona que lo pide.
  *
+ * El envío masivo es informativo: lo redacta el personal para una audiencia
+ * filtrada. Siempre exige consentimiento vigente (sin importar la
+ * configuración de los transaccionales) y lleva enlace de baja. Su texto vive
+ * en `bulk_messages`, no en las plantillas.
+ *
  * `Cfdi` es histórico: el CRM ya no emite ni envía CFDI
  * (docs/tecnico/cfdi-externo.md). Se conserva solo para leer los registros
  * anteriores; no se encola, no se reenvía y no tiene plantilla.
@@ -28,6 +33,7 @@ enum CommunicationKind: string implements HasLabel
     case Cfdi = 'cfdi';
     case Birthday = 'birthday';
     case PaymentRequest = 'payment_request';
+    case BulkMessage = 'bulk_message';
 
     /**
      * Tipos que el CRM todavía envía.
@@ -35,6 +41,17 @@ enum CommunicationKind: string implements HasLabel
      * @return list<self>
      */
     public static function active(): array
+    {
+        return [self::ThankYou, self::Birthday, self::PaymentRequest, self::BulkMessage];
+    }
+
+    /**
+     * Tipos con plantilla editable en Comunicaciones → Plantillas. El envío
+     * masivo no la tiene: cada envío trae su propio texto.
+     *
+     * @return list<self>
+     */
+    public static function templated(): array
     {
         return [self::ThankYou, self::Birthday, self::PaymentRequest];
     }
@@ -46,7 +63,15 @@ enum CommunicationKind: string implements HasLabel
 
     public function requiresConsent(): bool
     {
-        return $this === self::Birthday || (bool) config('communications.transactional_requires_consent');
+        return $this === self::Birthday || $this === self::BulkMessage || (bool) config('communications.transactional_requires_consent');
+    }
+
+    /**
+     * Correos informativos: llevan enlace de baja (y la cabecera List-Unsubscribe).
+     */
+    public function hasUnsubscribeLink(): bool
+    {
+        return $this === self::Birthday || $this === self::BulkMessage;
     }
 
     /**
@@ -74,7 +99,7 @@ enum CommunicationKind: string implements HasLabel
                 'destino' => 'Campaña, programa o "el fondo general"',
                 'vigencia' => 'Fecha hasta la que el enlace es válido',
             ],
-            self::Cfdi, self::Birthday => [],
+            self::Cfdi, self::Birthday, self::BulkMessage => [],
         };
     }
 
@@ -85,6 +110,7 @@ enum CommunicationKind: string implements HasLabel
             self::Cfdi => 'Comprobante fiscal (histórico)',
             self::Birthday => '¡Feliz cumpleaños, {{ nombre }}!',
             self::PaymentRequest => 'Tu donativo a {{ organizacion }}: enlace de pago seguro',
+            self::BulkMessage => '',
         };
     }
 
@@ -95,6 +121,7 @@ enum CommunicationKind: string implements HasLabel
             self::Cfdi => '',
             self::Birthday => "Hola, {{ nombre }}:\n\nEn {{ organizacion }} te deseamos un muy feliz cumpleaños. Gracias por ser parte de nuestra comunidad.",
             self::PaymentRequest => "Hola, {{ nombre }}:\n\nGracias por tu interés en apoyar a {{ organizacion }}. Preparamos tu donativo de {{ importe }} ({{ frecuencia }}) para {{ destino }}.\n\nPara completarlo, usa el botón de este correo. El pago se hace en la página segura del proveedor de pago: nosotros no vemos ni guardamos los datos de tu tarjeta.\n\nEl enlace es válido hasta el {{ vigencia }}. Si no reconoces esta solicitud, ignora este correo.",
+            self::BulkMessage => '',
         };
     }
 
@@ -105,6 +132,7 @@ enum CommunicationKind: string implements HasLabel
             self::Cfdi => 'Envío de CFDI (histórico)',
             self::Birthday => 'Felicitación de cumpleaños',
             self::PaymentRequest => 'Solicitud de pago (enlace)',
+            self::BulkMessage => 'Envío masivo',
         };
     }
 }

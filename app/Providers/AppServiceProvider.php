@@ -12,6 +12,7 @@ use App\Mail\Outgoing\OutgoingMailConfig;
 use App\Mail\Outgoing\SmtpTransportFactory;
 use App\Models\AccountingNotice;
 use App\Models\AuditLog;
+use App\Models\BulkMessage;
 use App\Models\Campaign;
 use App\Models\Cfdi;
 use App\Models\Communication;
@@ -21,6 +22,7 @@ use App\Models\Donor;
 use App\Models\DonorTaxProfile;
 use App\Models\Export;
 use App\Models\ExternalCfdi;
+use App\Models\Import;
 use App\Models\MailSetting;
 use App\Models\MessageTemplate;
 use App\Models\OrganizationSetting;
@@ -40,6 +42,7 @@ use App\Payments\GatewayRegistry;
 use App\Support\AuditOrigin;
 use Filament\Actions\Exports\ExportColumn;
 use Filament\Actions\Exports\Models\Export as FilamentExport;
+use Filament\Actions\Imports\Models\Import as FilamentImport;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -67,6 +70,8 @@ class AppServiceProvider extends ServiceProvider
     {
         // Exportaciones con purga a 7 días (ADR-007).
         $this->app->bind(FilamentExport::class, Export::class);
+        // Cargas CSV: las filas rechazadas también se purgan a 7 días.
+        $this->app->bind(FilamentImport::class, Import::class);
 
         // Pagos (ADR-011): una pasarela por proveedor, según configuración.
         $this->app->singleton(GatewayRegistry::class);
@@ -99,6 +104,7 @@ class AppServiceProvider extends ServiceProvider
             'organization_setting' => OrganizationSetting::class,
             'audit_log' => AuditLog::class,
             'export' => Export::class,
+            'import' => Import::class,
             'payment' => Payment::class,
             'payment_attempt' => PaymentAttempt::class,
             'subscription' => Subscription::class,
@@ -115,6 +121,7 @@ class AppServiceProvider extends ServiceProvider
             'communication' => Communication::class,
             'mail_setting' => MailSetting::class,
             'payment_request' => PaymentRequest::class,
+            'bulk_message' => BulkMessage::class,
         ]);
 
         // Dentro de un Job de la cola, los cambios se registran como "Proceso automático".

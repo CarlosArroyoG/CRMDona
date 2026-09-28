@@ -30,6 +30,38 @@ Qué hace el sistema por su cuenta:
 - Si escribes una variable que no existe o dejas llaves sin cerrar, no se guarda.
 - La firma y los avisos obligatorios se agregan solos. Por ejemplo: que el recibo no es comprobante fiscal, o el enlace de baja.
 
+## Envíos masivos (Administrador y Coordinador)
+
+Para escribir a varios donantes a la vez, por ejemplo un informe o una invitación. Menú
+**Comunicaciones → Envíos masivos**.
+
+1. **Nuevo envío masivo:** escribe el asunto y el texto. Puedes usar `{{ nombre }}` y
+   `{{ organizacion }}`.
+2. En **A quién se envía** elige los filtros. Todos se combinan:
+   - tipo de persona;
+   - etiquetas (tiene al menos una);
+   - donó a una campaña o a un programa;
+   - donó entre dos fechas.
+
+   Debajo verás cuántos lo recibirán y cuántos quedan fuera por no tener correo o no aceptar
+   comunicaciones.
+3. Guarda. En la ficha del envío pulsa **Enviarme una prueba** y revisa el correo en tu bandeja.
+4. Pulsa **Enviar** y confirma. Los correos salen poco a poco (30 por minuto, según la
+   configuración) para no rebasar el límite del servidor de correo.
+5. En la ficha ves el avance (enviados, en cola, fallidos y no enviados) y la lista de destinatarios.
+
+Qué hace el sistema por su cuenta:
+
+- **Solo lo reciben** donantes activos, con correo y que aceptan comunicaciones. Nunca se envía a
+  quien se dio de baja.
+- Cada correo lleva el enlace para darse de baja.
+- Si cambias el asunto o el texto después de la prueba, tienes que volver a probar.
+- **Detener envío:** si te equivocaste, detén el envío. Lo que ya salió no se puede recuperar; lo
+  que seguía en cola ya no se manda.
+- Un envío ya iniciado no se edita ni se borra. Los borradores sí se pueden eliminar.
+
+El Contador puede consultar los envíos, pero no prepararlos.
+
 ## Historial de envíos
 
 **Comunicaciones → Historial de envíos** muestra cada correo con su estado:
@@ -48,4 +80,4 @@ Qué hace el sistema por su cuenta:
 
 ## Baja
 
-Las felicitaciones incluyen un enlace para darse de baja. El donante no necesita cuenta. Al darse de baja, su ficha queda con "Acepta recibir comunicaciones" desactivado y el cambio aparece en la bitácora.
+Las felicitaciones y los envíos masivos incluyen un enlace para darse de baja. El donante no necesita cuenta. Al darse de baja, su ficha queda con "Acepta recibir comunicaciones" desactivado y el cambio aparece en la bitácora.

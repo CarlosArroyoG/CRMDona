@@ -29,6 +29,7 @@ Guía para el personal que usa el panel del CRM. No requiere conocimientos técn
 |---|---|---|---|---|
 | Consultar donantes, donativos, programas y campañas | Sí | Sí | Sí | Sí |
 | Registrar y editar donantes | Sí | Sí | No | No |
+| Cargar donantes desde un archivo CSV | Sí | Sí | No | No |
 | Ver y editar datos fiscales de donantes | Sí | Sí | Sí | No |
 | Registrar donativos | Sí | Sí | Sí | No |
 | Confirmar o cancelar donativos | Sí | No | Sí | No |
@@ -55,6 +56,7 @@ Guía para el personal que usa el panel del CRM. No requiere conocimientos técn
 | Recibir avisos a Contabilidad (si se activa) y marcar el procesamiento contable | Sí | No | Sí | No |
 | Descargar recibo simple, ver historial de envíos y reenviar | Sí | Sí | Sí | No |
 | Editar plantillas de correo | Sí | Sí | No | No |
+| Preparar, probar y enviar envíos masivos | Sí | Sí | No (solo consulta) | No |
 | Ver el tablero | Sí | Sí | Sí | Sí |
 | Control contable (ver y exportar) | Sí | Sí | Sí | No |
 | Configurar el correo saliente y enviar correos de prueba | Sí | No | No | No |
@@ -68,11 +70,11 @@ Si un botón no aparece, es porque tu rol no tiene esa acción.
 | (sin grupo) | Escritorio: pendientes, accesos rápidos e indicadores del mes |
 | Donativos | Donativos, Donantes, Donativos mensuales, Solicitudes de pago, Pagos en línea (con el reporte de pagos), Incidencias de pago |
 | Recaudación | Campañas, Programas |
-| Comunicaciones | Historial de envíos, Plantillas de correo |
+| Comunicaciones | Historial de envíos, Plantillas de correo, Envíos masivos |
 | Contabilidad | Control contable, Reembolsos, Contracargos |
 | Administración | Usuarios, Organización, Correo saliente, Pasarelas de pago, Bitácora de cambios |
 | Soporte técnico | Notificaciones de proveedores (diagnóstico; grupo plegado, solo Administrador) |
 
 Cada persona ve solo los grupos y pantallas que su rol permite.
 
-La campana de la esquina superior muestra avisos, por ejemplo cuando una exportación está lista o cuando hay una incidencia de pagos.
+La campana de la esquina superior muestra avisos, por ejemplo cuando una exportación o una carga CSV terminó, o cuando hay una incidencia de pagos.

@@ -54,6 +54,14 @@ class DonorPolicy
         return $user->hasPermission(Permission::ManageDonorTaxProfiles);
     }
 
+    /**
+     * Carga masiva por CSV: solo altas nuevas (ImportDonorRow).
+     */
+    public function import(User $user): bool
+    {
+        return $user->hasPermission(Permission::ImportDonors);
+    }
+
     public function export(User $user): bool
     {
         return $user->hasPermission(Permission::ExportDonors);

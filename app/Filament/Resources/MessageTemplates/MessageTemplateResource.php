@@ -60,7 +60,7 @@ class MessageTemplateResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         // La plantilla histórica de envío de CFDI ya no se usa ni se edita.
-        return MessageTemplate::query()->whereIn('kind', array_map(fn (CommunicationKind $kind): string => $kind->value, CommunicationKind::active()));
+        return MessageTemplate::query()->whereIn('kind', array_map(fn (CommunicationKind $kind): string => $kind->value, CommunicationKind::templated()));
     }
 
     public static function table(Table $table): Table

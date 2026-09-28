@@ -2,6 +2,32 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+## [Carga masiva de donantes y envíos masivos] — 2026-09-28
+
+Detalle en `docs/tecnico/carga-y-envios-masivos.md`. Sin paquetes nuevos.
+
+### Agregado
+- **Donantes → Cargar CSV** (permiso nuevo `donors.import`: Administrador y Coordinador).
+  - Importador de Filament en la cola, con CSV de ejemplo, codificación de Excel y hasta 5 000 filas.
+  - Cada fila pasa por `ImportDonorRow` → `SaveDonor`.
+  - Solo altas: un correo ya registrado se rechaza y el donante existente no cambia.
+  - "Acepta comunicaciones" solo cuenta con la confirmación de consentimiento de quien carga.
+  - Etiquetas por fila y una etiqueta opcional para toda la carga.
+  - Informe descargable de filas rechazadas con el motivo, purgado a los 7 días (`App\Models\Import`).
+- `donors.origin = csv_import` y filtro **Registrado desde** en la lista de donantes (migración reversible `2026_10_06_000001`, que también crea `imports` y `failed_import_rows`).
+- **Comunicaciones → Envíos masivos** (permiso nuevo `communications.bulk`: Administrador y Coordinador; el Contador consulta).
+  - Texto simple con `{{ nombre }}` y `{{ organizacion }}`.
+  - Filtros por tipo, etiquetas, campaña, programa y fechas de donativo, con el conteo de destinatarios.
+  - Correo de prueba obligatorio a quien lo prepara.
+  - Envío repartido a `COMMUNICATIONS_BULK_PER_MINUTE` por minuto (30 por defecto) y opción **Detener envío**.
+  - Solo a donantes activos, con correo y que aceptan comunicaciones, con enlace de baja. Cada destinatario queda en el Historial de envíos.
+  - Migración reversible `2026_10_06_000002` (`bulk_messages` y `communications.bulk_message_id`).
+
+### Cambiado
+- `CommunicationKind::templated()` separa los tipos con plantilla editable de los que el CRM envía (`active()`), porque el envío masivo trae su propio texto.
+- El enlace de baja lo decide `CommunicationKind::hasUnsubscribeLink()` (cumpleaños y envío masivo).
+- `QueueCommunication` acepta el envío masivo y un momento de envío (retraso en la cola).
+
 ## [Aviso de privacidad del CRM] — 2026-09-25
 
 ### Agregado

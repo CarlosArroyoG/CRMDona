@@ -44,7 +44,7 @@ class MessageTemplate extends Model
      */
     public static function ensureDefaults(): void
     {
-        foreach (CommunicationKind::active() as $kind) {
+        foreach (CommunicationKind::templated() as $kind) {
             self::query()->firstOrCreate(['kind' => $kind->value], [
                 'subject' => $kind->defaultSubject(),
                 'body' => $kind->defaultBody(),
