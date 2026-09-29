@@ -12,6 +12,10 @@ use Illuminate\Support\Facades\Schedule;
 // los 7 días (ADR-007). Solo lo temporal; los datos originales nunca se borran por antigüedad.
 Schedule::command('model:prune', ['--model' => [Export::class, Import::class]])->dailyAt('03:00');
 
+// Datos sensibles de donantes que hayan quedado legibles (p. ej. guardados por el
+// contenedor anterior durante un despliegue): se cifran solos.
+Schedule::command('app:encrypt-legacy-data')->everyFifteenMinutes()->withoutOverlapping();
+
 // Conciliación de pagos (fase-2-diseno-pagos.md §21): reembolsos sin
 // respuesta, pagos que siguen en proceso y pagos exitosos sin donativo.
 Schedule::job(new ReconcilePayments)->everyFifteenMinutes();

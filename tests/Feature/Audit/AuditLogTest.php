@@ -69,17 +69,18 @@ it('no copia datos personales del donante a la bitácora', function (): void {
         ->and($update->old_values)->toBeNull();
 });
 
-it('no copia RFC, nombre fiscal ni código postal a la bitácora', function (): void {
+it('no copia a la bitácora ningún dato fiscal (ni legible ni cifrado): solo qué campo cambió', function (): void {
     $donor = Donor::factory()->withTaxProfile()->create();
     $profile = DonorTaxProfile::query()->where('donor_id', $donor->id)->firstOrFail();
 
     $log = AuditLog::query()->where('auditable_type', 'donor_tax_profile')->firstOrFail();
-    $serialized = json_encode($log->new_values, JSON_THROW_ON_ERROR);
+    $serialized = json_encode([$log->old_values, $log->new_values], JSON_THROW_ON_ERROR);
 
-    expect($log->changed_fields)->toContain('rfc')
+    expect($log->changed_fields)->toContain('rfc')->toContain('tax_regime')
         ->and($serialized)->not->toContain($profile->rfc)
         ->and($serialized)->not->toContain($profile->tax_postal_code)
-        ->and($log->new_values)->toHaveKey('tax_regime');
+        ->and($serialized)->not->toContain($profile->getRawOriginal('rfc'))
+        ->and($log->new_values ?? [])->not->toHaveKey('tax_regime');
 });
 
 it('nunca registra contraseñas ni tokens', function (): void {

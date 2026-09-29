@@ -20,17 +20,18 @@ Route::get('/aviso-de-privacidad', PrivacyNoticeController::class)->middleware('
 // Favicon derivado del logotipo que configura Administración.
 Route::get('/favicon.png', FaviconController::class)->middleware('throttle:120,1')->name('favicon');
 
-// Página pública de donativos (Fase 6). Envíos con CSRF y límite por IP.
+// Página pública de donativos (Fase 6). Envíos con CSRF y límite por IP; las
+// páginas GET también tienen límite (cada visita crea sesión y consulta la base).
 // El token de sesión es aleatorio y solo sirve en el navegador que lo creó.
 Route::controller(PublicDonationController::class)->prefix('/donar')->name('donate.')->group(function (): void {
-    Route::get('/', 'create')->name('create');
+    Route::get('/', 'create')->middleware('throttle:public-pages')->name('create');
     Route::post('/', 'store')->middleware('throttle:public-donations')->name('store');
-    Route::get('/gracias', 'returned')->name('returned');
-    Route::get('/campana/{campaign}', 'create')->where('campaign', '[a-z0-9\-]{1,120}')->name('campaign');
+    Route::get('/gracias', 'returned')->middleware('throttle:public-pages')->name('returned');
+    Route::get('/campana/{campaign}', 'create')->where('campaign', '[a-z0-9\-]{1,120}')->middleware('throttle:public-pages')->name('campaign');
     Route::post('/campana/{campaign}', 'store')->where('campaign', '[a-z0-9\-]{1,120}')->middleware('throttle:public-donations')->name('campaign.store');
-    Route::get('/resumen/{token}', 'summary')->where('token', '[A-Za-z0-9]{40}')->name('summary');
+    Route::get('/resumen/{token}', 'summary')->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:public-pages')->name('summary');
     Route::post('/pagar/{token}', 'pay')->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:public-donations')->name('pay');
-    Route::get('/estado/{token}', 'status')->where('token', '[A-Za-z0-9]{40}')->name('status');
+    Route::get('/estado/{token}', 'status')->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:public-pages')->name('status');
     // Enlace de una solicitud de pago (cobro asistido): token aleatorio; importe y destino salen de la base.
     Route::get('/enlace/{token}', 'fromRequest')->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:public-donations')->name('request');
     Route::post('/reintentar/{token}', 'retry')->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:public-donations')->name('retry');

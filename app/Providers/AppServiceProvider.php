@@ -152,6 +152,9 @@ class AppServiceProvider extends ServiceProvider
         // Página pública de donativos: envíos por IP y minuto.
         RateLimiter::for('public-donations', fn (Request $request): Limit => Limit::perMinute(config()->integer('donations.public.rate_limit_per_minute'))
             ->by((string) $request->ip()));
+        // Páginas públicas GET: frena ráfagas de bots que llenarían Redis de sesiones.
+        RateLimiter::for('public-pages', fn (Request $request): Limit => Limit::perMinute(config()->integer('donations.public.page_rate_limit_per_minute'))
+            ->by((string) $request->ip()));
     }
 
     /**

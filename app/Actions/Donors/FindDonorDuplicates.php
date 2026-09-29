@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Donors;
 
 use App\Models\Donor;
+use App\Support\BlindIndex;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
@@ -33,7 +34,8 @@ class FindDonorDuplicates
                     $query->orWhereRaw('lower(email) = ?', [$email]);
                 }
                 if ($rfc !== '') {
-                    $query->orWhereHas('taxProfile', fn (Builder $profile) => $profile->where('rfc', $rfc));
+                    // El RFC está cifrado: se compara su huella.
+                    $query->orWhereHas('taxProfile', fn (Builder $profile) => $profile->where('rfc_hash', BlindIndex::rfc($rfc)));
                 }
             })
             ->orderBy('display_name')

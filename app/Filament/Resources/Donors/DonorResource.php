@@ -23,6 +23,7 @@ use App\Filament\Resources\Donors\RelationManagers\DonationsRelationManager;
 use App\Models\Donor;
 use App\Models\OrganizationSetting;
 use App\Models\Tag;
+use App\Support\BlindIndex;
 use App\Support\Search;
 use BackedEnum;
 use Filament\Actions\Action;
@@ -262,8 +263,10 @@ class DonorResource extends Resource
         Search::unaccent($query, 'display_name', $search);
         Search::unaccent($query, 'email', $search, 'or');
 
-        if (Gate::allows('viewTaxProfile', Donor::class)) {
-            $query->orWhereHas('taxProfile', fn (Builder $profile): Builder => $profile->where('rfc', 'ilike', '%'.addcslashes(trim($search), '%_\\').'%'));
+        // El RFC está cifrado: solo se encuentra escrito completo (12 o 13 caracteres), por su huella.
+        $rfc = mb_strtoupper(trim($search));
+        if (Gate::allows('viewTaxProfile', Donor::class) && preg_match('/^[A-ZÑ&]{3,4}[0-9]{6}[A-Z0-9]{3}$/u', $rfc) === 1) {
+            $query->orWhereHas('taxProfile', fn (Builder $profile): Builder => $profile->where('rfc_hash', BlindIndex::rfc($rfc)));
         }
 
         return $query;

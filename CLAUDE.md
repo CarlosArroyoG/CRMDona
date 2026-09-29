@@ -57,6 +57,9 @@ El documento de requisitos completo lo entregó el usuario al iniciar el proyect
   - Consentimiento de donantes de `/donar` solo con un donativo confirmado (`Donor::hasVerifiedCommunicationsConsent()` / scope `withVerifiedCommunicationsConsent`); usarlo en toda comunicación informativa nueva.
   - Descargas fuera del panel: su Policy exige `User::hasEnrolledMultiFactor()`.
   - `ProductionSafety`: sin `APP_DEBUG` en producción y cookie de sesión segura.
+- **Protección de la base** (2026-09-29). Fuente de verdad: `docs/tecnico/proteccion-de-datos.md`.
+  - Cifrados con `APP_KEY`: datos fiscales (RFC, nombre, régimen, CP, uso de CFDI), teléfono y notas. El RFC se busca solo por `rfc_hash` (`BlindIndex`). Todo dato sensible nuevo se cifra.
+  - Producción: la app usa `crm_app` (sin DDL); las migraciones, `crm_owner` (`docker/postgres/least-privilege.sql`). `php artisan app:security-check` tras cada despliegue.
 - **Base `crm`:** tiene datos persistentes de desarrollo. Se permiten `migrate` normales (con respaldo si hay riesgo).
   Nunca `migrate:fresh`, rollback destructivo ni experimentos contra `crm`; usar `crm_testing` o `crm_validation`.
 - Modelo de datos y reglas: `docs/tecnico/modelo-de-datos.md` y ADR-002 a ADR-012.

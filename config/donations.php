@@ -21,6 +21,8 @@ return [
 
         // Intentos por minuto por IP en los envíos.
         'rate_limit_per_minute' => (int) env('DONATIONS_RATE_LIMIT', 10),
+        // Vistas GET de /donar por IP y minuto (resumen, estado, campaña…).
+        'page_rate_limit_per_minute' => (int) env('DONATIONS_PAGE_RATE_LIMIT', 120),
 
         // Colores de la identidad (configurables). El primario es el azul marino
         // institucional; el secundario es el acento (úsese con moderación).

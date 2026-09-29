@@ -19,7 +19,8 @@ fiscales: Administrador, Coordinador y Contador. Eliminar: solo Administrador.
 | Etiquetas | Clasificación libre (por ejemplo "Padrino", "Empresa") |
 | Donativos | Cuántos donativos tiene registrados |
 
-**Buscar:** escribe en el buscador parte del nombre, del correo o del RFC. No importan acentos ni
+**Buscar:** escribe en el buscador parte del nombre o del correo, o el **RFC completo** (el RFC se
+guarda cifrado, así que no se encuentra por un fragmento). No importan acentos ni
 mayúsculas: "jose pena" encuentra a "José Peña".
 
 **Filtros:**

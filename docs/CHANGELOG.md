@@ -2,12 +2,33 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+## [Protección de la base de datos] — 2026-09-29
+
+Detalle en `docs/tecnico/proteccion-de-datos.md`.
+
+### Seguridad
+- **Cifrado de datos sensibles con `APP_KEY`:** RFC, nombre fiscal, régimen, CP fiscal y uso de CFDI; teléfono y notas del donante (migración reversible `2026_10_07_000001`, que cifra los datos existentes).
+  - El RFC se busca y se compara por su huella `rfc_hash` (HMAC), solo completo.
+  - Los campos fiscales van a la bitácora solo por nombre.
+- **Usuarios de PostgreSQL de mínimo privilegio** (`docker/postgres/least-privilege.sql`):
+  - `crm_app` para la aplicación: sin DDL, `TRUNCATE`, `COPY PROGRAM` ni superusuario; bitácora solo `INSERT` y donativos sin `DELETE`;
+  - `crm_owner` solo para migraciones;
+  - verificado contra PostgreSQL real.
+- `docker/entrypoint.sh` migra con `DB_MIGRATION_USERNAME` antes de guardar la configuración con el usuario de la aplicación.
+- Comando **`php artisan app:security-check`** para verificar cada despliegue.
+
 ## [Revisión de seguridad] — 2026-09-28
 
 ### Seguridad
 - **Consentimiento verificado:** el "Acepta comunicaciones" de un donante registrado en `/donar` solo cuenta con al menos un donativo confirmado (`Donor::hasVerifiedCommunicationsConsent()`). Aplica a envíos masivos, cumpleaños, "Preparar WhatsApp" y la cola. Evita que un tercero inscriba correos ajenos.
 - **MFA en descargas fuera del panel:** recibos, CFDI, exportaciones y filas rechazadas de cargas CSV exigen la aplicación autenticadora configurada (`User::hasEnrolledMultiFactor()`).
 - **Producción:** no arranca con `APP_DEBUG=true` y fuerza la cookie de sesión segura (`App\Support\ProductionSafety`).
+- **Páginas públicas GET** (`/donar`, resumen, estado, campaña y gracias): límite por IP (`DONATIONS_PAGE_RATE_LIMIT`, 120 por minuto). Antes solo los envíos tenían límite y cada visita crea una sesión en Redis.
+- **Pruebas de ataque** (`tests/Feature/Security/AttackSimulationTest.php`):
+  - inyección SQL con variantes de mayúsculas, comentarios, Unicode y `pg_sleep` en la búsqueda, la página pública, la URL, la carga CSV y los filtros;
+  - suplantación de IP con `X-Forwarded-For`, directa y a través del proxy;
+  - ráfagas a páginas públicas y webhooks con firma falsa;
+  - fuerza bruta al login.
 - **SMTP:** se rechazan el equipo local, la metadata de la nube, los servicios del propio despliegue y los puertos 5432 y 6379. Los relays de la red privada siguen permitidos.
 
 ## [Carga masiva de donantes y envíos masivos] — 2026-09-28

@@ -63,7 +63,9 @@ mismos valores** en los tres. Nunca se escriben en git. La referencia es `.env.e
 | `LOG_CHANNEL` | `stderr` (Coolify muestra los registros) |
 | `LOG_LEVEL` | `warning` |
 | `DB_CONNECTION` | `pgsql` |
-| `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` | Los del recurso `postgres` |
+| `DB_HOST`, `DB_PORT`, `DB_DATABASE` | Los del recurso `postgres` |
+| `DB_USERNAME`, `DB_PASSWORD` | `crm_app` y su contraseña (**no** el superusuario): `docs/tecnico/proteccion-de-datos.md` §2 |
+| `DB_MIGRATION_USERNAME`, `DB_MIGRATION_PASSWORD` | Solo en el recurso `app`: `crm_owner` y su contraseña (migraciones al desplegar) |
 | `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD` | Los del recurso `redis`. **Con contraseña**: Redis guarda sesiones y trabajos de la cola con datos personales. Sin puertos publicados |
 | `SESSION_DRIVER` / `CACHE_STORE` / `QUEUE_CONNECTION` | `redis` |
 | `SESSION_ENCRYPT` | `true` |

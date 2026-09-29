@@ -167,6 +167,9 @@ class Donor extends Model
             'type' => DonorType::class,
             'origin' => DonorOrigin::class,
             'birth_date' => 'date',
+            // Cifrados con APP_KEY (docs/tecnico/proteccion-de-datos.md).
+            'phone' => 'encrypted',
+            'notes' => 'encrypted',
             'privacy_notice_accepted_at' => 'datetime',
             'accepts_communications' => 'boolean',
             'communications_consent_updated_at' => 'datetime',
