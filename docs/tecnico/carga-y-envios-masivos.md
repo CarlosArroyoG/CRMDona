@@ -86,6 +86,12 @@ Reglas fijas, iguales a las de la decisión #34 (comunicaciones informativas):
 - tiene correo;
 - tiene "Acepta comunicaciones".
 
+**Consentimiento verificado** (revisión de seguridad 2026-09-28): quien se registró en `/donar` escribió un correo sin probar que es suyo. Su "Acepta comunicaciones" solo cuenta cuando tiene **al menos un donativo confirmado**. Así, un bot o un tercero no puede inscribir correos ajenos para que reciban envíos masivos.
+
+- La regla vive en `Donor::hasVerifiedCommunicationsConsent()` y en el scope `withVerifiedCommunicationsConsent()`.
+- Aplica a los envíos masivos, a la felicitación de cumpleaños, a "Preparar WhatsApp" y a `QueueCommunication::skipReason()`.
+- Los donantes registrados a mano o cargados por CSV no cambian.
+
 `CommunicationKind::BulkMessage::requiresConsent()` es siempre verdadero, aunque `COMMUNICATIONS_TRANSACTIONAL_REQUIRES_CONSENT` sea `false`. Cada correo lleva enlace de baja y la cabecera `List-Unsubscribe` (`hasUnsubscribeLink()`).
 
 ### Modelo de datos

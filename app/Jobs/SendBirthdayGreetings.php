@@ -40,7 +40,7 @@ class SendBirthdayGreetings implements ShouldBeUnique, ShouldQueue
 
         Donor::query()
             ->whereNotNull('birth_date')->whereNull('archived_at')->whereNotNull('email')
-            ->where('accepts_communications', true)
+            ->withVerifiedCommunicationsConsent()
             ->whereRaw('extract(month from birth_date) = ?', [$today->month])
             ->whereRaw('extract(day from birth_date)::int in ('.implode(', ', array_fill(0, count($days), '?')).')', $days)
             ->orderBy('id')

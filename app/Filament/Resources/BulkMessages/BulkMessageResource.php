@@ -167,7 +167,7 @@ class BulkMessageResource extends Resource
         $summary = $audience->summary();
 
         return Number::format($summary['recipients']).' recibirán el correo. De '.Number::format($summary['matching']).' donantes activos que cumplen los filtros, '
-            .Number::format($summary['without_email']).' no tienen correo y '.Number::format($summary['without_consent']).' no aceptan comunicaciones.';
+            .Number::format($summary['without_email']).' no tienen correo y '.Number::format($summary['without_consent']).' no aceptan comunicaciones o no las tienen verificadas (registrados en la página pública sin donativo confirmado).';
     }
 
     public static function progressText(BulkMessage $message): string

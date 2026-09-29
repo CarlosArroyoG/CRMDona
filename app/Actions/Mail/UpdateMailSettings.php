@@ -27,7 +27,10 @@ use Illuminate\Validation\ValidationException;
  * (relay sin autenticación) no se guarda ninguna.
  *
  * No se imponen reglas de un proveedor concreto ni se bloquean servidores
- * internos (instalaciones corporativas): ver docs/tecnico/correo-saliente.md.
+ * internos de la red (relays corporativos): ver docs/tecnico/correo-saliente.md.
+ * Sí se bloquean destinos que solo servirían para sondear al propio CRM: el
+ * equipo local, la metadata de la nube (169.254.x.x), los servicios del
+ * despliegue (app, worker, scheduler, postgres, redis) y sus puertos.
  */
 class UpdateMailSettings
 {
@@ -75,6 +78,10 @@ class UpdateMailSettings
             'from_address' => 'correo del remitente', 'from_name' => 'nombre del remitente', 'reply_to_address' => 'correo de respuesta (Reply-To)',
             'reply_to_name' => 'nombre de respuesta', 'timeout' => 'tiempo de espera',
         ])->validate();
+
+        if (($reason = self::blockedDestination($data['host'] ?? null, isset($data['port']) ? (int) $data['port'] : null)) !== null) {
+            throw ValidationException::withMessages(['host' => $reason]);
+        }
 
         $settings = DB::transaction(function () use ($data, $enabled): MailSetting {
             $settings = MailSetting::query()->lockForUpdate()->findOrFail(MailSetting::current()->id);
@@ -127,5 +134,31 @@ class UpdateMailSettings
         $this->mail->refresh();
 
         return $settings;
+    }
+
+    /**
+     * Motivo por el que el destino no se acepta, o null si es válido.
+     */
+    public static function blockedDestination(?string $host, ?int $port): ?string
+    {
+        if ($host === null) {
+            return null;
+        }
+
+        $name = strtolower(trim($host, '[]'));
+        $internalHosts = array_filter([
+            'localhost', 'app', 'worker', 'scheduler', 'postgres', 'redis',
+            strtolower((string) config('database.connections.'.config()->string('database.default').'.host')),
+            strtolower((string) config('database.redis.default.host')),
+        ]);
+
+        $isInternalName = in_array($name, $internalHosts, true) || str_ends_with($name, '.localhost');
+        $isLocalIp = filter_var($name, FILTER_VALIDATE_IP) !== false
+            && (bool) preg_match('/^(127\.|0\.|169\.254\.|::1$|::$|fe[89ab][0-9a-f]:)/', $name);
+        $isServicePort = in_array($port, [5432, 6379], true);
+
+        return $isInternalName || $isLocalIp || $isServicePort
+            ? 'Ese servidor o puerto pertenece al propio CRM o a este equipo; escribe el servidor SMTP de tu proveedor o de tu red.'
+            : null;
     }
 }

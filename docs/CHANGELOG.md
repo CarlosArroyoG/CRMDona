@@ -2,6 +2,14 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+## [Revisión de seguridad] — 2026-09-28
+
+### Seguridad
+- **Consentimiento verificado:** el "Acepta comunicaciones" de un donante registrado en `/donar` solo cuenta con al menos un donativo confirmado (`Donor::hasVerifiedCommunicationsConsent()`). Aplica a envíos masivos, cumpleaños, "Preparar WhatsApp" y la cola. Evita que un tercero inscriba correos ajenos.
+- **MFA en descargas fuera del panel:** recibos, CFDI, exportaciones y filas rechazadas de cargas CSV exigen la aplicación autenticadora configurada (`User::hasEnrolledMultiFactor()`).
+- **Producción:** no arranca con `APP_DEBUG=true` y fuerza la cookie de sesión segura (`App\Support\ProductionSafety`).
+- **SMTP:** se rechazan el equipo local, la metadata de la nube, los servicios del propio despliegue y los puertos 5432 y 6379. Los relays de la red privada siguen permitidos.
+
 ## [Carga masiva de donantes y envíos masivos] — 2026-09-28
 
 Detalle en `docs/tecnico/carga-y-envios-masivos.md`. Sin paquetes nuevos.

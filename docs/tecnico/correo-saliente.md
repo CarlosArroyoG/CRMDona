@@ -126,6 +126,13 @@ No hay webhooks de rebote (#33).
 - **Servidores internos o IP privadas:** se permiten a propósito, para relays corporativos. El riesgo es
   que un Administrador apunte el CRM a un servicio interno. Se mitiga porque solo el Administrador puede
   hacerlo, todo queda en la bitácora y el protocolo es solo SMTP.
+- **Destinos bloqueados** (revisión de seguridad 2026-09-28, `UpdateMailSettings::blockedDestination`):
+  - el equipo local: `localhost`, `*.localhost`, `127.x`, `::1` y `0.x`;
+  - la metadata de la nube: `169.254.x` y `fe80::/10`;
+  - los servicios del propio despliegue: `app`, `worker`, `scheduler`, `postgres`, `redis` y los hosts de `DB_HOST` y `REDIS_HOST`;
+  - los puertos 5432 y 6379.
+
+  Los relays de la red privada (por ejemplo, `10.0.0.25`) siguen permitidos.
 - **Sin cifrado ("Ninguno"):** solo para redes de confianza. Las credenciales viajarían en claro.
 
 ## 8. Almacenamiento

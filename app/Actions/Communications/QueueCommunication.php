@@ -28,6 +28,8 @@ use Illuminate\Support\Facades\DB;
  */
 class QueueCommunication
 {
+    public const string UNVERIFIED_CONSENT = 'El donante se registró en la página pública y aún no tiene un donativo confirmado: su consentimiento no está verificado.';
+
     public function handle(
         CommunicationKind $kind,
         Donor $donor,
@@ -78,6 +80,7 @@ class QueueCommunication
             // Un envío masivo detenido no manda los correos que seguían en cola.
             $kind === CommunicationKind::BulkMessage && ($bulkMessage === null || $bulkMessage->status === BulkMessageStatus::Stopped) => 'El envío masivo se detuvo antes de mandar este correo.',
             $kind->requiresConsent() && ! $donor->accepts_communications => 'El donante no acepta recibir comunicaciones.',
+            $kind->requiresConsent() && ! $donor->hasVerifiedCommunicationsConsent() => self::UNVERIFIED_CONSENT,
             $kind->requiresConsent() && $donor->isArchived() => 'El donante está archivado.',
             default => null,
         };

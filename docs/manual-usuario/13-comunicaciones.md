@@ -54,6 +54,8 @@ Qué hace el sistema por su cuenta:
 
 - **Solo lo reciben** donantes activos, con correo y que aceptan comunicaciones. Nunca se envía a
   quien se dio de baja.
+- Quien se registró solo en la página de donativos cuenta hasta que tiene **un donativo confirmado**.
+  Así nadie puede apuntar correos ajenos para que reciban nuestros envíos.
 - Cada correo lleva el enlace para darse de baja.
 - Si cambias el asunto o el texto después de la prueba, tienes que volver a probar.
 - **Detener envío:** si te equivocaste, detén el envío. Lo que ya salió no se puede recuperar; lo

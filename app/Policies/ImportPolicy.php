@@ -9,13 +9,13 @@ use App\Models\User;
 
 /**
  * Las filas rechazadas de una carga CSV solo las descarga quien la hizo,
- * mientras su usuario siga activo y sin contraseña temporal pendiente (la
+ * mientras su usuario siga activo, con el MFA configurado y sin contraseña temporal pendiente (la
  * ruta de descarga está fuera del panel y de su middleware).
  */
 class ImportPolicy
 {
     public function view(User $user, Import $import): bool
     {
-        return $user->isActive() && ! $user->mustChangePassword() && $import->user_id === $user->id;
+        return $user->isActive() && ! $user->mustChangePassword() && $user->hasEnrolledMultiFactor() && $import->user_id === $user->id;
     }
 }

@@ -53,6 +53,10 @@ El documento de requisitos completo lo entregó el usuario al iniciar el proyect
   - Carga: importador de Filament → `ImportDonorRow` → `SaveDonor`. Solo altas (correo repetido = fila rechazada). Consentimiento solo con confirmación. `origin = csv_import`. Permiso `donors.import` (A, C). Filas rechazadas purgadas a 7 días.
   - Envíos masivos: `bulk_messages`, audiencia solo en `App\Communications\BulkAudience` (siempre con correo, no archivado y con consentimiento). Prueba obligatoria antes de enviar; `PrepareBulkMessage` reparte a `COMMUNICATIONS_BULK_PER_MINUTE`; se puede detener. Permiso `communications.bulk` (A, C).
   - Solo correo: WhatsApp masivo no existe (solo "Preparar WhatsApp" individual).
+- **Revisión de seguridad** (2026-09-28):
+  - Consentimiento de donantes de `/donar` solo con un donativo confirmado (`Donor::hasVerifiedCommunicationsConsent()` / scope `withVerifiedCommunicationsConsent`); usarlo en toda comunicación informativa nueva.
+  - Descargas fuera del panel: su Policy exige `User::hasEnrolledMultiFactor()`.
+  - `ProductionSafety`: sin `APP_DEBUG` en producción y cookie de sesión segura.
 - **Base `crm`:** tiene datos persistentes de desarrollo. Se permiten `migrate` normales (con respaldo si hay riesgo).
   Nunca `migrate:fresh`, rollback destructivo ni experimentos contra `crm`; usar `crm_testing` o `crm_validation`.
 - Modelo de datos y reglas: `docs/tecnico/modelo-de-datos.md` y ADR-002 a ADR-012.

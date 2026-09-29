@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\DonationStatus;
 use App\Enums\DonorOrigin;
 use App\Enums\DonorType;
 use App\Models\Concerns\Auditable;
 use Database\Factories\DonorFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -76,6 +78,31 @@ class Donor extends Model
     public function isArchived(): bool
     {
         return $this->archived_at !== null;
+    }
+
+    /**
+     * Consentimiento que vale para correos y mensajes informativos (envíos
+     * masivos, cumpleaños). Quien se registró en la página pública escribió un
+     * correo sin probar que es suyo: su consentimiento solo cuenta cuando ya
+     * tiene un donativo confirmado (el pago demuestra que es un donante real).
+     */
+    public function hasVerifiedCommunicationsConsent(): bool
+    {
+        return $this->accepts_communications
+            && ($this->origin !== DonorOrigin::PublicPage || $this->donations()->where('status', DonationStatus::Confirmed)->exists());
+    }
+
+    /**
+     * Misma regla que hasVerifiedCommunicationsConsent(), para consultas.
+     *
+     * @param  Builder<self>  $query
+     */
+    public function scopeWithVerifiedCommunicationsConsent(Builder $query): void
+    {
+        $query->where('accepts_communications', true)
+            ->where(fn (Builder $inner) => $inner
+                ->where('origin', '<>', DonorOrigin::PublicPage->value)
+                ->orWhereHas('donations', fn (Builder $donations) => $donations->where('status', DonationStatus::Confirmed)));
     }
 
     /**

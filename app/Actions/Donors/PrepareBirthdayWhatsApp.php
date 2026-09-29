@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions\Donors;
 
+use App\Actions\Communications\QueueCommunication;
 use App\Communications\MessageComposer;
 use App\Enums\AuditEvent;
 use App\Enums\Permission;
@@ -33,6 +34,7 @@ class PrepareBirthdayWhatsApp
         return match (true) {
             $donor->isArchived() => 'El donante está archivado.',
             ! $donor->accepts_communications => 'El donante no acepta recibir comunicaciones.',
+            ! $donor->hasVerifiedCommunicationsConsent() => QueueCommunication::UNVERIFIED_CONSENT,
             WhatsAppPhone::normalize($donor->phone) === null => 'El donante no tiene un teléfono utilizable para WhatsApp.',
             default => null,
         };

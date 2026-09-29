@@ -13,7 +13,8 @@ use Illuminate\Database\Eloquent\Builder;
  * Audiencia de un envío masivo. Es la única pieza que decide a quién le
  * llega: los filtros elegidos (todos se combinan con "y") más las reglas
  * fijas de las comunicaciones informativas (con correo, no archivado y con
- * "Acepta comunicaciones"; decisión #34).
+ * "Acepta comunicaciones" verificado; decisión #34). Un donante de la página
+ * pública sin donativo confirmado cuenta como "sin consentimiento".
  *
  * - Etiquetas: el donante tiene al menos una de las elegidas.
  * - Campañas, programas y fechas: tiene al menos un donativo confirmado que
@@ -98,7 +99,7 @@ final readonly class BulkAudience
      */
     public function recipients(): Builder
     {
-        return $this->matching()->whereNotNull('email')->where('email', '<>', '')->where('accepts_communications', true);
+        return $this->matching()->whereNotNull('email')->where('email', '<>', '')->withVerifiedCommunicationsConsent();
     }
 
     /**

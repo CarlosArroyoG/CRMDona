@@ -185,7 +185,7 @@ final class DashboardMetrics
         $donors = Donor::query()->whereNull('archived_at')->whereNotNull('birth_date')
             ->whereRaw("({$conditions})", array_merge(...$pairs))
             // phone y archived_at: para ofrecer "Preparar WhatsApp" sin otra consulta.
-            ->get(['id', 'display_name', 'first_name', 'legal_name', 'birth_date', 'accepts_communications', 'email', 'phone', 'archived_at']);
+            ->get(['id', 'display_name', 'first_name', 'legal_name', 'birth_date', 'accepts_communications', 'origin', 'email', 'phone', 'archived_at']);
 
         return $donors->sortBy(fn (Donor $donor): int => $this->daysUntilBirthday($donor, $today))->values();
     }

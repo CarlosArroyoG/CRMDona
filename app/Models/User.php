@@ -106,6 +106,17 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
     }
 
     /**
+     * Ya configuró la aplicación autenticadora. El panel lo exige antes de
+     * mostrar cualquier pantalla; las descargas que viven fuera del panel
+     * (recibos, CFDI, exportaciones, filas rechazadas) lo revisan en su Policy,
+     * para que una contraseña robada no baste mientras el MFA esté pendiente.
+     */
+    public function hasEnrolledMultiFactor(): bool
+    {
+        return filled($this->getAppAuthenticationSecret());
+    }
+
+    /**
      * La contraseña actual es temporal (la generó un restablecimiento).
      */
     public function mustChangePassword(): bool

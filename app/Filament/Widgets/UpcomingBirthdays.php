@@ -60,7 +60,7 @@ class UpcomingBirthdays extends Widget implements HasActions, HasSchemas
                 'name' => $donor->display_name,
                 'date' => $donor->birth_date?->translatedFormat('j \d\e F'),
                 'days' => $metrics->daysUntilBirthday($donor, $today),
-                'greeted' => $donor->accepts_communications && filled($donor->email),
+                'greeted' => filled($donor->email) && $donor->hasVerifiedCommunicationsConsent(),
                 'whatsapp' => PrepareBirthdayWhatsApp::canPrepare($donor, $actor),
             ])->all(),
         ];

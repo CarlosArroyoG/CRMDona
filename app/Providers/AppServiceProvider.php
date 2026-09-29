@@ -40,6 +40,7 @@ use App\Models\User;
 use App\Models\WebhookEvent;
 use App\Payments\GatewayRegistry;
 use App\Support\AuditOrigin;
+use App\Support\ProductionSafety;
 use Filament\Actions\Exports\ExportColumn;
 use Filament\Actions\Exports\Models\Export as FilamentExport;
 use Filament\Actions\Imports\Models\Import as FilamentImport;
@@ -86,6 +87,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Producción: sin modo depuración y con cookie de sesión solo por HTTPS.
+        ProductionSafety::enforce($this->app->isProduction());
+
         Number::useLocale(config()->string('app.regional_locale'));
         Number::useCurrency(config()->string('app.currency'));
 

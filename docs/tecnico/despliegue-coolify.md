@@ -54,7 +54,7 @@ mismos valores** en los tres. Nunca se escriben en git. La referencia es `.env.e
 |---|---|
 | `APP_NAME` | `"CRM Fundación Don Bosco"` |
 | `APP_ENV` | `production` |
-| `APP_DEBUG` | `false` (**nunca** `true` en producción) |
+| `APP_DEBUG` | `false`. Con `true` en producción la aplicación **no arranca** (`App\Support\ProductionSafety`) |
 | `APP_KEY` | Se genera una sola vez (ver abajo) y se guarda como secreto en Coolify |
 | `APP_URL` | `https://<dominio>` (un solo dominio para `/`, `/donar`, `/admin` y `/up`) |
 | `APP_LOCALE` / `APP_FALLBACK_LOCALE` | `es` / `en` |
@@ -64,7 +64,7 @@ mismos valores** en los tres. Nunca se escriben en git. La referencia es `.env.e
 | `LOG_LEVEL` | `warning` |
 | `DB_CONNECTION` | `pgsql` |
 | `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` | Los del recurso `postgres` |
-| `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD` | Los del recurso `redis` |
+| `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD` | Los del recurso `redis`. **Con contraseña**: Redis guarda sesiones y trabajos de la cola con datos personales. Sin puertos publicados |
 | `SESSION_DRIVER` / `CACHE_STORE` / `QUEUE_CONNECTION` | `redis` |
 | `SESSION_ENCRYPT` | `true` |
 | `SESSION_SECURE_COOKIE` | `true` (la cookie de sesión solo viaja por HTTPS) |

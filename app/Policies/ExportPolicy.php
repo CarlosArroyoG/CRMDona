@@ -9,13 +9,13 @@ use App\Models\User;
 
 /**
  * Un archivo exportado solo lo descarga quien lo generó, mientras su usuario
- * siga activo y no tenga una contraseña temporal pendiente de cambiar (la
+ * siga activo, con el MFA configurado y sin una contraseña temporal pendiente de cambiar (la
  * ruta de descarga está fuera del panel y de su middleware).
  */
 class ExportPolicy
 {
     public function view(User $user, Export $export): bool
     {
-        return $user->isActive() && ! $user->mustChangePassword() && $export->user_id === $user->id;
+        return $user->isActive() && ! $user->mustChangePassword() && $user->hasEnrolledMultiFactor() && $export->user_id === $user->id;
     }
 }

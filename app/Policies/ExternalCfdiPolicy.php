@@ -23,7 +23,7 @@ class ExternalCfdiPolicy
 
     public function download(User $user, ExternalCfdi $record): bool
     {
-        return $user->hasPermission(Permission::ViewCfdis);
+        return $user->hasPermission(Permission::ViewCfdis) && $user->hasEnrolledMultiFactor();
     }
 
     public function manage(User $user, ExternalCfdi $record): bool

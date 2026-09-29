@@ -22,6 +22,6 @@ class DonationReceiptPolicy
 
     public function download(User $user, DonationReceipt $receipt): bool
     {
-        return $user->hasPermission(Permission::ViewDonationReceipts) && $receipt->pdf_path !== null;
+        return $user->hasPermission(Permission::ViewDonationReceipts) && $user->hasEnrolledMultiFactor() && $receipt->pdf_path !== null;
     }
 }
