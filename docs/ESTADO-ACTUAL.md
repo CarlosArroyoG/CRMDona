@@ -7,9 +7,9 @@ resúmenes de fase como punto de partida para la siguiente.
 
 - **Última fase cerrada:** Fase 8 — Gestión de relaciones con donantes (2026-10-06). Ver
   `docs/fases/FASE-08-resumen.md` y ADR-013.
-- **Commit de referencia:** pendiente. Los cambios de la Fase 8 están completos y validados
-  localmente pero **todavía no se confirmaron con `git commit`** (push, merge y commit requieren
-  autorización explícita). Cuando se confirmen, este archivo debe actualizarse con el hash.
+- **Commit de referencia:** `cac03ab` — "feat: gestión de relaciones con donantes — actividades,
+  tareas y responsable asignado" (rama `main`, local; aún no se hizo `push`, que requiere
+  autorización explícita).
 
 ## 1. Arquitectura vigente
 
