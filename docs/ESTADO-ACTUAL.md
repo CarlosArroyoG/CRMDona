@@ -7,9 +7,16 @@ resúmenes de fase como punto de partida para la siguiente.
 
 - **Última fase cerrada:** Fase 8 — Gestión de relaciones con donantes (2026-10-06). Ver
   `docs/fases/FASE-08-resumen.md` y ADR-013.
-- **Commit de referencia:** `cac03ab` — "feat: gestión de relaciones con donantes — actividades,
-  tareas y responsable asignado" (rama `main`, local; aún no se hizo `push`, que requiere
-  autorización explícita).
+- **Commit de referencia:** `0921db6` — "feat: gestión de relaciones con donantes — actividades,
+  tareas y responsable asignado" (rama `main`).
+  - Este commit se rebaseó sobre tres commits que llegaron a `origin/main` desde otra sesión
+    mientras la Fase 8 estaba en curso: carga CSV de donantes y envíos masivos (`459b1aa`),
+    refuerzos de seguridad (`8987859`) y cifrado de datos sensibles del donante (`df8e094`). Los
+    conflictos (permisos, `AuditEvent`, `morphMap`, `CHANGELOG`, manual, matriz de permisos y el
+    conteo de migraciones de la prueba de reversibilidad) se resolvieron integrando ambos lados;
+    ninguna regla de ninguna de las dos fases se perdió. Dos migraciones de la Fase 8 se
+    renombraron de `2026_10_06_000001/2/3` a `2026_10_07_000002/3/4` porque esas fechas ya las
+    usaban, para otras tablas, la carga CSV y los envíos masivos.
 
 ## 1. Arquitectura vigente
 
@@ -37,6 +44,8 @@ resúmenes de fase como punto de partida para la siguiente.
 | Reportes y tablero | Indicadores del mes, reporte de pagos, control contable |
 | Página pública | `/donar` con pago único o mensual, aviso de privacidad publicado desde el CRM |
 | **Relación con donantes** (Fase 8) | Actividades, tareas, responsable asignado con historial, próxima acción derivada, timeline 360°, panel operativo |
+| Carga y envíos masivos | Alta de donantes por CSV (`ImportDonorRow` → `SaveDonor`, permiso `donors.import`); envíos informativos masivos con audiencia filtrada (`BulkAudience`, permiso `communications.bulk`) |
+| Protección de datos | Cifrado con `APP_KEY` de datos fiscales, teléfono y notas del donante (búsqueda de RFC por huella `rfc_hash`); usuarios de PostgreSQL de mínimo privilegio; `php artisan app:security-check` |
 
 ## 3. Modelo de dominio (resumen)
 
@@ -107,10 +116,12 @@ resúmenes de fase como punto de partida para la siguiente.
 | Correo saliente | SMTP administrable desde el panel; proveedor real de producción pendiente (#32); rebotes pendientes (#33) |
 | CFDI / PAC | Ninguna: el CRM no emite CFDI (ADR-012); el CFDI externo es solo un antecedente adjunto |
 
-## 7. Estado de pruebas y calidad (al cierre de la Fase 8)
+## 7. Estado de pruebas y calidad (commit de cierre `0921db6`, ya integrado con las otras fases)
 
-- **Pest:** 755 pruebas, 3422 aserciones, 0 fallos.
-- **Pint:** 504 archivos correctos.
+- **Pest:** 824 pruebas, 3749 aserciones, 0 fallos (incluye las pruebas propias de la Fase 8 —
+  755/3422 — más las de carga CSV, envíos masivos, revisión de seguridad y cifrado de datos que
+  llegaron de otra sesión).
+- **Pint:** 538 archivos correctos.
 - **Larastan:** nivel 8, 0 errores.
 - **Build de assets** (`docker build --target assets`): correcto.
 - **Build de imagen de producción** (`docker build --target prod`): correcto.
@@ -145,12 +156,12 @@ docs/
 
 - El timeline 360° recupera como máximo los **25 eventos más recientes por fuente**; no hay
   paginación profunda. Aceptado por el volumen bajo esperado por donante (ADR-013).
-- **#54** — No hay alertas push (campana o correo) por tareas vencidas o seguimientos atrasados de
+- **#60** — No hay alertas push (campana o correo) por tareas vencidas o seguimientos atrasados de
   relación con donantes; el panel operativo las muestra, pero no notifica proactivamente.
-- **#55** — La ficha del donante (responsable, próxima acción, actividades, tareas, timeline) no se
+- **#61** — La ficha del donante (responsable, próxima acción, actividades, tareas, timeline) no se
   verificó clic a clic en un navegador real en este entorno de desarrollo (no hay navegador
   disponible); se verificó con `Livewire::test()`, Pint, Larastan y los dos builds de Docker.
-- Estripe Live, Mercado Pago, SMTP real, S3, dominio HTTPS, Coolify y credenciales productivas
+- Stripe Live, Mercado Pago, SMTP real, S3, dominio HTTPS, Coolify y credenciales productivas
   siguen pendientes de la institución (detalle completo en `docs/pendientes.md`).
 
 ## 10. Pendientes relevantes
@@ -160,10 +171,14 @@ siguiente fase:
 
 - **#14 / #15 / #49** — Stripe Live y sandbox de Mercado Pago (institución).
 - **#32 / #33** — Proveedor de correo real y rebotes (institución + técnico).
-- **#54** — Alertas de tareas/seguimientos vencidos (técnico, fase futura).
-- **#55** — Revisión visual en navegador de la Fase 8 (entorno).
 - **#47** — Homogeneizar la revalidación de permisos dentro de Actions anteriores a la Fase 2
   (técnico, refactorización posterior).
+- **#54 / #55** — Evidencia de consentimiento en cargas CSV y límite diario del SMTP para envíos
+  masivos (institución).
+- **#59** — Aplicar en producción la protección de la base (usuarios de mínimo privilegio, Redis
+  con contraseña, respaldos cifrados) (institución).
+- **#60** — Alertas de tareas/seguimientos vencidos de relación con donantes (técnico, fase futura).
+- **#61** — Revisión visual en navegador de la Fase 8 (entorno).
 
 ## 11. Punto de partida para la siguiente fase
 

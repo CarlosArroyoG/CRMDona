@@ -73,7 +73,7 @@ El documento de requisitos completo lo entregó el usuario al iniciar el proyect
     consultas acotadas de 14 fuentes reales, cada una visible solo con el permiso que ya la protege
     en su propia pantalla; no copia datos a ninguna tabla nueva.
   - Permisos nuevos: `donor_relations.view`, `donor_relations.manage`, `donor_relations.assign`,
-    `tasks.view`, `tasks.manage`. Pendiente (#54): alertas push por tareas vencidas.
+    `tasks.view`, `tasks.manage`. Pendiente (#60): alertas push por tareas vencidas.
 - **Base `crm`:** tiene datos persistentes de desarrollo. Se permiten `migrate` normales (con respaldo si hay riesgo).
   Nunca `migrate:fresh`, rollback destructivo ni experimentos contra `crm`; usar `crm_testing` o `crm_validation`.
 - Modelo de datos y reglas: `docs/tecnico/modelo-de-datos.md` y ADR-002 a ADR-013.
