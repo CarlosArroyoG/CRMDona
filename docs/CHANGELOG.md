@@ -2,6 +2,20 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+## [Gestión de relaciones con donantes] — 2026-10-06
+
+Detalle en `docs/tecnico/gestion-relaciones-donantes.md` y `docs/fases/FASE-08-resumen.md` (ADR-013).
+
+### Agregado
+- **Actividades** (`donor_activities`): interacción con un donante registrada a mano (llamada, visita, correo, WhatsApp informal…), con tipo, resultado y próxima acción sugerida. Se completan, reprograman o cancelan; no sustituyen a `communications`.
+- **Tareas** (`tasks`): pendiente con prioridad y fecha límite, de un donante o general. Se completan o cancelan.
+- **Responsable asignado con historial** (`donor_assignments`): solo Administrador o Coordinador pueden serlo; reasignar cierra la vigente y crea una nueva, sin borrar nada (índice único parcial: a lo más un responsable vigente por donante).
+- **Próxima acción** en la ficha del donante: derivada de la actividad programada y la tarea abierta más próximas; no es un campo que se escriba a mano.
+- **Timeline 360°** en la ficha del donante: agrega actividades, tareas, responsable, donativos, pagos, intentos fallidos, donativos mensuales, comunicaciones, solicitudes de pago, reembolsos, disputas, incidencias, recibos y CFDI externos, cada uno visible solo con el permiso que ya lo protege en su propia pantalla.
+- Recursos **Actividades** y **Tareas** (menú Recaudación) y, en la ficha del donante, sus relation managers más el historial de responsables.
+- Panel operativo "Relación con donantes" (tareas de hoy y vencidas, seguimientos próximos, donantes sin próxima acción) y "Mi cartera de donantes", separados de las métricas financieras.
+- Permisos nuevos: `donor_relations.view`, `donor_relations.manage`, `donor_relations.assign`, `tasks.view`, `tasks.manage`.
+
 ## [Protección de la base de datos] — 2026-09-29
 
 Detalle en `docs/tecnico/proteccion-de-datos.md`.

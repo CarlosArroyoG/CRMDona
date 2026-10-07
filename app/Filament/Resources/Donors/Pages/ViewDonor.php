@@ -21,6 +21,7 @@ class ViewDonor extends ViewRecord
             // Felicitación de cumpleaños por WhatsApp (solo si hay fecha de nacimiento).
             PrepareWhatsAppAction::make(fn (): ?Donor => $this->getRecord() instanceof Donor && $this->getRecord()->birth_date !== null ? $this->getRecord() : null),
             DonorResource::taxProfileAction(),
+            DonorResource::reassignResponsibleAction()->after(fn () => $this->getRecord()->refresh()),
             DonorResource::archiveAction(),
             DonorResource::deleteAction(),
         ];

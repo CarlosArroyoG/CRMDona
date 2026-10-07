@@ -22,6 +22,7 @@ Guía para el personal que usa el panel del CRM. No requiere conocimientos técn
 15. [Página pública de donativos](15-pagina-publica.md)
 16. [Correo saliente](16-correo-saliente.md) — solo Administrador
 17. [Cobrar con tarjeta, enlace de pago y WhatsApp](17-cobro-con-tarjeta.md)
+18. [Relación con donantes: actividades, tareas y responsable](18-relacion-con-donantes.md)
 
 ## Qué puede hacer cada rol
 
@@ -60,6 +61,10 @@ Guía para el personal que usa el panel del CRM. No requiere conocimientos técn
 | Ver el tablero | Sí | Sí | Sí | Sí |
 | Control contable (ver y exportar) | Sí | Sí | Sí | No |
 | Configurar el correo saliente y enviar correos de prueba | Sí | No | No | No |
+| Ver actividades, tareas, responsable e historial, y el timeline del donante | Sí | Sí | Sí | Sí |
+| Crear, completar, reprogramar o cancelar actividades | Sí | Sí | No | No |
+| Crear, completar o cancelar tareas | Sí | Sí | Sí | No |
+| Asignar o reasignar al responsable de un donante | Sí | Sí | No | No |
 
 Si un botón no aparece, es porque tu rol no tiene esa acción.
 
@@ -69,7 +74,7 @@ Si un botón no aparece, es porque tu rol no tiene esa acción.
 |---|---|
 | (sin grupo) | Escritorio: pendientes, accesos rápidos e indicadores del mes |
 | Donativos | Donativos, Donantes, Donativos mensuales, Solicitudes de pago, Pagos en línea (con el reporte de pagos), Incidencias de pago |
-| Recaudación | Campañas, Programas |
+| Recaudación | Campañas, Programas, Actividades, Tareas |
 | Comunicaciones | Historial de envíos, Plantillas de correo, Envíos masivos |
 | Contabilidad | Control contable, Reembolsos, Contracargos |
 | Administración | Usuarios, Organización, Correo saliente, Pasarelas de pago, Bitácora de cambios |

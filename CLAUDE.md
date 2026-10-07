@@ -60,9 +60,23 @@ El documento de requisitos completo lo entregó el usuario al iniciar el proyect
 - **Protección de la base** (2026-09-29). Fuente de verdad: `docs/tecnico/proteccion-de-datos.md`.
   - Cifrados con `APP_KEY`: datos fiscales (RFC, nombre, régimen, CP, uso de CFDI), teléfono y notas. El RFC se busca solo por `rfc_hash` (`BlindIndex`). Todo dato sensible nuevo se cifra.
   - Producción: la app usa `crm_app` (sin DDL); las migraciones, `crm_owner` (`docker/postgres/least-privilege.sql`). `php artisan app:security-check` tras cada despliegue.
+- **Gestión de relaciones con donantes** (2026-10-06, ADR-013). Fuente de verdad:
+  `docs/tecnico/gestion-relaciones-donantes.md`; resumen en `docs/fases/FASE-08-resumen.md`.
+  - Actividades (`DonorActivity`): interacción con un donante registrada a mano (llamada, visita,
+    correo, WhatsApp informal…); no sustituye `communications`. Tareas (`Task`): pendiente con
+    prioridad y fecha límite, de un donante o general (`donor_id` opcional).
+  - Responsable asignado (`DonorAssignment`, con historial): solo Administrador o Coordinador
+    pueden serlo; reasignar nunca borra el historial (índice único parcial: a lo más un responsable
+    vigente por donante).
+  - "Próxima acción" se deriva en consulta (`App\DonorRelations\NextAction`); no hay campo en
+    `donors`. El timeline 360° de la ficha del donante (`App\DonorRelations\Timeline`) agrega
+    consultas acotadas de 14 fuentes reales, cada una visible solo con el permiso que ya la protege
+    en su propia pantalla; no copia datos a ninguna tabla nueva.
+  - Permisos nuevos: `donor_relations.view`, `donor_relations.manage`, `donor_relations.assign`,
+    `tasks.view`, `tasks.manage`. Pendiente (#54): alertas push por tareas vencidas.
 - **Base `crm`:** tiene datos persistentes de desarrollo. Se permiten `migrate` normales (con respaldo si hay riesgo).
   Nunca `migrate:fresh`, rollback destructivo ni experimentos contra `crm`; usar `crm_testing` o `crm_validation`.
-- Modelo de datos y reglas: `docs/tecnico/modelo-de-datos.md` y ADR-002 a ADR-012.
+- Modelo de datos y reglas: `docs/tecnico/modelo-de-datos.md` y ADR-002 a ADR-013.
 - Las decisiones fiscales (uso de CFDI, régimen, especie, factura global) las toma Contabilidad fuera del CRM. No codificarlas.
 - Docker Desktop con motor libkrun (no WSL2). La carpeta del proyecto se comparte mediante
   `FilesharingDirectories` en `%APPDATA%\Docker\settings-store.json` (la interfaz no lo guardaba).
@@ -178,8 +192,19 @@ Roles oficiales, según el prompt maestro original, que es la fuente de verdad:
 
 ## Forma de trabajar por fases
 
-- Al iniciar una fase: leer este archivo y el último `docs/fases/FASE-XX-resumen.md`.
-- Al cerrarla: cumplir la Definición de terminado, escribir el resumen de fase, actualizar `CHANGELOG.md` y este archivo, mostrar el resumen y **esperar aprobación**.
+- **Continuidad entre fases:** al iniciar una fase nueva, leer en este orden:
+  1. este archivo (`CLAUDE.md`);
+  2. `docs/ESTADO-ACTUAL.md` (fotografía consolidada del estado vigente del proyecto);
+  3. `docs/pendientes.md`;
+  4. la documentación técnica relacionada con la fase (`docs/tecnico/*.md` y sus ADR);
+  5. el código afectado.
+
+  Los resúmenes de fases anteriores (`docs/fases/FASE-XX-resumen.md`) son **históricos**: registran
+  qué se decidió y por qué en su momento, pero no son el punto de partida y no deben releerse
+  sistemáticamente. Si se necesita el detalle de una decisión concreta, se busca puntualmente.
+- Al cerrarla: cumplir la Definición de terminado, escribir el resumen de fase, actualizar
+  `CHANGELOG.md`, este archivo y `docs/ESTADO-ACTUAL.md`, mostrar el resumen y **esperar
+  aprobación**.
 - Antes de la Fase 2 preguntar la pasarela de pago. No hay PAC: el CRM no emite CFDI (ADR-012).
 - Decisiones de negocio ambiguas: preguntar, no asumir.
 

@@ -308,3 +308,18 @@
     color: var(--db-navy);
     opacity: 0.6;
 }
+
+/* Timeline 360° del donante. */
+.db-timeline {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.db-list-row__link {
+    font-weight: 600;
+    color: var(--db-navy);
+}
+
+.dark .db-list-row__link {
+    color: var(--db-accent);
+}

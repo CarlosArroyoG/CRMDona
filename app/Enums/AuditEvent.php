@@ -34,6 +34,10 @@ enum AuditEvent: string implements HasColor, HasLabel
     // Envíos masivos
     case BulkSent = 'bulk_sent';
     case BulkStopped = 'bulk_stopped';
+    // Relación con donantes: actividades, tareas y responsable asignado.
+    case Completed = 'completed';
+    case Rescheduled = 'rescheduled';
+    case ResponsibleAssigned = 'responsible_assigned';
 
     public function getLabel(): string
     {
@@ -59,17 +63,20 @@ enum AuditEvent: string implements HasColor, HasLabel
             self::WhatsAppPrepared => 'WhatsApp preparado (envío manual)',
             self::BulkSent => 'Envío masivo iniciado',
             self::BulkStopped => 'Envío masivo detenido',
+            self::Completed => 'Completada',
+            self::Rescheduled => 'Reprogramada',
+            self::ResponsibleAssigned => 'Responsable asignado',
         };
     }
 
     public function getColor(): string
     {
         return match ($this) {
-            self::Created, self::BulkSent, self::Confirmed, self::Reactivated, self::Unarchived, self::Resumed, self::IncidentResolved => 'success',
+            self::Created, self::BulkSent, self::Confirmed, self::Reactivated, self::Unarchived, self::Resumed, self::IncidentResolved, self::Completed => 'success',
             self::Deleted, self::Cancelled, self::Deactivated, self::BulkStopped => 'danger',
             self::Archived, self::Paused, self::Discarded => 'gray',
             self::PasswordReset, self::IncidentTaken => 'warning',
-            self::Updated, self::TagsChanged, self::MailTest, self::Regenerated, self::WhatsAppPrepared => 'info',
+            self::Updated, self::TagsChanged, self::MailTest, self::Regenerated, self::WhatsAppPrepared, self::Rescheduled, self::ResponsibleAssigned => 'info',
         };
     }
 }

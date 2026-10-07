@@ -94,8 +94,10 @@ Qué hace el sistema por su cuenta:
 
 ## Ficha del donante
 
-Botón **Ver** en la lista. Muestra datos, consentimientos, datos fiscales (según tu rol) y el
-historial de **donativos**. Botones:
+Botón **Ver** en la lista. Muestra datos, consentimientos, datos fiscales (según tu rol), el
+historial de **donativos**, quién es el responsable del donante, su próxima acción, sus
+**actividades** y **tareas**, y el **timeline 360°** con todo lo que le ha pasado — ver el capítulo
+[Relación con donantes](18-relacion-con-donantes.md). Botones:
 
 | Botón | Qué hace | Quién |
 |---|---|---|

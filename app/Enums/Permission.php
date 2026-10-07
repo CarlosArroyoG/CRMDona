@@ -74,6 +74,15 @@ enum Permission: string
     // Envíos masivos informativos (docs/tecnico/carga-y-envios-masivos.md).
     case SendBulkMessages = 'communications.bulk';
 
+    // Relación con donantes (docs/tecnico/gestion-relaciones-donantes.md): actividades,
+    // responsable asignado y tareas. Las tareas no son solo de procuración: el Contador
+    // también las usa, por eso tienen su propio grupo de roles.
+    case ViewDonorActivities = 'donor_relations.view';
+    case ManageDonorActivities = 'donor_relations.manage';
+    case AssignDonorResponsible = 'donor_relations.assign';
+    case ViewTasks = 'tasks.view';
+    case ManageTasks = 'tasks.manage';
+
     /**
      * @return list<Role>
      */
@@ -85,13 +94,16 @@ enum Permission: string
 
         return match ($this) {
             self::ViewDonors, self::ViewPrograms, self::ViewCampaigns, self::ViewDonations,
-            self::ExportPrograms, self::ExportCampaigns, self::ViewPayments, self::ViewSubscriptions => Role::cases(),
+            self::ExportPrograms, self::ExportCampaigns, self::ViewPayments, self::ViewSubscriptions,
+            self::ViewDonorActivities, self::ViewTasks => Role::cases(),
             self::ManageDonors, self::ManageTags, self::ManagePrograms, self::ManageCampaigns,
             self::ManageSubscriptions, self::ManageMessageTemplates, self::RequestPayments,
-            self::ImportDonors, self::SendBulkMessages => $fundraising,
+            self::ImportDonors, self::SendBulkMessages,
+            self::ManageDonorActivities, self::AssignDonorResponsible => $fundraising,
             self::ManageDonorTaxProfiles, self::ExportDonors, self::RegisterDonations, self::ExportDonations,
             self::ExportPayments, self::ViewIncidents, self::ManageIncidents, self::ReceivePaymentAlerts,
-            self::ViewCfdis, self::ViewDonationReceipts, self::ViewCommunications, self::ResendCommunications => $staff,
+            self::ViewCfdis, self::ViewDonationReceipts, self::ViewCommunications, self::ResendCommunications,
+            self::ManageTasks => $staff,
             self::ConfirmDonations, self::ViewOrganizationSettings, self::ViewPaymentTechnicalDetails,
             self::RequestRefunds, self::ViewDisputes, self::HandleTechnicalIncidents,
             self::ManageExternalCfdis, self::ProcessAccounting => $finance,

@@ -19,6 +19,8 @@ use App\Models\Communication;
 use App\Models\Donation;
 use App\Models\DonationReceipt;
 use App\Models\Donor;
+use App\Models\DonorActivity;
+use App\Models\DonorAssignment;
 use App\Models\DonorTaxProfile;
 use App\Models\Export;
 use App\Models\ExternalCfdi;
@@ -36,6 +38,7 @@ use App\Models\Program;
 use App\Models\Refund;
 use App\Models\Subscription;
 use App\Models\Tag;
+use App\Models\Task;
 use App\Models\User;
 use App\Models\WebhookEvent;
 use App\Payments\GatewayRegistry;
@@ -126,6 +129,9 @@ class AppServiceProvider extends ServiceProvider
             'mail_setting' => MailSetting::class,
             'payment_request' => PaymentRequest::class,
             'bulk_message' => BulkMessage::class,
+            'donor_activity' => DonorActivity::class,
+            'task' => Task::class,
+            'donor_assignment' => DonorAssignment::class,
         ]);
 
         // Dentro de un Job de la cola, los cambios se registran como "Proceso automático".

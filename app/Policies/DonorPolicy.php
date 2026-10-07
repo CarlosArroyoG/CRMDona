@@ -66,4 +66,12 @@ class DonorPolicy
     {
         return $user->hasPermission(Permission::ExportDonors);
     }
+
+    /**
+     * Asignar o reasignar al responsable de la relación con el donante.
+     */
+    public function assignResponsible(User $user, Donor $donor): bool
+    {
+        return $user->hasPermission(Permission::AssignDonorResponsible);
+    }
 }

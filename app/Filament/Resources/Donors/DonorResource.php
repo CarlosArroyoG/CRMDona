@@ -4,25 +4,35 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Donors;
 
+use App\Actions\DonorAssignments\AssignDonorResponsible;
 use App\Actions\Donors\DeleteDonor;
 use App\Actions\Donors\FindDonorDuplicates;
 use App\Actions\Donors\SaveDonorTaxProfile;
 use App\Actions\Donors\SetDonorArchived;
+use App\DonorRelations\NextAction;
+use App\DonorRelations\Timeline;
 use App\Enums\CfdiUse;
 use App\Enums\DonorOrigin;
 use App\Enums\DonorType;
+use App\Enums\Role;
 use App\Enums\TaxRegime;
 use App\Filament\Concerns\ReportsActionErrors;
+use App\Filament\Concerns\ResolvesActor;
 use App\Filament\Exports\DonorExporter;
 use App\Filament\Imports\DonorImporter;
 use App\Filament\Resources\Donors\Pages\CreateDonor;
 use App\Filament\Resources\Donors\Pages\EditDonor;
 use App\Filament\Resources\Donors\Pages\ListDonors;
 use App\Filament\Resources\Donors\Pages\ViewDonor;
+use App\Filament\Resources\Donors\RelationManagers\ActivitiesRelationManager;
+use App\Filament\Resources\Donors\RelationManagers\AssignmentsRelationManager;
 use App\Filament\Resources\Donors\RelationManagers\DonationsRelationManager;
+use App\Filament\Resources\Donors\RelationManagers\TasksRelationManager;
 use App\Models\Donor;
+use App\Models\DonorActivity;
 use App\Models\OrganizationSetting;
 use App\Models\Tag;
+use App\Models\User;
 use App\Support\BlindIndex;
 use App\Support\Search;
 use BackedEnum;
@@ -40,6 +50,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Components\ViewEntry;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Component;
 use Filament\Schemas\Components\Section;
@@ -57,6 +68,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 class DonorResource extends Resource
 {
     use ReportsActionErrors;
+    use ResolvesActor;
 
     protected static ?string $model = Donor::class;
 
@@ -187,6 +199,33 @@ class DonorResource extends Resource
                 TextEntry::make('registeredBy.name')->label('Registrado por')->placeholder('El propio donante (página pública)'),
                 TextEntry::make('created_at')->label('Registrado el')->dateTime('d/m/Y H:i'),
             ]),
+            Section::make('Responsable y próxima acción')->columns(2)
+                ->visible(fn (): bool => Gate::allows('viewAny', DonorActivity::class))
+                ->schema([
+                    TextEntry::make('currentAssignment.user.name')->label('Responsable actual')->placeholder('Sin responsable asignado'),
+                    TextEntry::make('next_action')->label('Próxima acción')
+                        ->state(function (Donor $record): string {
+                            $next = NextAction::for($record);
+
+                            return $next !== null ? $next->title : 'Sin próxima acción pendiente';
+                        })
+                        ->url(function (Donor $record): ?string {
+                            $next = NextAction::for($record);
+
+                            return $next?->url;
+                        }),
+                ]),
+            Section::make('Timeline 360°')->collapsible()
+                ->visible(fn (): bool => Gate::allows('viewAny', DonorActivity::class))
+                ->schema([
+                    ViewEntry::make('timeline')->hiddenLabel()
+                        ->view('filament.infolists.donor-timeline', function (Donor $record): array {
+                            /** @var User $viewer */
+                            $viewer = self::actor();
+
+                            return ['entries' => Timeline::for($record, $viewer)];
+                        }),
+                ]),
         ]);
     }
 
@@ -311,6 +350,33 @@ class DonorResource extends Resource
             ->successNotificationTitle('Datos fiscales guardados');
     }
 
+    public static function reassignResponsibleAction(): Action
+    {
+        return Action::make('reassignResponsible')
+            ->label(fn (Donor $record): string => $record->currentAssignment !== null ? 'Reasignar responsable' : 'Asignar responsable')
+            ->icon(Heroicon::OutlinedUserCircle)
+            ->color('gray')
+            ->modalDescription('El historial de responsables se conserva: nunca se edita ni se borra, solo se cierra la asignación vigente y se crea una nueva.')
+            ->schema([
+                Select::make('user_id')->label('Responsable')->required()
+                    ->options(fn (): array => User::query()
+                        ->whereIn('role', [Role::Administrator->value, Role::FundraisingCoordinator->value])
+                        ->orderBy('name')->pluck('name', 'id')->all())
+                    ->searchable()
+                    ->helperText('Solo Administrador o Coordinador de procuración.'),
+                Textarea::make('note')->label('Nota (opcional)')->maxLength(1000),
+            ])
+            ->visible(fn (Donor $record): bool => Gate::allows('assignResponsible', $record))
+            ->action(function (Donor $record, array $data): void {
+                /** @var User $actor */
+                $actor = auth()->user();
+                self::notifyOutcome(
+                    fn () => app(AssignDonorResponsible::class)->handle($record, (int) $data['user_id'], $data['note'] ?? null, $actor),
+                    'Responsable asignado',
+                );
+            });
+    }
+
     public static function deleteAction(): DeleteAction
     {
         return DeleteAction::make()
@@ -326,6 +392,9 @@ class DonorResource extends Resource
     {
         return [
             DonationsRelationManager::class,
+            ActivitiesRelationManager::class,
+            TasksRelationManager::class,
+            AssignmentsRelationManager::class,
         ];
     }
 

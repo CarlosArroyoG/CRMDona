@@ -36,8 +36,18 @@ Donation 1 ─── 0..1 AccountingNotice  (aviso a Contabilidad y procesamient
 Donation 1 ─── * ExternalCfdi         (CFDI emitido fuera del CRM, antecedente; retirar ≠ borrar)
 Donation 1 ─── * Communication        (agradecimientos y reenvíos)
 
+Donor 1 ─── * DonorActivity           (interacción registrada a mano; siempre con donante)
+Donor 1 ─── * Task                    (pendiente accionable; donor_id opcional)
+Donor 1 ─── * DonorAssignment         (historial de responsables; a lo más 1 vigente, índice único parcial)
+User 1 ─── * DonorActivity, * Task, * DonorAssignment  (assigned_to_id / created_by_id / user_id / assigned_by_id)
+
 Histórico de solo lectura (ADR-012): cfdis, global_cfdis, donation_global_cfdi, fiscal_incidents
 ```
+
+> Nota: este diagrama cubre Fases 1-2 y la relación con donantes (ADR-013); no incluye todavía
+> `payment_requests` (cobro asistido) ni las tablas de comunicaciones/correo saliente de Fases 4 y 6,
+> que viven en `docs/tecnico/solicitudes-de-pago.md`, `fase-4-comunicaciones.md` y
+> `correo-saliente.md`.
 
 ## Tablas
 
@@ -63,6 +73,9 @@ Histórico de solo lectura (ADR-012): cfdis, global_cfdis, donation_global_cfdi,
 | `accounting_notices` | Aviso a Contabilidad (ADR-012) | `donation_id` único; estado válido; `sent` ⇔ `sent_at`; `skipped` con motivo; procesado ⇔ quién |
 | `audit_logs` | Bitácora | trigger `audit_logs_append_only`; `source` (user, webhook, job, synchronization, console; nulo antes de la Fase 2) |
 | `exports`, `notifications` | Exportaciones de Filament y avisos | `notifications.data` en `jsonb` |
+| `donor_activities` | Interacción con un donante registrada a mano (ADR-013) | `type` y `status` válidos; completada ⇔ `completed_at` + `completed_by_id`; cancelada ⇔ `cancelled_at` + `cancelled_by_id` |
+| `tasks` | Pendiente accionable, de un donante o general (ADR-013) | `priority` y `status` válidos; hecha ⇔ `completed_at` + `completed_by_id`; cancelada ⇔ `cancelled_at` + `cancelled_by_id`; `donor_id` opcional |
+| `donor_assignments` | Historial de responsables de un donante (ADR-013) | `ended_at` nulo o ≥ `started_at`; **índice único parcial** `donor_id` where `ended_at is null` (a lo más un responsable vigente) |
 
 Todas las FK de pagos son `restrict`: nada se borra en cascada. Los importes son `numeric(12,2)`.
 
@@ -129,6 +142,7 @@ Las funciones usan `create or replace`, porque `migrate:fresh` borra tablas pero
 | Disputas | `SyncDispute` |
 | Incidencias | `OpenPaymentIncident`, `TakeIncidentForReview`, `AddIncidentNote`, `ResolveIncident` |
 | Webhooks | `RecordWebhookEvent`, `RetryWebhookEvent` |
+| Relación con donantes (ADR-013) | `CreateActivity`, `UpdateActivity`, `CompleteActivity`, `RescheduleActivity`, `CancelActivity`, `CreateTask`, `UpdateTask`, `CompleteTask`, `CancelTask`, `AssignDonorResponsible` |
 
 Jobs (`app/Jobs`):
 - `ProcessWebhookEvent`: consulta el proveedor sin transacción abierta y luego aplica con bloqueo;

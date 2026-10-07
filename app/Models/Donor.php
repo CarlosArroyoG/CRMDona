@@ -159,6 +159,38 @@ class Donor extends Model
     }
 
     /**
+     * @return HasMany<DonorActivity, $this>
+     */
+    public function activities(): HasMany
+    {
+        return $this->hasMany(DonorActivity::class);
+    }
+
+    /**
+     * @return HasMany<Task, $this>
+     */
+    public function tasks(): HasMany
+    {
+        return $this->hasMany(Task::class);
+    }
+
+    /**
+     * @return HasMany<DonorAssignment, $this>
+     */
+    public function assignmentHistory(): HasMany
+    {
+        return $this->hasMany(DonorAssignment::class)->latest('started_at');
+    }
+
+    /**
+     * @return HasOne<DonorAssignment, $this>
+     */
+    public function currentAssignment(): HasOne
+    {
+        return $this->hasOne(DonorAssignment::class)->whereNull('ended_at');
+    }
+
+    /**
      * @return array<string, string>
      */
     protected function casts(): array

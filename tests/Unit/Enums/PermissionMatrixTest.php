@@ -62,6 +62,12 @@ const APPROVED_MATRIX = [
     'communications.templates' => ['A', 'C'],
     // Envíos masivos informativos (2026-09-28).
     'communications.bulk' => ['A', 'C'],
+    // Relación con donantes.
+    'donor_relations.view' => ['A', 'C', 'Co', 'L'],
+    'donor_relations.manage' => ['A', 'C'],
+    'donor_relations.assign' => ['A', 'C'],
+    'tasks.view' => ['A', 'C', 'Co', 'L'],
+    'tasks.manage' => ['A', 'C', 'Co'],
 ];
 
 function roleCode(Role $role): string
@@ -108,6 +114,8 @@ it('mantiene a Solo lectura sin crear, editar, confirmar, exportar datos persona
         Permission::ManageSubscriptions, Permission::ViewDisputes, Permission::ViewIncidents, Permission::ManageIncidents,
         Permission::HandleTechnicalIncidents, Permission::ReceivePaymentAlerts, Permission::ViewWebhooks,
         Permission::ViewPaymentSettings,
+        // Relación con donantes: Solo lectura ve, pero no crea ni asigna.
+        Permission::ManageDonorActivities, Permission::AssignDonorResponsible, Permission::ManageTasks,
     ];
 
     foreach ($forbidden as $permission) {
