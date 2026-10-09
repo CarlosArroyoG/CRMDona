@@ -25,3 +25,11 @@
     --color-db-border: #e2e8f0;
     --color-db-surface: #ffffff;
 }
+
+/* Enlace de texto estándar de la página pública (aviso de privacidad, correos de contacto, navegación de regreso). */
+@utility db-link {
+    font-weight: 500;
+    color: var(--color-db-blue);
+    text-decoration-line: underline;
+    text-underline-offset: 2px;
+}

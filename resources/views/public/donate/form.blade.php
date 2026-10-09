@@ -176,7 +176,7 @@
             </div>
             <label class="mt-3 flex items-start gap-2">
                 <input type="checkbox" name="privacy_accepted" value="1" required @checked(old('privacy_accepted')) class="mt-1 h-4 w-4 accent-[var(--brand)]">
-                <span>He leído y acepto el <a href="{{ $privacyUrl }}" target="_blank" rel="noopener" class="font-medium text-db-blue underline underline-offset-2">aviso de privacidad</a>@if ($privacyVersion) (versión {{ $privacyVersion }})@endif. (Obligatorio)</span>
+                <span>He leído y acepto el <a href="{{ $privacyUrl }}" target="_blank" rel="noopener" class="db-link">aviso de privacidad</a>@if ($privacyVersion) (versión {{ $privacyVersion }})@endif. (Obligatorio)</span>
             </label>
             <label class="mt-3 flex items-start gap-2">
                 <input type="checkbox" name="accepts_communications" value="1" @checked(old('accepts_communications')) class="mt-1 h-4 w-4 accent-[var(--brand)]">

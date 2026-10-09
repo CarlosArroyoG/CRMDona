@@ -42,7 +42,7 @@
         @if ($fromRequest)
             <p class="mt-4 text-sm text-db-text-muted">La Fundación preparó este donativo para ti. Si algún dato no es correcto, no pagues y comunícate con nosotros.</p>
         @else
-            <p class="mt-4 text-sm"><a href="{{ $campaign !== null ? route('donate.campaign', ['campaign' => $campaign->slug]) : route('donate.create') }}" class="font-medium text-db-blue underline underline-offset-2">Corregir mis datos</a></p>
+            <p class="mt-4 text-sm"><a href="{{ $campaign !== null ? route('donate.campaign', ['campaign' => $campaign->slug]) : route('donate.create') }}" class="db-link">Corregir mis datos</a></p>
         @endif
     </section>
 

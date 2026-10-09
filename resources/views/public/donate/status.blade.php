@@ -19,7 +19,11 @@
     <section class="text-center" aria-live="polite" aria-labelledby="titulo">
         @switch($state)
             @case(PublicDonationStatus::CONFIRMED)
-                <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-db-soft-yellow text-3xl">🙏</div>
+                <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-db-soft-yellow text-db-navy">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-8 w-8" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75l2.25 2.25L15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
                 <h1 id="titulo" class="mt-4 text-2xl font-bold text-db-navy sm:text-3xl">¡Gracias por tu donativo!</h1>
                 <p class="mt-3 text-db-text">
                     Confirmamos tu donativo de <strong>{{ $amount }} MXN</strong>{{ $monthly ? ' mensual' : '' }}{{ ($campaign ?? $program) ? ' para '.($campaign ?? $program)->name : '' }}.
@@ -31,7 +35,11 @@
                 @break
 
             @case(PublicDonationStatus::PROCESSING)
-                <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-db-soft-blue text-3xl">⏳</div>
+                <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-db-soft-blue text-db-blue">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-8 w-8" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
                 <h1 id="titulo" class="mt-4 text-2xl font-bold text-db-navy sm:text-3xl">Estamos confirmando tu pago</h1>
                 <p class="mt-3 text-db-text">El proveedor de pago aún no confirma tu donativo de {{ $amount }} MXN. Esta página se actualiza sola.</p>
                 <p class="mt-2 text-sm text-db-text-muted">Si cierras esta ventana no pasa nada: al confirmarse recibirás un correo.</p>
@@ -49,7 +57,7 @@
 
             @default
                 <h1 id="titulo" class="text-2xl font-bold text-db-navy">Tu donativo aún no se envía</h1>
-                <p class="mt-3"><a href="{{ route('donate.summary', ['token' => $token]) }}" class="font-medium text-db-blue underline underline-offset-2">Volver al resumen para pagar</a></p>
+                <p class="mt-3"><a href="{{ route('donate.summary', ['token' => $token]) }}" class="db-link">Volver al resumen para pagar</a></p>
         @endswitch
     </section>
 @endsection

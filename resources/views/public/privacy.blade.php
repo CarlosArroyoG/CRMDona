@@ -18,7 +18,7 @@
                 es responsable del tratamiento de los datos personales que nos proporcionas al donar.
             </p>
             @if ($contactEmail)
-                <p>Para cualquier asunto de privacidad escríbenos a <a href="mailto:{{ $contactEmail }}" class="font-medium text-db-blue underline underline-offset-2">{{ $contactEmail }}</a>.</p>
+                <p>Para cualquier asunto de privacidad escríbenos a <a href="mailto:{{ $contactEmail }}" class="db-link">{{ $contactEmail }}</a>.</p>
             @endif
         </section>
 
@@ -64,7 +64,7 @@
             <p>
                 Puedes acceder a tus datos, rectificarlos, cancelarlos u oponerte a su uso, así como retirar tu consentimiento o limitar su uso.
                 @if ($contactEmail)
-                    Envía tu solicitud a <a href="mailto:{{ $contactEmail }}" class="font-medium text-db-blue underline underline-offset-2">{{ $contactEmail }}</a>
+                    Envía tu solicitud a <a href="mailto:{{ $contactEmail }}" class="db-link">{{ $contactEmail }}</a>
                 @else
                     Envía tu solicitud a la Fundación
                 @endif

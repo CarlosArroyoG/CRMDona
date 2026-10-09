@@ -25,19 +25,7 @@
         @if ($pending !== [])
             <section class="db-panel">
                 <h2 class="db-panel__title">Pendientes</h2>
-                <ul class="db-pending">
-                    @foreach ($pending as $item)
-                        <li>
-                            <a href="{{ $item['url'] }}" class="db-pending__item">
-                                <span>
-                                    <span class="db-pending__label">{{ $item['label'] }}</span>
-                                    <span class="db-pending__hint">{{ $item['hint'] }}</span>
-                                </span>
-                                <span @class(['db-pending__count', 'db-pending__count--zero' => $item['count'] === 0])>{{ number_format($item['count']) }}</span>
-                            </a>
-                        </li>
-                    @endforeach
-                </ul>
+                @include('filament.widgets.partials.pending-list', ['pending' => $pending])
             </section>
         @endif
     </div>

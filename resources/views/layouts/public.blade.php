@@ -43,7 +43,7 @@
         <p class="mx-auto max-w-2xl px-4 py-6 text-sm text-db-text-muted">
             {{ $organization }}.
             @if ($privacyUrl)
-                <a href="{{ $privacyUrl }}" target="_blank" rel="noopener" class="font-medium text-db-blue underline underline-offset-2">Aviso de privacidad</a>.
+                <a href="{{ $privacyUrl }}" target="_blank" rel="noopener" class="db-link">Aviso de privacidad</a>.
             @endif
         </p>
     </footer>
