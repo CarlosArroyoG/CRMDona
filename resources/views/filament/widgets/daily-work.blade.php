@@ -24,7 +24,12 @@
 
         @if ($pending !== [])
             <section class="db-panel">
-                <h2 class="db-panel__title">Pendientes</h2>
+                <h2 class="db-panel__title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="db-panel__title-icon" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Pendientes
+                </h2>
                 @include('filament.widgets.partials.pending-list', ['pending' => $pending])
             </section>
         @endif

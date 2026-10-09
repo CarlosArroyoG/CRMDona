@@ -19,22 +19,22 @@
 <body class="min-h-screen bg-db-bg-blue font-sans text-db-text antialiased">
     <a href="#contenido" class="sr-only focus:not-sr-only">Saltar al contenido</a>
 
-    <header style="background: var(--brand)">
-        <div class="mx-auto flex max-w-2xl items-center gap-3 px-4 py-4 sm:py-5">
+    <header style="background: linear-gradient(135deg, var(--brand), color-mix(in srgb, var(--brand) 78%, black))">
+        <div class="mx-auto flex max-w-2xl items-center gap-3 px-4 py-5 sm:py-7">
             @if ($logoUrl)
                 {{-- El logotipo es oscuro sobre fondo claro: va sobre una placa blanca. --}}
-                <span class="inline-flex rounded-lg bg-white px-3 py-1.5 shadow-sm">
+                <span class="inline-flex rounded-xl bg-white px-3.5 py-2 shadow-md">
                     <img src="{{ $logoUrl }}" alt="{{ $organization }}" class="h-10 w-auto sm:h-12">
                 </span>
             @else
-                <span class="text-lg font-semibold text-white sm:text-xl">{{ $organization }}</span>
+                <span class="text-xl font-bold tracking-tight text-white sm:text-2xl">{{ $organization }}</span>
             @endif
         </div>
-        <div class="h-1" style="background: var(--brand-accent)"></div>
+        <div class="h-1.5" style="background: var(--brand-accent)"></div>
     </header>
 
-    <main id="contenido" class="mx-auto max-w-2xl px-4 py-6 sm:py-10">
-        <div class="rounded-2xl bg-db-surface p-5 shadow-sm ring-1 ring-db-border sm:p-8">
+    <main id="contenido" class="mx-auto max-w-2xl px-4 py-8 sm:py-12">
+        <div class="rounded-2xl bg-db-surface p-5 shadow-lg shadow-db-navy/10 ring-1 ring-db-border sm:p-8">
             @yield('content')
         </div>
     </main>

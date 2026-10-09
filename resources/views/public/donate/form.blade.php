@@ -9,11 +9,11 @@
 @endphp
 
 @section('content')
-    <h1 class="text-2xl font-bold text-db-navy sm:text-3xl">
+    <h1 class="text-3xl font-extrabold tracking-tight text-db-navy sm:text-4xl">
         {{ $campaign !== null ? $campaign->name : 'Haz tu donativo a '.$organization }}
     </h1>
     @if ($campaign?->description)
-        <p class="mt-2 text-db-text-muted">{{ $campaign->description }}</p>
+        <p class="mt-2 text-base text-db-text-muted">{{ $campaign->description }}</p>
     @endif
 
     @if ($errors->any())
@@ -36,15 +36,18 @@
             <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
         </div>
 
-        <fieldset class="rounded-xl border border-db-border bg-db-bg-blue p-4 sm:p-5">
-            <legend class="px-1 font-semibold text-db-navy">¿Cada cuándo?</legend>
+        <fieldset class="rounded-xl border border-db-navy/15 bg-[linear-gradient(135deg,var(--color-db-soft-blue),var(--color-db-bg-blue))] p-4 sm:p-5">
+            <legend class="flex items-center gap-2 px-1 text-base font-semibold text-db-navy">
+                <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-db-navy text-xs font-bold text-white">1</span>
+                ¿Cada cuándo?
+            </legend>
             <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <label class="flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border border-db-border bg-db-surface px-4 py-3 text-base transition has-checked:border-db-navy has-checked:ring-2 has-checked:ring-db-navy/30">
+                <label class="flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border border-db-border bg-db-surface px-4 py-3 text-base transition hover:border-db-navy/40 hover:shadow-sm has-checked:border-db-navy has-checked:shadow-sm has-checked:ring-2 has-checked:ring-db-navy/30">
                     <input type="radio" name="frequency" value="one_time" class="h-5 w-5 accent-[var(--brand)]" @checked(old('frequency', 'one_time') === 'one_time')>
                     <span>Una sola vez</span>
                 </label>
                 @if ($acceptsMonthly)
-                    <label class="flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border border-db-border bg-db-surface px-4 py-3 text-base transition has-checked:border-db-navy has-checked:ring-2 has-checked:ring-db-navy/30">
+                    <label class="flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border border-db-border bg-db-surface px-4 py-3 text-base transition hover:border-db-navy/40 hover:shadow-sm has-checked:border-db-navy has-checked:shadow-sm has-checked:ring-2 has-checked:ring-db-navy/30">
                         <input type="radio" name="frequency" value="monthly" class="h-5 w-5 accent-[var(--brand)]" @checked(old('frequency') === 'monthly')>
                         <span>Cada mes (donativo recurrente)</span>
                     </label>
@@ -55,11 +58,14 @@
             @endif
         </fieldset>
 
-        <fieldset class="rounded-xl border border-db-border bg-db-bg-blue p-4 sm:p-5">
-            <legend class="px-1 font-semibold text-db-navy">¿Cuánto quieres donar? (MXN)</legend>
+        <fieldset class="rounded-xl border border-db-navy/15 bg-[linear-gradient(135deg,var(--color-db-soft-blue),var(--color-db-bg-blue))] p-4 sm:p-5">
+            <legend class="flex items-center gap-2 px-1 text-base font-semibold text-db-navy">
+                <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-db-navy text-xs font-bold text-white">2</span>
+                ¿Cuánto quieres donar? (MXN)
+            </legend>
             <div class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
                 @foreach ($suggested as $amount)
-                    <label class="relative flex min-h-16 cursor-pointer items-center justify-center rounded-xl border border-db-border bg-db-surface px-3 py-3 text-center text-base font-semibold transition has-checked:border-db-navy has-checked:bg-db-soft-blue has-checked:ring-2 has-checked:ring-db-navy/30">
+                    <label class="relative flex min-h-16 cursor-pointer items-center justify-center rounded-xl border border-db-border bg-db-surface px-3 py-3 text-center text-lg font-bold text-db-navy transition hover:border-db-navy/40 hover:shadow-sm has-checked:border-db-navy has-checked:bg-db-soft-blue has-checked:shadow-sm has-checked:ring-2 has-checked:ring-db-navy/30">
                         @if ($amount === $recommended)
                             <span class="absolute -top-2.5 left-1/2 -translate-x-1/2 rounded-full bg-db-yellow px-2 py-0.5 text-xs font-semibold text-db-navy shadow-sm">Sugerido</span>
                         @endif
@@ -67,7 +73,7 @@
                         <span>{{ $money($amount) }}</span>
                     </label>
                 @endforeach
-                <label class="col-span-2 flex min-h-14 cursor-pointer items-center justify-center gap-2 rounded-xl border border-db-border bg-db-surface px-4 py-3 text-base transition has-checked:border-db-navy has-checked:ring-2 has-checked:ring-db-navy/30 sm:col-span-4">
+                <label class="col-span-2 flex min-h-14 cursor-pointer items-center justify-center gap-2 rounded-xl border border-db-border bg-db-surface px-4 py-3 text-base transition hover:border-db-navy/40 hover:shadow-sm has-checked:border-db-navy has-checked:shadow-sm has-checked:ring-2 has-checked:ring-db-navy/30 sm:col-span-4">
                     <input type="radio" name="amount" value="otro" class="h-5 w-5 accent-[var(--brand)]" @checked(old('amount') === 'otro') data-other-amount>
                     <span>Otra cantidad</span>
                 </label>
@@ -84,12 +90,15 @@
         </fieldset>
 
         <fieldset class="rounded-xl border border-db-border bg-db-bg-blue p-4 sm:p-5">
-            <legend class="px-1 font-semibold text-db-navy">Tus datos</legend>
+            <legend class="flex items-center gap-2 px-1 text-base font-semibold text-db-navy">
+                <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-db-navy text-xs font-bold text-white">3</span>
+                Tus datos
+            </legend>
             <div class="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <label class="flex min-h-12 cursor-pointer items-center gap-2 rounded-xl border border-db-border bg-db-surface px-4 py-2.5 transition has-checked:border-db-navy has-checked:ring-2 has-checked:ring-db-navy/30">
+                <label class="flex min-h-12 cursor-pointer items-center gap-2 rounded-xl border border-db-border bg-db-surface px-4 py-2.5 transition hover:border-db-navy/40 hover:shadow-sm has-checked:border-db-navy has-checked:shadow-sm has-checked:ring-2 has-checked:ring-db-navy/30">
                     <input type="radio" name="donor_type" value="individual" class="h-4 w-4 accent-[var(--brand)]" @checked(old('donor_type', 'individual') === 'individual')> Persona
                 </label>
-                <label class="flex min-h-12 cursor-pointer items-center gap-2 rounded-xl border border-db-border bg-db-surface px-4 py-2.5 transition has-checked:border-db-navy has-checked:ring-2 has-checked:ring-db-navy/30">
+                <label class="flex min-h-12 cursor-pointer items-center gap-2 rounded-xl border border-db-border bg-db-surface px-4 py-2.5 transition hover:border-db-navy/40 hover:shadow-sm has-checked:border-db-navy has-checked:shadow-sm has-checked:ring-2 has-checked:ring-db-navy/30">
                     <input type="radio" name="donor_type" value="organization" class="h-4 w-4 accent-[var(--brand)]" @checked(old('donor_type') === 'organization')> Empresa u organización
                 </label>
             </div>
@@ -132,7 +141,10 @@
         </fieldset>
 
         <fieldset class="rounded-xl border border-db-border bg-db-bg-blue p-4 sm:p-5">
-            <legend class="px-1 font-semibold text-db-navy">Comprobante fiscal (opcional)</legend>
+            <legend class="flex items-center gap-2 px-1 text-base font-semibold text-db-navy">
+                <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-db-navy text-xs font-bold text-white">4</span>
+                Comprobante fiscal (opcional)
+            </legend>
             <label class="mt-2 flex items-start gap-2">
                 <input type="checkbox" name="wants_tax_receipt" value="1" @checked(old('wants_tax_receipt')) data-tax-toggle class="mt-1 h-4 w-4 accent-[var(--brand)]">
                 <span>Quiero mi comprobante fiscal (CFDI) a mi nombre. Necesitamos los datos de tu constancia de situación fiscal.</span>
@@ -164,7 +176,10 @@
         </fieldset>
 
         <fieldset class="rounded-xl border border-db-border bg-db-soft-blue p-4 sm:p-5">
-            <legend class="px-1 font-semibold text-db-navy">Privacidad</legend>
+            <legend class="flex items-center gap-2 px-1 text-base font-semibold text-db-navy">
+                <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-db-navy text-xs font-bold text-white">5</span>
+                Privacidad
+            </legend>
             <div class="mt-1 text-sm text-db-text" data-privacy-summary>
                 <p>En resumen, así usamos tus datos (el detalle está en el aviso de privacidad):</p>
                 <ul class="mt-1 list-disc space-y-1 pl-5">
@@ -185,8 +200,11 @@
             <p class="mt-2 text-sm text-db-text-muted">El agradecimiento y el recibo de tu donativo te llegan siempre, aunque no aceptes mensajes informativos, porque son parte del donativo. Si pides comprobante fiscal (CFDI), nuestra área de contabilidad lo emite por separado.</p>
         </fieldset>
 
-        <button type="submit" class="min-h-14 w-full rounded-xl px-4 py-4 text-base font-semibold text-white shadow-sm transition hover:brightness-110 sm:text-lg" style="background: var(--brand)" data-loading-text="Revisando…">
+        <button type="submit" class="group flex min-h-14 w-full items-center justify-center gap-2 rounded-xl px-4 py-4 text-base font-semibold text-white shadow-md shadow-db-navy/20 transition hover:shadow-lg hover:brightness-110 sm:text-lg" style="background: var(--brand)" data-loading-text="Revisando…">
             Continuar al resumen
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-5 w-5 transition-transform group-hover:translate-x-0.5" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+            </svg>
         </button>
     </form>
 @endsection
